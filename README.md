@@ -19,7 +19,6 @@ Here is a quick rundown of what each file in this repository contains:
 
 - [`LICENSE.txt`](LICENSE.txt): [The MIT License](https://opensource.org/licenses/MIT), an OSS approved license which grants rights to everyone to use and modify your project, and limits your liability. We highly recommend you to read the license.
 - [`.gitignore`](.gitignore): A list of files and directories that will be ignored by Git. Most of them are auto-generated or contain data that you wouldn't want to share publicly.
-- [`requirements-dev.txt`](requirements-dev.txt): Every PyPI package used for the project's development, to ensure a common development environment. More on that [below](#using-the-default-pip-setup).
 - [`pyproject.toml`](pyproject.toml): Configuration and metadata for the project, as well as the linting tool Ruff. If you're interested, you can read more about `pyproject.toml` in the [Python Packaging documentation](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/).
 - [`.pre-commit-config.yaml`](.pre-commit-config.yaml): The configuration of the [pre-commit](https://pre-commit.com/) tool.
 - [`.github/workflows/lint.yaml`](.github/workflows/lint.yaml): A [GitHub Actions](https://github.com/features/actions) workflow, a set of actions run by GitHub on their server after each push, to ensure the style requirements are met.
@@ -82,7 +81,7 @@ It is *installed* by running `pre-commit install` and can be run manually by cal
 - `check-yaml`: Lints and corrects your YAML files.
 - `end-of-file-fixer`: Makes sure you always have an empty line at the end of your file.
 - `trailing-whitespace`: Removes whitespaces at the end of each line.
-- `ruff`: Runs the Ruff linter.
+- `ruff-check`: Runs the Ruff linter.
 - `ruff-format`: Runs the Ruff formatter.
 
 ## How do I use this template?
@@ -106,12 +105,16 @@ One person in the team, preferably the leader, will have to create the repositor
 You are now ready to go! Sit down, relax, and wait for the kickstart!
 
 > [!IMPORTANT]
-> Don't forget to swap "Python Discord" in the [`LICENSE.txt`](LICENSE.txt) file for the name of each of your team members or the name of your team *after* the start of the code jam.
+> Don't forget to change the project name, description, and authors at the top of the [`pyproject.toml`](pyproject.toml) file, and swap "Python Discord" in the [`LICENSE.txt`](LICENSE.txt) file for the name of each of your team members or the name of your team *after* the start of the code jam.
 
 ### Using the default pip setup
 
-Our default setup includes a bare requirements file to be used with a [virtual environment](https://docs.python.org/3/library/venv.html).
-We recommend this if you have never used any other dependency manager, although if you have, feel free to switch to it. More on that [below](#how-do-i-adapt-this-template-to-my-project).
+Our default setup includes a dependency group to be used with a [virtual environment](https://docs.python.org/3/library/venv.html).
+It works with pip and uv, and we recommend this if you have never used any other dependency manager, although if you have, feel free to switch to it.
+More on that [below](#how-do-i-adapt-this-template-to-my-project).
+
+Dependency groups are a relatively new feature, specified in [PEP 735](https://peps.python.org/pep-0735/).
+You can read more about them in the [Python Packaging User Guide](https://packaging.python.org/en/latest/specifications/dependency-groups/).
 
 #### Creating the environment
 
@@ -145,7 +148,7 @@ $ .venv/bin/Activate.ps1
 Once the environment is created and activated, use this command to install the development dependencies.
 
 ```shell
-pip install -r requirements-dev.txt
+pip install --group dev
 ```
 
 #### Exiting the environment
@@ -163,11 +166,10 @@ Once the environment is activated, all the commands listed previously should wor
 
 ## How do I adapt this template to my project?
 
-If you wish to use Pipenv or Poetry, you will have to move the dependencies in [`requirements-dev.txt`](requirements-dev.txt) to the development dependencies of your tool.
+If you wish to use Pipenv or Poetry, you will have to move the dependencies in [`pyproject.toml`](pyproject.toml) to the development dependencies of your tool.
 
-We've included a porting of [`requirements-dev.txt`](requirements-dev.txt) to both [Poetry](samples/pyproject.toml) and [Pipenv](samples/Pipfile) in the [`samples` folder](samples).
-If you use the Poetry setup, make sure to change the project name, description, and authors at the top of the file.
-Also note that the Poetry [`pyproject.toml`](samples/pyproject.toml) file does not include the Ruff configuration, so if you simply replace the file then the Ruff configuration will be lost.
+We've included a porting to both [Poetry](samples/pyproject.toml) and [Pipenv](samples/Pipfile) in the [`samples` folder](samples).
+Note that the Poetry [`pyproject.toml`](samples/pyproject.toml) file does not include the Ruff configuration, so if you simply replace the file then the Ruff configuration will be lost.
 
 When installing new dependencies, don't forget to [pin](https://pip.pypa.io/en/stable/topics/repeatable-installs/#pinning-the-package-versions) them by adding a version tag at the end.
 For example, if I wish to install [Click](https://click.palletsprojects.com/en/8.1.x/), a quick look at [PyPI](https://pypi.org/project/click/) tells me that `8.1.7` is the latest version.

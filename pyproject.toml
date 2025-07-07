@@ -1,3 +1,25 @@
+[project]
+# This section contains metadata about your project.
+# Don't forget to change the name, description, and authors to match your project!
+name = "code-jam-template"
+description = "Add your description here"
+authors = [
+    { name = "Your Name" }
+]
+version = "0.1.0"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+# This `dev` group contains all the development requirements for our linting toolchain.
+# Don't forget to pin your dependencies!
+# This list will have to be migrated if you wish to use another dependency manager.
+dev = [
+    "pre-commit~=4.2.0",
+    "ruff~=0.12.2",
+]
+
 [tool.ruff]
 # Increase the line length. This breaks PEP8 but it is way easier to work with.
 # The original reason for this limit was a standard vim terminal is only 79 characters,
@@ -38,7 +60,4 @@ ignore = [
     "TD002",
     "TD003",
     "FIX",
-    # Annotations.
-    "ANN101",
-    "ANN102",
 ]
