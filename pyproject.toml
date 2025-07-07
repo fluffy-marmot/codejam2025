@@ -38,7 +38,4 @@ ignore = [
     "TD002",
     "TD003",
     "FIX",
-    # Annotations.
-    "ANN101",
-    "ANN102",
 ]
