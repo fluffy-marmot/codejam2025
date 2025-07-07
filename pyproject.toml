@@ -1,8 +1,11 @@
 [project]
 # This section contains metadata about your project.
-# Don't forget to change the name and description to match your project!
+# Don't forget to change the name, description, and authors to match your project!
 name = "code-jam-template"
 description = "Add your description here"
+authors = [
+    { name = "Your Name" }
+]
 version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.12"
