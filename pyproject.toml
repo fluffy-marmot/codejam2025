@@ -34,6 +34,8 @@ line-length = 119
 target-version = "py312"
 # Automatically fix auto-fixable issues.
 fix = true
+# Show applied fixes.
+show-fixes = true
 # The directory containing the source code. If you choose a different project layout
 # you will need to update this value.
 src = ["src"]
@@ -41,6 +43,7 @@ src = ["src"]
 [tool.ruff.lint]
 # Enable all linting rules.
 select = ["ALL"]
+fixable = ["I", "F401"] # I = Sorts imports, F401 = Deletes unused imports
 # Ignore some of the most obnoxious linting errors.
 ignore = [
     # Missing docstrings.
@@ -64,4 +67,14 @@ ignore = [
     "TD002",
     "TD003",
     "FIX",
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
 ]
