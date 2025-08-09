@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     """
     This is a special query that returns info of major bodies ("MB") in the solar system,
-    useful for knowing the IDs of planets, moons etc. that horizons refers to things as internally
+    useful for knowing the IDs of planets, moons etc. that horizons refers to things as internally.
     """
     horizons_query(
         query_params={
@@ -65,11 +65,6 @@ if __name__ == "__main__":
         save_to=horizons_path / "majorbody.txt",
     )
 
-    """
-    This query type returns kind of a messy info dump on physical characteristics of a planet;
-    we probably don't need most of this, but some stuff may be useful like radius of each planet
-    to decide how big to draw them? will create files like "599-Earth-info.txt" in horizons/ dir
-    """
     for planet in template:
         id = planet["id"]
         name = planet["name"]
@@ -78,6 +73,11 @@ if __name__ == "__main__":
         today = now.strftime("%Y-%m-%d")  # format as "yyyy-mm-dd" which API expects
         tomorrow = (now + timedelta(days=1)).strftime("%Y-%m-%d")
 
+        """
+        This query type returns kind of a messy info dump on physical characteristics of a planet;
+        we probably don't need most of this, but some stuff may be useful like radius of each planet
+        to decide how big to draw them? will create files like "599-Earth-info.txt" in horizons/ dir.
+        """
         horizons_query(
             query_params={
                 "COMMAND": str(id),
@@ -87,6 +87,13 @@ if __name__ == "__main__":
             save_to=horizons_path / f"{id}-{name}-info.txt",
         )
 
+        """
+        This is used to get coordinates, can be given a small stepsize to get many snapshots of coordinates
+        but for now we only need a single one, using today's date. The return is a big text dump with a lot of
+        random text info attached, using regex to extract the X and Y coordinates. I think if we ignore Z
+        coordinate, it should be basically be a projection along ecliptic plane which is a good enough
+        representation of planet positions for a simple game.
+        """
         pos_response = horizons_query(
             query_params={
                 "COMMAND": str(id),
@@ -98,6 +105,7 @@ if __name__ == "__main__":
                 "STOP_TIME": tomorrow,
                 "STEP_SIZE": "2d",  # gap of 1d between start, stop and 2d step should return single result?
             },
+            save_to=None,
         )
 
         # TODO: should probably add error checking for the re searches and horizons queries
