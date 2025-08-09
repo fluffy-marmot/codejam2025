@@ -1,4 +1,7 @@
+import json
 import logging
+import re
+from datetime import datetime, timedelta
 from pathlib import Path
 from urllib import parse, request
 
@@ -46,8 +49,11 @@ if __name__ == "__main__":
     if not horizons_path.exists():
         Path.mkdir(horizons_path, parents=True, exist_ok=True)
 
+    with Path.open(horizons_path / "template.json") as f:
+        template = json.load(f)
+
     """
-    this is a special query that returns info of major bodies ("MB") in the solar system,
+    This is a special query that returns info of major bodies ("MB") in the solar system,
     useful for knowing the IDs of planets, moons etc. that horizons refers to things as internally
     """
     horizons_query(
@@ -58,3 +64,47 @@ if __name__ == "__main__":
         },
         save_to=horizons_path / "majorbody.txt",
     )
+
+    """
+    This query type returns kind of a messy info dump on physical characteristics of a planet;
+    we probably don't need most of this, but some stuff may be useful like radius of each planet
+    to decide how big to draw them? will create files like "599-Earth-info.txt" in horizons/ dir
+    """
+    for planet in template:
+        id = planet["id"]
+        name = planet["name"]
+
+        now = datetime.now(datetime.UTC)
+        today = now.strftime("%Y-%m-%d")  # format as "yyyy-mm-dd" which API expects
+        tomorrow = (now + timedelta(days=1)).strftime("%Y-%m-%d")
+
+        horizons_query(
+            query_params={
+                "COMMAND": str(id),
+                "OBJ_DATA": "YES",  # just give some random info dump about physical characters
+                "MAKE_EPHEM": "NO",  # no position predictions
+            },
+            save_to=horizons_path / f"{id}-{name}-info.txt",
+        )
+
+        pos_response = horizons_query(
+            query_params={
+                "COMMAND": str(id),
+                "OBJ_DATA": "NO",  # we already got the OBJ_DATA info in a separate query
+                "MAKE_EPHEM": "YES",  # use this to get position vectors
+                "EPHEM_TYPE": "VECTORS",
+                "CENTER": "@10",  # 10 is the API's id for sun, so the coordinate system is sun-centered
+                "START_TIME": today,  # american date format
+                "STOP_TIME": tomorrow,
+                "STEP_SIZE": "2d",  # gap of 1d between start, stop and 2d step should return single result?
+            },
+        )
+
+        # TODO: should probably add error checking for the re searches and horizons queries
+        # looking for patterns like "X =-2367823E+10" or "Y = 27178E-02" since the API returns coordinates
+        # in scientific notation
+        planet["x"] = float(re.search(r"X =\s*(-?[\d\.]+E[\+-]\d\d)", pos_response).group(1))
+        planet["y"] = float(re.search(r"Y =\s*(-?[\d\.]+E[\+-]\d\d)", pos_response).group(1))
+
+    with Path.open(horizons_path / "planets.json", "w") as f:
+        json.dump(template, f, indent=4)

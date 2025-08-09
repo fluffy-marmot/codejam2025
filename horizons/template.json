@@ -1,0 +1,40 @@
+[
+    {
+        "id": 199,
+        "name": "Mercury",
+        "color": "#C24F3C",
+        "radius": 10
+    },
+    {
+        "id": 299,
+        "name": "Venus"
+    },
+    {
+        "id": 399,
+        "name": "Mars"
+    },
+    {
+        "id": 499,
+        "name": "Earth"
+    },
+    {
+        "id": 599,
+        "name": "Jupiter"
+    },
+    {
+        "id": 699,
+        "name": "Saturn"
+    },
+    {
+        "id": 799,
+        "name": "Uranus"
+    },
+    {
+        "id": 899,
+        "name": "Neptune"
+    },
+    {
+        "id": 999,
+        "name": "Pluto"
+    }
+]
