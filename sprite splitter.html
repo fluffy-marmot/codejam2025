@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprite Sheet Separator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .sprite-container canvas {
+            border: 2px dashed #9CA3AF;
+            margin: 0.5rem;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-4xl text-center">
+        <h1 class="text-4xl font-bold mb-2">Sprite Sheet Separator</h1>
+        <p class="text-gray-400 mb-6">Upload your sprite sheet to separate the frames and download them as a ZIP file.</p>
+
+        <div class="bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-700">
+            <input type="file" id="spriteSheetInput" class="block w-full text-sm text-gray-400
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-full file:border-0
+                file:text-sm file:font-semibold
+                file:bg-indigo-600 file:text-white
+                hover:file:bg-indigo-700
+                cursor-pointer mb-6
+            "/>
+            <div id="downloadContainer" class="hidden text-center">
+                 <button id="downloadZipBtn" class="px-6 py-3 bg-green-600 text-white rounded-full hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-semibold">
+                    Download All as ZIP
+                </button>
+            </div>
+            <canvas id="canvas" class="hidden"></canvas>
+            <div id="spriteContainer" class="sprite-container mt-8 flex flex-wrap justify-center"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Element References ---
+        const spriteSheetInput = document.getElementById('spriteSheetInput');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const spriteContainer = document.getElementById('spriteContainer');
+        const downloadContainer = document.getElementById('downloadContainer');
+        const downloadZipBtn = document.getElementById('downloadZipBtn');
+
+        let originalFileName = 'sprites';
+
+        // --- Event Listener for File Input ---
+        spriteSheetInput.addEventListener('change', handleFileSelect);
+
+        /**
+         * Handles the file selection event. Reads the file and initiates processing.
+         * @param {Event} event - The file selection event.
+         */
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                originalFileName = file.name.replace(/\.[^/.]+$/, ""); // Store filename without extension
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        processImage(img);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        /**
+         * Processes the uploaded image, separates sprites, and prepares the ZIP download.
+         * @param {HTMLImageElement} img - The uploaded image.
+         */
+        async function processImage(img) {
+            // Set canvas dimensions to match the image
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            // Clear any previously displayed sprites and hide download button
+            spriteContainer.innerHTML = '';
+            downloadContainer.classList.add('hidden');
+
+            // --- Sprite Separation Logic ---
+            const spriteWidth = 100; // You might need to adjust this value based on your sprite sheets
+            const numSprites = Math.floor(img.width / spriteWidth);
+            const zip = new JSZip();
+
+            for (let i = 0; i < numSprites; i++) {
+                const newCanvas = document.createElement('canvas');
+                newCanvas.width = spriteWidth;
+                newCanvas.height = img.height;
+                const newCtx = newCanvas.getContext('2d');
+
+                // Draw the individual sprite onto the new canvas
+                newCtx.drawImage(img, i * spriteWidth, 0, spriteWidth, img.height, 0, 0, spriteWidth, img.height);
+                
+                // Display the separated sprite frame
+                spriteContainer.appendChild(newCanvas);
+
+                // Get the image data as a blob and add to the zip file
+                const blob = await new Promise(resolve => newCanvas.toBlob(resolve, 'image/png'));
+                zip.file(`sprite_${i + 1}.png`, blob);
+            }
+            
+            // Show the download button
+            downloadContainer.classList.remove('hidden');
+
+            // --- ZIP Download Logic ---
+            downloadZipBtn.onclick = () => {
+                zip.generateAsync({ type: "blob" })
+                    .then(function(content) {
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(content);
+                        link.download = `${originalFileName}.zip`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    });
+            };
+        }
+    </script>
+
+</body>
+</html>
