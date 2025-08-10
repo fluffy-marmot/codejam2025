@@ -15,7 +15,7 @@ class SpaceMass():
         self.velocity_y = 0.0
         self.current_frame = 0
         self.animation_timer = 0
-        self.frame_delay = 0.167  # (approximately 6 FPS)
+        self.frame_delay = 135  # (approximately 6 FPS)
 
             
     def render(self, ctx, pos:list, current_time):
@@ -26,10 +26,12 @@ class SpaceMass():
             self.animation_timer = current_time
                 
         # Scale sprite based on radius
-        sprite_size = int(self.radius * 2)
+        sprite_size = int(self.radius) / 80.0
 
-        # assuming they're square, not best way to go about this
+        # assuming they're square, not best way to go about this, but we're using square sprites so far
         frame_size = self.spritesheet.height 
+
+        print(self.current_frame)
 
         ctx.drawImage(
             self.spritesheet, 
@@ -37,8 +39,8 @@ class SpaceMass():
             0,
             frame_size,
             frame_size,
-            (pos[0] - frame_size // 2) * sprite_size,
-            (pos[1] - frame_size // 2) * sprite_size,
+            (pos[0] - frame_size // 2 * sprite_size),
+            (pos[1] - frame_size // 2 * sprite_size),
             frame_size * sprite_size,
             frame_size * sprite_size
         )

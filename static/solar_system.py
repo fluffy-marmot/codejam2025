@@ -1,7 +1,11 @@
+from js import window # type: ignore
+
 from spacemass import SpaceMass
 import math
 
 GRAVI_CONST = 0.67
+planets = {planet["name"].lower(): planet for planet in window.planets}
+
 
 class SolarSystem():
     
@@ -11,19 +15,19 @@ class SolarSystem():
         self.sun_pos = [screen_size[0] // 2, screen_size[1] // 2]
         
         # Sun
-        self.sun = SpaceMass("assets/sun sprites", 1000.0, 120.0, 0.0)
+        self.sun = SpaceMass(planets["sun"]["spritesheet"], 1000.0, 120.0, 0.0)
         
         # Inner planets
-        self.mercury = SpaceMass("assets/mercury sprites", 3.3, 1.5, 2.5)
-        self.venus = SpaceMass("assets/venus sprites", 48.7, 3.8, 2.0)
-        self.earth = SpaceMass("assets/earth sprites", 59.7, 4.0, 1.8)
-        self.mars = SpaceMass("assets/mars sprites", 6.4, 2.1, 1.5)
+        self.mercury = SpaceMass(planets["mercury"]["spritesheet"], 3.3, 1.5, 2.5)
+        self.venus = SpaceMass(planets["venus"]["spritesheet"], 48.7, 3.8, 2.0)
+        self.earth = SpaceMass(planets["earth"]["spritesheet"], 59.7, 4.0, 1.8)
+        self.mars = SpaceMass(planets["mars"]["spritesheet"], 6.4, 2.1, 1.5)
         
         # Outer planets
-        self.jupiter = SpaceMass("assets/jupiter sprites", 1898.0, 44.0, 1.0)
-        self.saturn = SpaceMass("assets/saturn sprites", 568.0, 36.0, 0.8)
-        self.uranus = SpaceMass("assets/uranus sprites", 86.8, 16.0, 0.6)
-        self.neptune = SpaceMass("assets/neptune sprites", 102.0, 15.0, 0.4)
+        self.jupiter = SpaceMass(planets["jupiter"]["spritesheet"], 1898.0, 44.0, 1.0)
+        self.saturn = SpaceMass(planets["saturn"]["spritesheet"], 568.0, 36.0, 0.8)
+        self.uranus = SpaceMass(planets["uranus"]["spritesheet"], 86.8, 16.0, 0.6)
+        self.neptune = SpaceMass(planets["neptune"]["spritesheet"], 102.0, 15.0, 0.4)
         
         self.planets = [
             self.mercury, self.venus, self.earth, self.mars,
@@ -65,16 +69,14 @@ class SolarSystem():
             # Update position
             self.planet_positions[i] = [x, y]
         
-    def render(self):
+    def render(self, context, timestamp):
         """Render the entire solar system"""
-        if self.screen is not None:
-            self.screen.fill((10, 10, 30))
         # Render sun at center
-        self.sun.render(self.screen, self.sun_pos)
+        self.sun.render(context, self.sun_pos, timestamp)
         
         # Render all planets
         for i, planet in enumerate(self.planets):
-            planet.render(self.screen, self.planet_positions[i])
+            planet.render(context, self.planet_positions[i], timestamp)
 
     # I Couldn't get this to work 〒__〒
     def calculateGForce(self, planet_index: int):
@@ -96,12 +98,3 @@ class SolarSystem():
         force = GRAVI_CONST * self.sun.mass * planet.mass / (distance * distance)
         
         return force
-
-def main():
-    game = SolarSystem(screen_size=[800, 800])
-    game.run()
-
-if __name__ == "__main__":
-    main()
-
-

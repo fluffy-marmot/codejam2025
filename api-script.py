@@ -65,13 +65,14 @@ if __name__ == "__main__":
         save_to=horizons_path / "majorbody.txt",
     )
 
+    now = datetime.now(UTC)
+    today = now.strftime("%Y-%m-%d")  # format as "yyyy-mm-dd" which API expects
+    tomorrow = (now + timedelta(days=1)).strftime("%Y-%m-%d")
+
     for planet in template:
         id = planet["id"]
         name = planet["name"]
 
-        now = datetime.now(UTC)
-        today = now.strftime("%Y-%m-%d")  # format as "yyyy-mm-dd" which API expects
-        tomorrow = (now + timedelta(days=1)).strftime("%Y-%m-%d")
 
         """
         This query type returns kind of a messy info dump on physical characteristics of a planet;
@@ -86,6 +87,8 @@ if __name__ == "__main__":
             },
             save_to=horizons_path / f"{id}-{name}-info.txt",
         )
+
+        if id == 10: continue # skip sun since we don't need its position 
 
         """
         This is used to get coordinates, can be given a small stepsize to get many snapshots of coordinates

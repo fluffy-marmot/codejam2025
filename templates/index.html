@@ -8,22 +8,23 @@
     <link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
     <script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <py-env files="{{ url_for('static', filename='game.py') }} {{ url_for('static', filename='solar_system.py') }} {{ url_for('static', filename='spacemass.py') }}"></py-env>
 </head>
 <body>
     <div id="canvasContainer">
         <canvas id="gameCanvas"></canvas>
     </div>
 
-    <py-script>
+    <py-script config="{{ url_for('static', filename='pyscript.json') }}">
         from js import Image, window
 
         sprites_url = "{{ url_for('static', filename='sprites/') }}"
-        window.planets_info = {{ planets_info|tojson|safe }}
-        for planet in window.planets_info:
+
+        window.planets = {{ planets_info|tojson|safe }}
+        for planet in window.planets:
             planet["spritesheet"] = Image.new()
             planet["spritesheet"].src = sprites_url + planet["sprite"]
+
+        import game
     </py-script>
-    <py-script src="{{ url_for('static', filename='game.py') }}"></py-script>
 </body>
 </html>
