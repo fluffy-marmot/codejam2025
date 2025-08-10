@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codejam 2025 Project</title>
+
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/core.css">
+    <script type="module" src="https://pyscript.net/releases/2024.11.1/core.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <py-env files="{{ url_for('static', filename='game.py') }} {{ url_for('static', filename='solar_system.py') }} {{ url_for('static', filename='spacemass.py') }}"></py-env>
+</head>
+<body>
+    <div id="canvasContainer">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <py-script>
+        from js import Image, window
+
+        sprites_url = "{{ url_for('static', filename='sprites/') }}"
+        window.planets_info = {{ planets_info|tojson|safe }}
+        for planet in window.planets_info:
+            planet["spritesheet"] = Image.new()
+            planet["spritesheet"].src = sprites_url + planet["sprite"]
+    </py-script>
+    <py-script src="{{ url_for('static', filename='game.py') }}"></py-script>
+</body>
+</html>
