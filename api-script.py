@@ -1,48 +1,20 @@
 import json
 import logging
-import re
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from urllib import parse, request
+
+from horizons_api import HorizonsClient, TimePeriod
 
 # api access point
 HORIZONS_URL = "https://ssd.jpl.nasa.gov/api/horizons.api"
-HORIZONS_DATA_DIR = "horizons"
+HORIZONS_DATA_DIR = "horizons-data"
 
 # set logging config here, since this is a standalone script
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-
-def horizons_query(query_params: dict, save_to: Path | None = None) -> str | None:
-    """Generate Horizons API call.
-
-    Generate a Horizons API call using the given query parameters and either save it to the
-    specified Path, or return the response as a string if no Path given.
-    """
-    try:
-        # the default format, so we don't need to include this in every call
-        if "format" not in query_params:
-            query_params["format"] = "text"
-
-        url = f"{HORIZONS_URL}?{parse.urlencode(query_params)}"
-        log.info("Horizons query from %s", url)
-
-        bin_response = request.urlopen(url).read()  # noqa: S310
-        text_response = bin_response.decode()
-        log.info("Received response of %s bytes", len(bin_response))
-
-        if save_to:
-            with Path.open(save_to, "w") as f:
-                f.write(text_response)
-        else:
-            return text_response
-    except Exception as e:
-        log.exception("horizons_query raising %s", type(e).__name__)
-        raise
-
-
 if __name__ == "__main__":
+    client = HorizonsClient()
     # create dir for horizons API data if it doesn't already exist
     script_path = Path(__file__).resolve().parent
     horizons_path = script_path / HORIZONS_DATA_DIR
@@ -56,36 +28,21 @@ if __name__ == "__main__":
     This is a special query that returns info of major bodies ("MB") in the solar system,
     useful for knowing the IDs of planets, moons etc. that horizons refers to things as internally.
     """
-    horizons_query(
-        query_params={
-            "COMMAND": "MB",
-            "OBJ_DATA": "YES",
-            "MAKE_EPHEM": "NO",
-        },
-        save_to=horizons_path / "majorbody.txt",
-    )
+    major_bodies = client.get_major_bodies(save_to=horizons_path / "major_bodies.txt")
 
     for planet in template:
         id = planet["id"]
         name = planet["name"]
 
-        now = datetime.now(datetime.UTC)
-        today = now.strftime("%Y-%m-%d")  # format as "yyyy-mm-dd" which API expects
-        tomorrow = (now + timedelta(days=1)).strftime("%Y-%m-%d")
+        today = datetime.now(tz=UTC)
+        tomorrow = today + timedelta(days=1)
 
         """
         This query type returns kind of a messy info dump on physical characteristics of a planet;
         we probably don't need most of this, but some stuff may be useful like radius of each planet
         to decide how big to draw them? will create files like "599-Earth-info.txt" in horizons/ dir.
         """
-        horizons_query(
-            query_params={
-                "COMMAND": str(id),
-                "OBJ_DATA": "YES",  # just give some random info dump about physical characters
-                "MAKE_EPHEM": "NO",  # no position predictions
-            },
-            save_to=horizons_path / f"{id}-{name}-info.txt",
-        )
+        client.get_object_data(id, save_to=horizons_path / f"{id}-{name}-info.txt")
 
         """
         This is used to get coordinates, can be given a small stepsize to get many snapshots of coordinates
@@ -94,25 +51,8 @@ if __name__ == "__main__":
         coordinate, it should be basically be a projection along ecliptic plane which is a good enough
         representation of planet positions for a simple game.
         """
-        pos_response = horizons_query(
-            query_params={
-                "COMMAND": str(id),
-                "OBJ_DATA": "NO",  # we already got the OBJ_DATA info in a separate query
-                "MAKE_EPHEM": "YES",  # use this to get position vectors
-                "EPHEM_TYPE": "VECTORS",
-                "CENTER": "@10",  # 10 is the API's id for sun, so the coordinate system is sun-centered
-                "START_TIME": today,  # american date format
-                "STOP_TIME": tomorrow,
-                "STEP_SIZE": "2d",  # gap of 1d between start, stop and 2d step should return single result?
-            },
-            save_to=None,
-        )
-
-        # TODO: should probably add error checking for the re searches and horizons queries
-        # looking for patterns like "X =-2367823E+10" or "Y = 27178E-02" since the API returns coordinates
-        # in scientific notation
-        planet["x"] = float(re.search(r"X =\s*(-?[\d\.]+E[\+-]\d\d)", pos_response).group(1))
-        planet["y"] = float(re.search(r"Y =\s*(-?[\d\.]+E[\+-]\d\d)", pos_response).group(1))
+        time_period = TimePeriod(start=today, end=tomorrow)
+        pos_response = client.get_vectors(id, time_period)
 
     with Path.open(horizons_path / "planets.json", "w") as f:
         json.dump(template, f, indent=4)
