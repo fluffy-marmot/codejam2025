@@ -1,8 +1,10 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 __all__ = (
     "MajorBody",
     "ObjectData",
+    "TimePeriod",
     "VectorData",
 )
 
@@ -31,3 +33,12 @@ class VectorData:
     x: float
     y: float
     z: float | None = None
+
+
+@dataclass
+class TimePeriod:
+    """Represents a time period for ephemeris data."""
+
+    start: datetime
+    end: datetime
+    step: str = "2d"

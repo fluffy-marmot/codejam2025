@@ -1,12 +1,10 @@
 import logging
-import re
-from datetime import datetime
 from pathlib import Path
 from urllib import parse, request
 
-from .exceptions import HorizonsAPIError
-from .models import MajorBody, ObjectData, VectorData
-from .parsers import parse_body_table
+from .exceptions import HorizonsAPIError, ParsingError
+from .models import MajorBody, ObjectData, TimePeriod, VectorData
+from .parsers import MajorBodyTableParser, ObjectDataParser, VectorDataParser
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -41,8 +39,11 @@ class HorizonsClient:
 
         return data
 
-    def get_major_bodies(self) -> list[MajorBody]:
+    def get_major_bodies(self, save_to: Path | None = None) -> list[MajorBody]:
         """Get a list of major bodies.
+
+        Arguments:
+            save_to (Path | None): Optional path to save the raw response data.
 
         Returns:
             list[MajorBody]: A list of major bodies.
@@ -53,16 +54,18 @@ class HorizonsClient:
                 "COMMAND": "MB",
                 "OBJ_DATA": "YES",
                 "MAKE_EPHEM": "NO",
-            }
+            },
+            save_to=save_to,
         )
-        return parse_body_table(result_text)
+        return MajorBodyTableParser().parse(result_text)
 
-    def get_object_data(self, object_id: int, *, small_body: bool = False) -> ObjectData:
+    def get_object_data(self, object_id: int, *, small_body: bool = False, save_to: Path | None = None) -> ObjectData:
         """Get physical data for a specific body.
 
         Arguments:
             object_id (int): The ID of the object.
             small_body (bool): Whether the object is a small body.
+            save_to (Path | None): Optional path to save the raw response data.
 
         Returns:
             ObjectData: The physical data for the object.
@@ -73,25 +76,22 @@ class HorizonsClient:
                 "COMMAND": str(object_id) + (";" if small_body else ""),
                 "OBJ_DATA": "YES",
                 "MAKE_EPHEM": "NO",
-            }
+            },
+            save_to=save_to,
         )
 
-        radius_match = re.search(r"Radius \(km\)\s*=\s*([\d\.]+)", result_text)
-        radius = float(radius_match.group(1)) if radius_match else None
-
-        return ObjectData(radius=radius)
+        return ObjectDataParser().parse(result_text)
 
     def get_vectors(
-        self, object_id: int, start_time: datetime, stop_time: datetime, *, step_size: str = "2d", center: int = 10
+        self, object_id: int, time_options: TimePeriod, center: int = 10, save_to: Path | None = None
     ) -> VectorData:
         """Get positional vectors for a specific body.
 
         Arguments:
             object_id (int): The ID of the object.
-            start_time (datetime): The start time for the ephemeris.
-            stop_time (datetime): The stop time for the ephemeris.
-            step_size (str): The step size for the ephemeris.
+            time_options (TimePeriod): The time period for the ephemeris.
             center (int): The object id for center for the ephemeris. Default 10 for the sun.
+            save_to (Path | None): Optional path to save the raw response data.
 
         Returns:
             VectorData: The positional vectors for the object.
@@ -104,23 +104,16 @@ class HorizonsClient:
                 "MAKE_EPHEM": "YES",
                 "EPHEM_TYPE": "VECTORS",
                 "CENTER": f"@{center}",
-                "START_TIME": start_time.strftime(self.TIME_FORMAT),
-                "STOP_TIME": stop_time.strftime(self.TIME_FORMAT),
-                "STEP_SIZE": step_size,
-            }
+                "START_TIME": time_options.start.strftime(self.TIME_FORMAT),
+                "STOP_TIME": time_options.end.strftime(self.TIME_FORMAT),
+                "STEP_SIZE": time_options.step,
+            },
+            save_to=save_to,
         )
 
-        pattern = r"\s*=\s*(-?[\d\.]+E[\+-]\d\d)"
-        x_match = re.search("X" + pattern, result_text)
-        y_match = re.search("Y" + pattern, result_text)
-        z_match = re.search("Z" + pattern, result_text)
-
-        if not x_match or not y_match or not z_match:
-            msg = "Could not parse vector data from response."
-            raise HorizonsAPIError(msg)
-
-        return VectorData(
-            x=float(x_match.group(1)),
-            y=float(y_match.group(1)),
-            z=float(z_match.group(1)) if z_match else None,
-        )
+        vector_data = VectorDataParser().parse(result_text)
+        if vector_data is None:
+            msg = "Failed to find all vector components in the text."
+            logger.warning(msg)
+            raise ParsingError(msg)
+        return vector_data
