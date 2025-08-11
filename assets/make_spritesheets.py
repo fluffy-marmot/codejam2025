@@ -1,4 +1,8 @@
-# just a quick and dirty script to turn all these sprite files into simpler spritesheets
+"""
+just a quick and dirty script to turn a series of 50 .png sprites into a single spritesheet file. We're not
+using this otherwise and we may well not need it again, but this can live here just in case we generate more
+planet sprites on that website
+"""
 
 from pathlib import Path
 
