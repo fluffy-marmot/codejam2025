@@ -1,6 +1,7 @@
 # just a quick and dirty script to turn all these sprite files into simpler spritesheets
 
 from pathlib import Path
+
 from PIL import Image
 
 cur_dir = Path(__name__).resolve().parent

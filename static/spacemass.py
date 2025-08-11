@@ -1,5 +1,3 @@
-from js import Image # type: ignore
-import time
 
 class SpaceMass():
     
@@ -35,8 +33,8 @@ class SpaceMass():
 
         ctx.drawImage(
             self.spritesheet, 
-            frame_size * self.current_frame,
-            0,
+            frame_size * self.current_frame, # left in spritesheet
+            0,                              
             frame_size,
             frame_size,
             (pos[0] - frame_size // 2 * sprite_size),

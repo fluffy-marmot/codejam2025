@@ -1,6 +1,7 @@
-from flask import Flask, render_template
 import json
 from pathlib import Path
+
+from flask import Flask, render_template
 
 BASE_DIR = Path(__file__).resolve().parent
 app = Flask(__name__)

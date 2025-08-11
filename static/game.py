@@ -1,9 +1,8 @@
-from js import document, window # type: ignore
-from pyodide.ffi import create_proxy # type: ignore
+import time
 
+from js import document, window  # type: ignore
+from pyodide.ffi import create_proxy  # type: ignore
 from solar_system import SolarSystem
-
-import math, time
 
 container = document.getElementById("canvasContainer")
 canvas = document.getElementById("gameCanvas")
