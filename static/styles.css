@@ -1,0 +1,24 @@
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: red;
+    overflow: hidden;
+}
+
+#canvasContainer {
+    margin: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: blue;
+    flex: 1;
+}
+
+#gameCanvas {
+    margin: 0px;
+    background: black;
+    flex: 1;
+}
