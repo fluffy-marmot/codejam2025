@@ -49,6 +49,8 @@ select = ["ALL"]
 fixable = ["I", "F401"] # I = Sorts imports, F401 = Deletes unused imports
 # Ignore some of the most obnoxious linting errors.
 ignore = [
+    # Trailing comma rule, not compatible with formatter
+    "COM812",
     # Missing docstrings.
     "D100",
     "D104",
