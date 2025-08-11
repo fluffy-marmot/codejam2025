@@ -22,7 +22,7 @@ if __name__ == "__main__":
     if not horizons_path.exists():
         Path.mkdir(horizons_path, parents=True, exist_ok=True)
 
-    with Path.open(horizons_path / "template.json") as f:
+    with Path.open(horizons_path / "planets.json") as f:
         template = json.load(f)
 
     """
@@ -57,6 +57,8 @@ if __name__ == "__main__":
         """
         time_period = TimePeriod(start=today, end=tomorrow)
         pos_response = client.get_vectors(id, time_period)
+        planet["x"] = pos_response.x
+        planet["y"] = pos_response.y
 
     with Path.open(horizons_path / "planets.json", "w") as f:
         json.dump(template, f, indent=4)

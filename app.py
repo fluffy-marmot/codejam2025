@@ -6,7 +6,7 @@ from flask import Flask, render_template
 BASE_DIR = Path(__file__).resolve().parent
 app = Flask(__name__)
 
-with Path.open(BASE_DIR / "horizons" / "planets.json") as f:
+with Path.open(BASE_DIR / "horizons_data" / "planets.json") as f:
     planets_info = json.load(f)
 
 @app.route("/")
