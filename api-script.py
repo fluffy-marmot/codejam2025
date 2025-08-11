@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -7,7 +8,7 @@ from horizons_api import HorizonsClient, TimePeriod
 
 # api access point
 HORIZONS_URL = "https://ssd.jpl.nasa.gov/api/horizons.api"
-HORIZONS_DATA_DIR = "horizons-data"
+HORIZONS_DATA_DIR = "horizons_data"
 
 # set logging config here, since this is a standalone script
 logging.basicConfig(level=logging.INFO)
@@ -30,12 +31,12 @@ if __name__ == "__main__":
     """
     major_bodies = client.get_major_bodies(save_to=horizons_path / "major_bodies.txt")
 
+    today = datetime.now(tz=UTC)
+    tomorrow = today + timedelta(days=1)
+
     for planet in template:
         id = planet["id"]
         name = planet["name"]
-
-        today = datetime.now(tz=UTC)
-        tomorrow = today + timedelta(days=1)
 
         """
         This query type returns kind of a messy info dump on physical characteristics of a planet;
@@ -43,6 +44,9 @@ if __name__ == "__main__":
         to decide how big to draw them? will create files like "599-Earth-info.txt" in horizons/ dir.
         """
         client.get_object_data(id, save_to=horizons_path / f"{id}-{name}-info.txt")
+
+        if id == 10:
+            continue  # skip sun since we don't need its position
 
         """
         This is used to get coordinates, can be given a small stepsize to get many snapshots of coordinates

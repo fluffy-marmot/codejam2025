@@ -1,40 +1,48 @@
 [
     {
+        "id": 10,
+        "name": "Sun",
+        "sprite": "sun.png"
+    },
+    {
         "id": 199,
         "name": "Mercury",
-        "color": "#C24F3C",
-        "radius": 10
+        "sprite": "mercury.png"
     },
     {
         "id": 299,
-        "name": "Venus"
+        "name": "Venus",
+        "sprite": "venus.png"
     },
     {
         "id": 399,
-        "name": "Mars"
+        "name": "Mars",
+        "sprite": "mars.png"
     },
     {
         "id": 499,
-        "name": "Earth"
+        "name": "Earth",
+        "sprite": "earth.png"
     },
     {
         "id": 599,
-        "name": "Jupiter"
+        "name": "Jupiter",
+        "sprite": "jupiter.png"
     },
     {
         "id": 699,
-        "name": "Saturn"
+        "name": "Saturn",
+        "sprite": "saturn.png"
     },
     {
         "id": 799,
-        "name": "Uranus"
+        "name": "Uranus",
+        "sprite": "uranus.png"
     },
     {
         "id": 899,
-        "name": "Neptune"
-    },
-    {
-        "id": 999,
-        "name": "Pluto"
+        "name": "Neptune",
+        "sprite": "neptune.png"
+
     }
 ]
