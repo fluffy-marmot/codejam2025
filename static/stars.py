@@ -9,16 +9,16 @@ canvas = document.getElementById("gameCanvas")
 ctx = canvas.getContext("2d")
 
 class Star():
-    def __init__(self, radius, x, y, pulse_freq) -> None:
+    def __init__(self, radius, x, y, pulse_freq, shade=0, fade_in=True) -> None:
         self.radius = radius
         self.frame_delay = 135
         self.pulse_freq = pulse_freq #renaming of animation timer
         self.x = x
         self.y = y
-        self.shade = 0 #defines r,g, and b
+        self.shade = shade #defines r,g, and b
         self.alpha = 1
         self.color = "rgba(255, 255, 255, 1)"
-        self.fade_in = True
+        self.fade_in = fade_in
         self.animation_timer = 0
         self.glisten = False
     def render(self, ctx, current_time, num_stars):
@@ -84,8 +84,10 @@ class StarSystem():
             x = random.randint(0, width)
             y = random.randint(0, height)
             pulse_freq = random.randint(self.pulse_freq_min, self.pulse_freq_max)
-            radius = random.randint(self.radius_min, self.radius_max)  
-            star = Star(radius, x, y, pulse_freq)
+            radius = random.randint(self.radius_min, self.radius_max)
+            shade = random.randint(0, 255)
+            fade_in = random.choice([True, False])
+            star = Star(radius, x, y, pulse_freq, shade=shade, fade_in=fade_in)
             self.stars.append(star)
     
     def render(self, ctx, current_time):
