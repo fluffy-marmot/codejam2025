@@ -20,6 +20,8 @@
 
         sprites_url = "{{ url_for('static', filename='sprites/') }}"
 
+        window.sprites = { sprite: sprites_url + sprite + ".png" for sprite in {{ sprite_list }} }
+
         window.planets = {{ planets_info|tojson|safe }}
         for planet in window.planets:
             planet["spritesheet"] = Image.new()

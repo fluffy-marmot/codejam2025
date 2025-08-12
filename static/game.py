@@ -49,6 +49,9 @@ controls object gives access to what keys are being currently pressed, accessibl
 -   use enable_logging=False if spam of mouse/key events in browser console gets annoying
 """
 controls = GameControls(canvas, enable_logging=True)
+sprites = window.sprites
+
+log.info("Sprite URLs: %s", sprites)
 
 solar_sys = SolarSystem([canvas.width, canvas.height])
 #as number of stars increase, the radius should decrease
