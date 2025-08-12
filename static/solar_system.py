@@ -16,6 +16,7 @@ class SolarSystem():
         
         # Sun
         self.sun = SpaceMass(planets["sun"]["spritesheet"], 1000.0, 120.0, 0.0)
+        self.sun.set_position(self.sun_pos)
         
         # Inner planets
         self.mercury = SpaceMass(planets["mercury"]["spritesheet"], 3.3, 1.5, 2.5)
@@ -39,12 +40,11 @@ class SolarSystem():
         self.planet_angles: list[float] = [0, 45, 90, 135, 180, 225, 270, 315] 
         
         # Initialize planet positions
-        self.planet_positions = []
         for i, planet in enumerate(self.planets):
             angle_rad = math.radians(self.planet_angles[i])
             x = self.sun_pos[0] + self.planet_distances[i] * math.cos(angle_rad)
             y = self.sun_pos[1] + self.planet_distances[i] * math.sin(angle_rad)
-            self.planet_positions.append([x, y])
+            self.planets[1].set_position([x, y])
 
     def update(self):
         self.update_orbits(0.20)
@@ -67,22 +67,24 @@ class SolarSystem():
             y = self.sun_pos[1] + self.planet_distances[i] * math.sin(angle_rad)
             
             # Update position
-            self.planet_positions[i] = [x, y]
+            self.planets[i].set_position([x, y])
         
     def render(self, context, timestamp):
         """Render the entire solar system"""
         # Render sun at center
-        self.sun.render(context, self.sun_pos, timestamp)
+        self.sun.render(context, timestamp)
         
         # Render all planets
         for i, planet in enumerate(self.planets):
-            planet.render(context, self.planet_positions[i], timestamp)
+            planet.render(context, timestamp)
+
+
 
     # I Couldn't get this to work 〒__〒
     def calculateGForce(self, planet_index: int):
         """Calculate gravitational force between the sun and a planet"""
         # Get planet position
-        planet_pos = self.planet_positions[planet_index]
+        planet_pos = self.planets[planet_index].get_position()
         planet = self.planets[planet_index]
         
         # Calculate distance between sun and planet
