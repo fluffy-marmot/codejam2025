@@ -1,14 +1,17 @@
-import time
-
 """
 using # type: ignore since these imports are only available in the pyodide environment and pylance
 will complain about them otherwise
 """
 from js import document, window  # type: ignore
 from pyodide.ffi import create_proxy  # type: ignore
+
+from consolelogger import getLogger
+from controls import GameControls
 from solar_system import SolarSystem
-from stars import Star, StarSystem
-import math, time
+from stars import StarSystem
+import time
+
+log = getLogger(__name__)
 
 """ references to the useful html elements """
 container = document.getElementById("canvasContainer")
@@ -34,6 +37,19 @@ resize_proxy = create_proxy(resize_canvas)
 window.addEventListener("resize", resize_proxy)
 resize_canvas()
 
+"""
+controls object gives access to what keys are being currently pressed, accessible properties:
+-   controls.pressed is a set of strings representing keys and mouse buttons currently held down
+    the strings for mouse buttons are given by GameControls.MOUSE_LEFT, etc.
+-   controls.mouse gives access to all the coordinates of the last registered mouse event of each kind as the
+    tuples controls.mouse.mousedown, controls.mouse.mouseup, controls.mouse.click, controls.mouse.move
+-   use controls.mouse.move for best current coordinates of the mouse
+-   additionally, controls.click is a boolean representing if a click just occurred. It is set to False at the
+    end of each game loop if nothing makes use of the click event
+-   use enable_logging=False if spam of mouse/key events in browser console gets annoying
+"""
+controls = GameControls(canvas, enable_logging=True)
+
 solar_sys = SolarSystem([canvas.width, canvas.height])
 #as number of stars increase, the radius should decrease
 num_stars = 100
@@ -57,6 +73,10 @@ def game_loop(timestamp):
     """
     width, height = canvas.width, canvas.height
 
+    # if controls.pressed:
+    #     log.debug("Keys pressed: %s", controls.pressed)
+    # log.debug(controls.mouse.move)
+
     """ --- Do anything that needs to be drawn in this frame here --- """
     ctx.fillStyle = "black"
     ctx.fillRect(0, 0, width, height)
@@ -65,8 +85,10 @@ def game_loop(timestamp):
     solar_sys.update_orbits(0.20)
     solar_sys.render(ctx, timestamp)
 
-    """ --- That was everything that needed to be drawn in tat frame --- """
+    """ --- That was everything that needed to be drawn in that frame --- """
 
+    # if a click event occurred and nothing made use of it during this loop, clear the click flag
+    controls.click = False
     # Schedule next frame
     window.requestAnimationFrame(game_loop_proxy)
 

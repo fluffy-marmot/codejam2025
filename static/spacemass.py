@@ -29,8 +29,6 @@ class SpaceMass():
         # assuming they're square, not best way to go about this, but we're using square sprites so far
         frame_size = self.spritesheet.height 
 
-        print(self.current_frame)
-
         ctx.drawImage(
             self.spritesheet, 
             frame_size * self.current_frame, # left in spritesheet

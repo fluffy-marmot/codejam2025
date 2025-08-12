@@ -1,6 +1,8 @@
 {
   "files": {
     "/static/game.py": "",
+    "/static/consolelogger.py": "",
+    "/static/controls.py": "",
     "/static/solar_system.py": "",
     "/static/spacemass.py": "",
     "/static/stars.py": ""

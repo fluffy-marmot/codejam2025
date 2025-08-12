@@ -46,7 +46,6 @@ class Star():
             self.glisten = True
         #glisten
         if self.shade > 240 and self.glisten:
-            print("glistening...")
             glisten_line_col = self.rgba_to_str(self.shade, self.shade, self.shade, 1)
 
             ctx.strokeStyle = glisten_line_col  # or any visible color
