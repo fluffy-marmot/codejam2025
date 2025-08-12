@@ -6,10 +6,13 @@ will complain about them otherwise
 """
 from js import document, window  # type: ignore
 from pyodide.ffi import create_proxy  # type: ignore
-from solar_system import SolarSystem # to be able to import other files they need to be added to pyscript.json
+from solar_system import SolarSystem
+from stars import Star, StarSystem
+import math, time
 
 """ references to the useful html elements """
 container = document.getElementById("canvasContainer")
+width, height = container.clientWidth, container.clientHeight
 canvas = document.getElementById("gameCanvas")
 ctx = canvas.getContext("2d")
 
@@ -32,7 +35,16 @@ window.addEventListener("resize", resize_proxy)
 resize_canvas()
 
 solar_sys = SolarSystem([canvas.width, canvas.height])
-
+#as number of stars increase, the radius should decrease
+num_stars = 100
+stars = StarSystem(
+    num_stars=num_stars,
+    radius_min=1,
+    radius_max=3,
+    pulse_freq_min=3,
+    pulse_freq_max=6,
+)
+stars.populate(width, height)
 # Game state
 t0 = time.time()
 
@@ -49,6 +61,7 @@ def game_loop(timestamp):
     ctx.fillStyle = "black"
     ctx.fillRect(0, 0, width, height)
 
+    stars.render(ctx, timestamp)  
     solar_sys.update_orbits(0.20)
     solar_sys.render(ctx, timestamp)
 
