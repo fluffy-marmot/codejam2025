@@ -18,15 +18,15 @@ class SolarSystem():
         self.sun = SpaceMass(planets["sun"]["spritesheet"], 1000.0, 120.0, 0.0)
         
         # Inner planets
-        self.mercury = SpaceMass(planets["mercury"]["spritesheet"], 3.3, 1.5, 2.5)
-        self.venus = SpaceMass(planets["venus"]["spritesheet"], 48.7, 3.8, 2.0)
-        self.earth = SpaceMass(planets["earth"]["spritesheet"], 59.7, 4.0, 1.8)
-        self.mars = SpaceMass(planets["mars"]["spritesheet"], 6.4, 2.1, 1.5)
-        
+        self.mercury = SpaceMass(planets["mercury"]["spritesheet"], 3.3, 10, 2.5)
+        self.venus = SpaceMass(planets["venus"]["spritesheet"], 48.7, 14, 2.0)
+        self.earth = SpaceMass(planets["earth"]["spritesheet"], 59.7, 16, 1.8)
+        self.mars = SpaceMass(planets["mars"]["spritesheet"], 6.4, 12, 1.5)
+
         # Outer planets
-        self.jupiter = SpaceMass(planets["jupiter"]["spritesheet"], 1898.0, 44.0, 1.0)
-        self.saturn = SpaceMass(planets["saturn"]["spritesheet"], 568.0, 36.0, 0.8)
-        self.uranus = SpaceMass(planets["uranus"]["spritesheet"], 86.8, 16.0, 0.6)
+        self.jupiter = SpaceMass(planets["jupiter"]["spritesheet"], 1898.0, 64.0, 1.0)
+        self.saturn = SpaceMass(planets["saturn"]["spritesheet"], 568.0, 46.0, 0.8)
+        self.uranus = SpaceMass(planets["uranus"]["spritesheet"], 86.8, 36.0, 0.6)
         self.neptune = SpaceMass(planets["neptune"]["spritesheet"], 102.0, 15.0, 0.4)
         
         self.planets = [
@@ -35,7 +35,7 @@ class SolarSystem():
         ]
         
         # Initial positions (distance from sun in pixels)
-        self.planet_distances = [60, 80, 100, 130, 200, 270, 320, 370]
+        self.planet_distances = [110, 140, 160, 200, 270, 350, 420, 470]
         self.planet_angles: list[float] = [0, 45, 90, 135, 180, 225, 270, 315] 
         
         # Initialize planet positions

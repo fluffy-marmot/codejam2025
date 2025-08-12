@@ -20,7 +20,7 @@ request so that it will be accessible in the index.html template and afterwards 
 
 @app.route("/")
 def index():
-    return render_template("index.html", i=5)
+    return render_template("index.html", planets_info=planets_info)
 
 if __name__ == "__main__":
     app.run(debug=True)
