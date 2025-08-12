@@ -91,7 +91,7 @@ class GameControls:
             log.debug("mousemove %s, %s", event.clientX, event.clientY)
             self._last_mousemove_log = now
 
-        # TODO check event.buttons here (tells which buttons are pressed during mouse move) if mouse is pressed
+        # TODO: check event.buttons here (tells which buttons are pressed during mouse move) if mouse is pressed
         # down on canvas, then moved off, and button is unpressed while off the canvas, mouse buttons may be
         # flagged as down when they aren't anymore, checking event.buttons would be a good way to 'unstuck' them
 
@@ -105,6 +105,6 @@ class GameControls:
         if self._logging:
             log.debug("keyup %s", event.key)
 
-    # TODO probably also need a way to handle canvas losing focus and missing key up events, for example if alt
+    # TODO: probably also need a way to handle canvas losing focus and missing key up events, for example if alt
     # tabbing away, it registers a key down event, but the not a key up event since it has already lost focus by
     # that point

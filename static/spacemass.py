@@ -13,7 +13,7 @@ class SpaceMass():
         self.current_frame = 0
         self.animation_timer = 0
         self.frame_delay = 135  # (approximately 6 FPS)
-        self.position:list[float] = []
+        self.position:list[float] = [0, 0]
         
     def set_position(self, pos:list):
         self.position[0] = pos[0]
