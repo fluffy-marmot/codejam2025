@@ -1,3 +1,11 @@
+from dataclasses import dataclass
+
+@dataclass
+class Rect:
+    left: int
+    top: int
+    width: int
+    height: int
 
 class SpaceMass():
     
@@ -21,20 +29,29 @@ class SpaceMass():
         
     def get_position(self):
         return self.position
+    
+    def get_bounding_box(self) -> Rect:
+        # Scale sprite based on radius
+        sprite_size = int(self.radius) / 80.0
+        frame_size = self.spritesheet.height
 
-            
+        return Rect(
+            (self.position[0] - frame_size // 2 * sprite_size),
+            (self.position[1] - frame_size // 2 * sprite_size),
+            frame_size * sprite_size,
+            frame_size * sprite_size
+        )
+    
     def render(self, ctx, current_time):
 
         # Update animation timing
         if current_time - self.animation_timer >= self.frame_delay:
             self.current_frame = (self.current_frame + 1) % self.num_frames
             self.animation_timer = current_time
-                
-        # Scale sprite based on radius
-        sprite_size = int(self.radius) / 80.0
 
         # assuming they're square, not best way to go about this, but we're using square sprites so far
         frame_size = self.spritesheet.height 
+        bounds = self.get_bounding_box()
 
         ctx.drawImage(
             self.spritesheet, 
@@ -42,8 +59,8 @@ class SpaceMass():
             0,                              
             frame_size,
             frame_size,
-            (self.position[0] - frame_size // 2 * sprite_size),
-            (self.position[1] - frame_size // 2 * sprite_size),
-            frame_size * sprite_size,
-            frame_size * sprite_size
+            bounds.left,
+            bounds.top,
+            bounds.width,
+            bounds.height
         )
