@@ -8,6 +8,7 @@ from pyodide.ffi import create_proxy  # type: ignore
 from consolelogger import getLogger
 from controls import GameControls
 from solar_system import SolarSystem
+from player import Player
 from stars import StarSystem
 import time
 
@@ -54,6 +55,19 @@ sprites = window.sprites
 log.info("Sprite URLs: %s", sprites)
 
 solar_sys = SolarSystem([canvas.width, canvas.height])
+
+# Player setup. index.html will assign window.player_sprite (an Image) before importing game.
+player_sprite = getattr(window, "player_sprite", None)
+log.info("Player sprite object: %s", player_sprite)
+if player_sprite is not None:
+    log.info("Player sprite src: %s", getattr(player_sprite, 'src', 'no src'))
+    player = Player(player_sprite, canvas.width / 2, canvas.height / 2, scale=0.1)
+    window.player = player  # expose instance globally
+    log.info("Created player at position (%s, %s)", player.x, player.y)
+else:
+    log.error("No player_sprite found on window object!")
+    player = None
+    
 #as number of stars increase, the radius should decrease
 num_stars = 100
 stars = StarSystem(
@@ -87,6 +101,23 @@ def game_loop(timestamp):
     stars.render(ctx, timestamp)  
     solar_sys.update_orbits(0.20)
     solar_sys.render(ctx, timestamp)
+
+    # update + render player
+    global last_time
+    if not hasattr(game_loop, "_last_real_time"):
+        game_loop._last_real_time = time.time()
+    now_real = time.time()
+    dt = now_real - game_loop._last_real_time
+    game_loop._last_real_time = now_real
+    if player:
+        player.update(dt, controls)
+        player.render(ctx)
+    else:
+        # Draw a debug indicator if no player
+        ctx.fillStyle = "yellow"
+        ctx.beginPath()
+        ctx.arc(canvas.width / 2, canvas.height / 2, 15, 0, 6.283)
+        ctx.fill()
 
     """ --- That was everything that needed to be drawn in that frame --- """
 
