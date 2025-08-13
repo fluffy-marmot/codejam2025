@@ -48,7 +48,7 @@ controls object gives access to what keys are being currently pressed, accessibl
     end of each game loop if nothing makes use of the click event
 -   use enable_logging=False if spam of mouse/key events in browser console gets annoying
 """
-controls = GameControls(canvas, enable_logging=True)
+controls = GameControls(canvas)
 sprites = window.sprites
 
 log.info("Sprite URLs: %s", sprites)
@@ -79,6 +79,11 @@ def game_loop(timestamp):
     # if controls.pressed:
     #     log.debug("Keys pressed: %s", controls.pressed)
     # log.debug(controls.mouse.move)
+    if controls.click:
+        log.debug("Mouse click at: %s", controls.mouse.click)
+        planet = solar_sys.get_clicked_object(controls.mouse.click)
+        if planet:
+            log.debug("Clicked on: %s", planet.name)
 
     """ --- Do anything that needs to be drawn in this frame here --- """
     ctx.fillStyle = "black"
