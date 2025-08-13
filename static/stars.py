@@ -7,6 +7,8 @@ import random
 
 canvas = document.getElementById("gameCanvas")
 ctx = canvas.getContext("2d")
+container = document.getElementById("canvasContainer")
+width, height = container.clientWidth, container.clientHeight
 
 class Star():
     def __init__(self, radius, x, y, pulse_freq, shade=0, fade_in=True) -> None:
@@ -76,17 +78,24 @@ class StarSystem():
         self.frame_delay = 135
         self.num_stars = num_stars
         self.stars = [] #will be filled with star classes
+        self.animation_timer = 0
+    
+    def create_star(self, x='random', y='random'):
+            if x == 'random':
+                x = random.randint(0, width)
+            if y == 'random':
+                y = random.randint(0, height)
 
-    def populate(self, width, height):
-        "creates a list of many Stars"
-        for _ in range(self.num_stars):
-            x = random.randint(0, width)
-            y = random.randint(0, height)
             pulse_freq = random.randint(self.pulse_freq_min, self.pulse_freq_max)
             radius = random.randint(self.radius_min, self.radius_max)
             shade = random.randint(0, 255)
             fade_in = random.choice([True, False])
-            star = Star(radius, x, y, pulse_freq, shade=shade, fade_in=fade_in)
+            return Star(radius, x, y, pulse_freq, shade=shade, fade_in=fade_in)
+
+    def populate(self):
+        "creates a list of many Stars"
+        for _ in range(self.num_stars):
+            star = self.create_star()
             self.stars.append(star)
     
     def render(self, ctx, current_time):
@@ -96,4 +105,18 @@ class StarSystem():
 
         if len(self.stars) == 0:
             raise ValueError("There are no stars! Did you populate?")
-        
+    
+    def star_shift(self, current_time, shiftrate):
+        if current_time - self.animation_timer >= shiftrate:
+            self.animation_timer = current_time
+            replacement_stars = []
+            for index, star in enumerate(self.stars):
+                star.x += 1
+                if abs(star.x) > width or abs(star.y) > height:
+                    print("star off screen!")
+                    self.stars.pop(index) 
+                    replacement_star = self.create_star(0, 'random')
+                    replacement_stars.append(replacement_star)
+                    
+            for star in replacement_stars:
+                self.stars.append(star)

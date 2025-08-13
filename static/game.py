@@ -11,7 +11,8 @@ from solar_system import SolarSystem
 from player import Player
 from stars import StarSystem
 import time
-
+from gameplay import jupiter
+from astriod import AsteriodAttack
 log = getLogger(__name__)
 
 """ references to the useful html elements """
@@ -77,10 +78,12 @@ stars = StarSystem(
     pulse_freq_min=3,
     pulse_freq_max=6,
 )
-stars.populate(width, height)
+stars.populate()
 # Game state
 t0 = time.time()
-
+rotational_speed = 135
+jupiter.animation_timer = rotational_speed
+my_attack = AsteriodAttack(2000)
 def game_loop(timestamp):
     """
     Game loop that will run roughly 60 / sec, though the timing may be dependant on monitor refresh rates?
@@ -89,7 +92,10 @@ def game_loop(timestamp):
     fillRect.
     """
     width, height = canvas.width, canvas.height
-
+    ctx.imageSmoothingEnabled = False
+    ctx.webkitImageSmoothingEnabled = False
+    ctx.mozImageSmoothingEnabled = False
+    ctx.msImageSmoothingEnabled = False
     # if controls.pressed:
     #     log.debug("Keys pressed: %s", controls.pressed)
     # log.debug(controls.mouse.move)
@@ -99,9 +105,13 @@ def game_loop(timestamp):
     ctx.fillRect(0, 0, width, height)
 
     stars.render(ctx, timestamp)  
-    solar_sys.update_orbits(0.20)
-    solar_sys.render(ctx, timestamp)
-
+    stars.star_shift(timestamp, 5)
+    # solar_sys.update_orbits(0.20)
+    # solar_sys.render(ctx, timestamp)
+    jupiter.render(ctx, timestamp)
+    x, y = player.get_position()
+    my_attack.generate_astriods(timestamp, 50, x, y, 50)
+    my_attack.render(ctx, timestamp)
     # update + render player
     global last_time
     if not hasattr(game_loop, "_last_real_time"):
