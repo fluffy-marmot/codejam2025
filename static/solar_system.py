@@ -54,7 +54,7 @@ class SolarSystem:
             angle_rad = math.radians(self.planet_angles[i])
             x = self.sun_pos.x + self.planet_distances[i] * math.cos(angle_rad)
             y = self.sun_pos.y + self.planet_distances[i] * math.sin(angle_rad)
-            self.planets[i].set_position(Position(x, y))
+            planet.set_position(Position(x, y))
 
     def update(self):
         self.update_orbits(0.20)

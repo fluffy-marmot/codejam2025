@@ -5,6 +5,7 @@
     "/static/controls.py": "",
     "/static/solar_system.py": "",
     "/static/spacemass.py": "",
-    "/static/stars.py": ""
+    "/static/stars.py": "",
+    "/static/player.py": ""
   }
 }
