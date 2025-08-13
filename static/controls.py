@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from time import time
 
-from consolelogger import getLogger
 from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
-from spacemass import Position
+
+from .common import Position
+from .consolelogger import getLogger
 
 log = getLogger(__name__)
 

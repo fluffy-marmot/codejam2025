@@ -1,8 +1,9 @@
 from pathlib import Path
 
-from js import Image  # type: ignore
-from spacemass import SpaceMass
+from js import Image  # type: ignore[attr-defined]
 
+from .spacemass import SpaceMass
+from .common import Position
 
 class Scene:
     def __init__(self) -> None:
@@ -29,9 +30,9 @@ class Scene:
             self.background = Image.new()
             self.background.src = path
 
-    def setChildPos(self, child: SpaceMass, pos: list):
+    def setChildPos(self, child: SpaceMass, pos: Position):
         if child in self.children and isinstance(child, SpaceMass):
-            child.position = pos
+            child.set_position(pos)
 
     def render(self, ctx, current_time):
         self.update()
@@ -39,5 +40,5 @@ class Scene:
             ctx.drawImage(self.background, 0, 0, ctx.canvas.width, ctx.canvas.height)
 
         for child in self.children:
-            if child.position:
+            if child.get_position():
                 child.render(ctx, current_time)

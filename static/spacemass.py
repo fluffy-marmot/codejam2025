@@ -1,20 +1,6 @@
-from dataclasses import dataclass
-from typing import NamedTuple, overload
+from typing import overload
 
-
-@dataclass
-class Rect:
-    left: int
-    top: int
-    right: int
-    bottom: int
-    width: int
-    height: int
-
-
-class Position(NamedTuple):
-    x: float
-    y: float
+from .common import Position, Rect
 
 
 class SpaceMass:

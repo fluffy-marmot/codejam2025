@@ -1,6 +1,6 @@
 import logging
 
-from js import console  # type: ignore
+from js import console  # type: ignore[attr-defined]
 
 
 class ConsoleHandler(logging.Handler):
@@ -21,7 +21,7 @@ class ConsoleHandler(logging.Handler):
 
 
 # why the heck does python's standard lib use camelCase? :(  I'm just mimicking logging.getLogger ...
-def getLogger(name):
+def getLogger(name) -> logging.Logger:
     """
     to get a logger in another file that outputs only to the browser javascript console and doesn't insert
     its output into the webpage, simply use:

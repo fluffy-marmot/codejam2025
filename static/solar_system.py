@@ -1,7 +1,9 @@
 import math
 
-from js import window  # type: ignore
-from spacemass import Position, SpaceMass
+from js import window  # type: ignore[attr-defined]
+
+from .common import Position
+from .spacemass import SpaceMass
 
 GRAVI_CONST = 0.67
 planets = {planet["name"].lower(): planet for planet in window.planets}
@@ -82,17 +84,25 @@ class SolarSystem:
         self.sun.render(context, timestamp)
 
         # Render all planets
-        for i, planet in enumerate(self.planets):
+        for planet in self.planets:
             planet.render(context, timestamp)
 
     def get_distance(self, pos1: Position, pos2: Position) -> float:
-        """Calculate the distance between two positions."""
+        """Calculate the distance between two positions.
+
+        Arguments:
+            pos1 (Position): The first position.
+            pos2 (Position): The second position.
+
+        Returns:
+            The distance between the two positions.
+        """
         dx = pos2.x - pos1.x
         dy = pos2.y - pos1.y
         return math.sqrt(dx * dx + dy * dy)
 
     # I Couldn't get this to work 〒__〒
-    def calculateGForce(self, planet_index: int):
+    def calculateGForce(self, planet_index: int) -> float:
         """Calculate gravitational force between the sun and a planet"""
         # Get planet position
         planet_pos = self.planets[planet_index].get_position()
@@ -110,15 +120,23 @@ class SolarSystem:
 
         return force
 
-    def get_clicked_object(self, click_pos: Position) -> SpaceMass | None:
+    def get_object_at_position(self, pos: Position) -> SpaceMass | None:
+        """Get the space object at the specified position, excluding the sun.
+
+        Arguments:
+            pos (Position): The position to check.
+
+        Returns:
+            The space object at the position if found, otherwise None.
+        """
         closest_planet = None
         closest_distance = float("inf")
         for i, planet in enumerate(self.planets):
             rect = planet.get_bounding_box()
-            if rect.left <= click_pos.x <= rect.right and rect.top <= click_pos.y <= rect.bottom:
+            if rect.left <= pos.x <= rect.right and rect.top <= pos.y <= rect.bottom:
                 # Calculate distance from click point to planet center
                 planet_center = Position(rect.left + rect.width / 2, rect.top + rect.height / 2)
-                distance = self.get_distance(click_pos, planet_center)
+                distance = self.get_distance(pos, planet_center)
                 if distance < closest_distance:
                     closest_distance = distance
                     closest_planet = planet

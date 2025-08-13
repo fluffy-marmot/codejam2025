@@ -1,11 +1,12 @@
 import time
 
-from consolelogger import getLogger
-from controls import GameControls
 from js import document, window  # type: ignore[attr-defined]
 from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
-from solar_system import SolarSystem
-from stars import StarSystem
+
+from .consolelogger import getLogger
+from .controls import GameControls
+from .solar_system import SolarSystem
+from .stars import StarSystem
 
 log = getLogger(__name__)
 
@@ -82,7 +83,7 @@ def game_loop(timestamp: float) -> None:
     # Not doing anything with this at the moment, but this returns the planet clicked, if any
     if controls.click:
         log.debug("Mouse click at: %s", controls.mouse.click)
-        planet = solar_sys.get_clicked_object(controls.mouse.click)
+        planet = solar_sys.get_object_at_position(controls.mouse.click)
         if planet:
             log.debug("Clicked on: %s", planet.name)
 

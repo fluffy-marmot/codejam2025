@@ -1,7 +1,7 @@
 import math
 import random
 
-from js import document  # type: ignore
+from js import document  # type: ignore[attr-defined]
 
 canvas = document.getElementById("gameCanvas")
 ctx = canvas.getContext("2d")
