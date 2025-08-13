@@ -1,43 +1,41 @@
-from js import document, window  # type: ignore
-from pyodide.ffi import create_proxy  # type: ignore
-# from pyscript import Element # type: ignore
-
 from dataclasses import dataclass
 from time import time
 
+from common import Position
 from consolelogger import getLogger
+from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
 
 log = getLogger(__name__)
 
+
 @dataclass
 class MousePositions:
-    mousedown: tuple
-    mouseup: tuple
-    click: tuple
-    move: tuple
+    mousedown: Position
+    mouseup: Position
+    click: Position
+    move: Position
+
 
 class GameControls:
-
     MOUSE_LEFT = "mouse_left"
     MOUSE_RIGHT = "mouse_right"
     MOUSE_MIDDLE = "mouse_middle"
 
     # just to use internally in the class to translate the 0, 1, 2 javascript convention
-    mouse_button_map = { 0: MOUSE_LEFT, 1: MOUSE_MIDDLE, 2: MOUSE_RIGHT }
+    mouse_button_map = {0: MOUSE_LEFT, 1: MOUSE_MIDDLE, 2: MOUSE_RIGHT}
 
     def __init__(self, canvas, enable_logging=False):
-
         # keep track of what keys \ mouse buttons are currently pressed in this variable
         self.pressed = set()
         # keep track of the last coordinates used by all mouse events
-        self.mouse = MousePositions( (0, 0), (0, 0), (0, 0), (0, 0) )
+        self.mouse = MousePositions(Position(0, 0), Position(0, 0), Position(0, 0), Position(0, 0))
         # keep track of whether a click has occurred
         self.click = False
 
         # enable logging of mouse and key events in the console for debug purposes
         self._logging = enable_logging
         self._last_mousemove_log = 0
-        
+
         on_canvas_mousedown_proxy = create_proxy(self.on_canvas_mousedown)
         on_canvas_mouseup_proxy = create_proxy(self.on_canvas_mouseup)
         on_canvas_click_proxy = create_proxy(self.on_canvas_click)
@@ -53,50 +51,51 @@ class GameControls:
         canvas.addEventListener("keyup", on_keyup_proxy)
 
     # helper method so we don't need to copy and paste this to every mouse event
-    def get_mouse_event_coords(self, event):
+    def get_mouse_event_coords(self, event) -> Position:
         canvas_rect = event.target.getBoundingClientRect()
-        return event.clientX - canvas_rect.left, event.clientY - canvas_rect.top
+        return Position(event.clientX - canvas_rect.left, event.clientY - canvas_rect.top)
 
     def on_canvas_mousedown(self, event):
-        x, y = self.get_mouse_event_coords(event)
-        self.mouse.move = (x, y)
-        self.mouse.mousedown = (x, y)
+        pos = self.get_mouse_event_coords(event)
+        self.mouse.move = pos
+        self.mouse.mousedown = pos
 
         if event.button in self.mouse_button_map:
             button = self.mouse_button_map[event.button]
             self.pressed.add(button)
-        
+
             if self._logging:
-                log.debug("mousedown %s %s, %s", button, x, y)
+                log.debug("mousedown %s %s, %s", button, pos.x, pos.y)
 
     def on_canvas_mouseup(self, event):
-        x, y = self.get_mouse_event_coords(event)
-        self.mouse.move = (x, y)
-        self.mouse.mouseup = (x, y)
+        pos = self.get_mouse_event_coords(event)
+        self.mouse.move = pos
+        self.mouse.mouseup = pos
 
         if event.button in self.mouse_button_map:
             button = self.mouse_button_map[event.button]
-            if button in self.pressed: self.pressed.remove(button)
-        
+            if button in self.pressed:
+                self.pressed.remove(button)
+
             if self._logging:
-                log.debug("mouseup %s %s, %s", button, x, y)
+                log.debug("mouseup %s %s, %s", button, pos.x, pos.y)
 
     def on_canvas_click(self, event):
-        x, y = self.get_mouse_event_coords(event)
-        self.mouse.move = (x, y)
-        self.mouse.click = (x, y)
+        pos = self.get_mouse_event_coords(event)
+        self.mouse.move = pos
+        self.mouse.click = pos
 
         self.click = True
         if self._logging:
-            log.debug("click %s, %s", x, y)
+            log.debug("click %s, %s", pos.x, pos.y)
 
     def on_canvas_mousemove(self, event):
-        x, y = self.get_mouse_event_coords(event)
-        self.mouse.move = (x, y)
+        pos = self.get_mouse_event_coords(event)
+        self.mouse.move = pos
 
         # throttle number of mousemove logs to prevent spamming the debug log
-        if self._logging and (now:=time()) - self._last_mousemove_log > 2.5:
-            log.debug("mousemove %s, %s", x, y)
+        if self._logging and (now := time()) - self._last_mousemove_log > 2.5:
+            log.debug("mousemove %s, %s", pos.x, pos.y)
             self._last_mousemove_log = now
 
         # TODO: check event.buttons here (tells which buttons are pressed during mouse move) if mouse is pressed
@@ -109,7 +108,8 @@ class GameControls:
             log.debug("keydown %s", event.key)
 
     def on_keyup(self, event):
-        if event.key in self.pressed: self.pressed.remove(event.key)
+        if event.key in self.pressed:
+            self.pressed.remove(event.key)
         if self._logging:
             log.debug("keyup %s", event.key)
 

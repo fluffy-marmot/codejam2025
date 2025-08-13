@@ -6,6 +6,7 @@
     "/static/solar_system.py": "",
     "/static/spacemass.py": "",
     "/static/stars.py": "",
-    "/static/player.py": ""
+    "/static/player.py": "",
+    "/static/common.py": ""
   }
 }

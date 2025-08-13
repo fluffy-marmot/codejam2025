@@ -19,15 +19,13 @@ request so that it will be accessible in the index.html template and afterwards 
 """
 
 sprite_path = Path(BASE_DIR / "static" / "sprites")
-sprite_list = [ sprite_file.stem for sprite_file in sprite_path.iterdir() ]
+sprite_list = [sprite_file.stem for sprite_file in sprite_path.iterdir()]
+
 
 @app.route("/")
 def index():
-    return render_template(
-        "index.html", 
-        planets_info=planets_info,
-        sprite_list=sprite_list
-    )
+    return render_template("index.html", planets_info=planets_info, sprite_list=sprite_list)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

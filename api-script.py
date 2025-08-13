@@ -1,6 +1,5 @@
 import json
 import logging
-import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 

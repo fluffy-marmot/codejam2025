@@ -18,5 +18,5 @@ for planet in "earth jupiter mars mercury neptune saturn sun uranus venus".split
     for fr in range(1, 51):
         frame = Image.open(planet_dir / f"sprite_{fr}.png")
         spritesheet.paste(frame, (width * (fr - 1), 0))
-    
+
     spritesheet.save(cur_dir.parent / "static" / "sprites" / f"{planet}.png")

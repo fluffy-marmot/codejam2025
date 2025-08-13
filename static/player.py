@@ -1,7 +1,9 @@
-from js import window  # type: ignore
+from common import Position
 from consolelogger import getLogger
+from js import window  # type: ignore[attr-defined]
 
 log = getLogger(__name__)
+
 
 class Player:
     """Controllable player sprite.
@@ -15,7 +17,7 @@ class Player:
         self.x = x
         self.y = y
         self.speed = speed
-        self.scale = scale 
+        self.scale = scale
         self._half_w = 0
         self._half_h = 0
 
@@ -70,10 +72,10 @@ class Player:
         if not self.sprite:
             log.debug("Player render: no sprite")
             return
-        
+
         if not self._half_w or not self._half_h:
             self._update_sprite_dims()
-        
+
         draw_x = self.x - self._half_w
         draw_y = self.y - self._half_h
         scaled_w = self._half_w * 2
@@ -88,6 +90,6 @@ class Player:
     def set_position(self, x: float, y: float):
         self.x = x
         self.y = y
-        
-    def get_position(self):
-        return [self.x, self.y]
+
+    def get_position(self) -> Position:
+        return Position(self.x, self.y)
