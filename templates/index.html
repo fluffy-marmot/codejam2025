@@ -30,10 +30,6 @@
             planet["spritesheet"] = Image.new()
             planet["spritesheet"].src = sprites_url + planet["sprite"]
 
-        player_sprite = Image.new()
-        player_sprite.src = sprites_url + 'player.png'
-        window.player_sprite = player_sprite  # game.py will wrap this in a Player object
-
         # exposing canvas globally (used by Player clamp logic)
         from js import document
         window.gameCanvas = document.getElementById('gameCanvas')

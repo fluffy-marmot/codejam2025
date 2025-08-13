@@ -54,17 +54,9 @@ log.info("Sprite URLs: %s", sprites)
 
 solar_sys = SolarSystem([canvas.width, canvas.height])
 
-# Player setup. index.html will assign window.player_sprite (an Image) before importing game.
-player_sprite = getattr(window, "player_sprite", None)
-log.info("Player sprite object: %s", player_sprite)
-if player_sprite is not None:
-    log.info("Player sprite src: %s", getattr(player_sprite, "src", "no src"))
-    player = Player(player_sprite, canvas.width / 2, canvas.height / 2, scale=0.1)
-    window.player = player  # expose instance globally
-    log.info("Created player at position (%s, %s)", player.x, player.y)
-else:
-    log.error("No player_sprite found on window object!")
-    player = None
+player = Player(sprites["player"], canvas.width / 2, canvas.height / 2, scale=0.1)
+window.player = player  # expose instance globally
+log.info("Created player at position (%s, %s)", player.x, player.y)
 
 # as number of stars increase, the radius should decrease
 num_stars = 100
