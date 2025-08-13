@@ -5,7 +5,8 @@ from consolelogger import getLogger
 from controls import GameControls
 from player import Player
 from scene_classes import SceneManager, Scene
-from scene_descriptions import create_scene_manager
+from scene_descriptions import create_scene_manager, PlanetScene
+from asteroid import AsteroidAttack
 
 log = getLogger(__name__)
 
@@ -43,6 +44,8 @@ player = window.player = Player(sprites["player"], canvas.width / 2, canvas.heig
 log.info("Sprite URLs: %s", sprites)
 log.info("Created player at position (%s, %s)", player.x, player.y)
 
+asteroids = AsteroidAttack(sprites["asteroids"], width, height, 256, 1500)
+
 def game_loop(timestamp: float) -> None:
     """
     timestamp argument will be time since the html document began to load, in miliseconds.
@@ -55,10 +58,18 @@ def game_loop(timestamp: float) -> None:
     ctx.webkitImageSmoothingEnabled = False
     ctx.mozImageSmoothingEnabled = False
     ctx.msImageSmoothingEnabled = False
+    
 
     active_scene: Scene = scene_manager.get_active_scene()
     active_scene.render(ctx, timestamp)
 
+    # Draw asteroids only when in a planet scene
+    # Update + render handles spawn and drawing
+    if isinstance(active_scene, PlanetScene):
+        # If the active scene is a planet scene, we can draw asteroids
+        asteroids.update_and_render(ctx, timestamp)
+        player.render(ctx, timestamp)
+        
     """ --- That was everything that needed to be drawn in that frame --- """
 
     # if a click event occurred and nothing made use of it during this loop, clear the click flag

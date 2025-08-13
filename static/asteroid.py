@@ -1,59 +1,167 @@
-from js import document, window # type: ignore
-from pyodide.ffi import create_proxy # type: ignore
+from js import document, window  # type: ignore[attr-defined]
 import math
-from solar_system import SolarSystem
-
 import random
 
+# Canvas dimensions
 canvas = document.getElementById("gameCanvas")
-ctx = canvas.getContext("2d")
 container = document.getElementById("canvasContainer")
-width, height = container.clientWidth, container.clientHeight
+SCREEN_W, SCREEN_H = container.clientWidth, container.clientHeight
+
+ASTEROID_SHEET = window.sprites["asteroids"]
 
 class Asteroid:
-    def __init__(self, max_size, x, y, travel_time):
-        self.max_size = max_size
-        self.size = 0
+    def __init__(self, sheet, x, y, vx, vy, target_size_px, sprite_index, grid_cols=11, cell_size=0):
+        self.sheet = sheet
         self.x = x
         self.y = y
-        self.travel_time = travel_time
-        self.animation_timer = 0
-        self.color = "rgb(255, 255, 255)"
-        self.hazard = False #when its big enough (close enough, then the player could die)
-    def render(self, ctx, current_time):
-        if current_time - self.animation_timer >= self.travel_time:
-            self.animation_timer = current_time
+        self.velocity_x = vx
+        self.velocity_y = vy
+        self.rotation = 0.0
+        self.rotation_speed = random.uniform(-0.5, 0.5)
+        self.target_size = target_size_px
+        self.size = 5.0
+        self.grow_rate = target_size_px / 10.0
+        self.sprite_index = sprite_index
+        self.grid_cols = grid_cols
+        self.cell_size = cell_size
+        self.hitbox_scale = 0.55
+        self._last_timestamp = None
+        self.linger_time = 0.5
+        self.full_size_reached_at = None
 
-            if self.size + 1 < self.max_size:
-                self.size += 1
-            #TODO: Its red for a very short time, not enough for player warning
-            if self.size >= self.max_size / 2:
-                print("its hazard now")
-                self.hazard = True
-                self.color = "rgb(255, 0, 0)"
+    def _ensure_cell_size(self):
+        if not self.cell_size:
+            width = getattr(self.sheet, "width", 0) or 0
+            if width:
+                self.cell_size = max(1, int(width // self.grid_cols))
 
-        ctx.fillStyle = self.color
-        ctx.beginPath()
-        ctx.rect(self.x, self.y, self.size, self.size)
-        ctx.fill()
+    def _src_rect(self):
+        self._ensure_cell_size()
+        col = self.sprite_index % self.grid_cols
+        row = self.sprite_index // self.grid_cols
+        x = col * self.cell_size
+        y = row * self.cell_size
+        return x, y, self.cell_size, self.cell_size
+
+    def update(self, timestamp: float):
+        if self._last_timestamp is None:
+            self._last_timestamp = timestamp
+            return
+        dt = (timestamp - self._last_timestamp) / 1000.0  # seconds
+        self._last_timestamp = timestamp
+
+        # Movement
+        self.x += self.velocity_x * dt
+        self.y += self.velocity_y * dt
+        self.rotation += self.rotation_speed * dt
+
+        # Growth towards target size
+        if self.size < self.target_size:
+            self.size = self.size + self.grow_rate * dt
+            if self.size >= self.target_size:
+                self.full_size_reached_at = timestamp
+
+    def render(self, ctx, timestamp_ms: float):
+        self.update(timestamp_ms)
+        self._ensure_cell_size()
+        if not self.cell_size:
+            return
+
+        x, y, w, h = self._src_rect()
+        size = self.size
+
+        ctx.save()
+        ctx.translate(self.x, self.y)
+        ctx.rotate(self.rotation)
+        
+        # Draw centered
+        ctx.drawImage(self.sheet, x, y, w, h, -size / 2, -size / 2, size, size)
+
+        # Debug hit circle
+        if getattr(window, "DEBUG_DRAW_HITBOXES", False):
+            ctx.beginPath()
+            ctx.strokeStyle = "#FF5555"
+            ctx.lineWidth = 2
+            ctx.arc(0, 0, size * self.hitbox_scale, 0, 2 * math.pi)
+            ctx.stroke()
+        ctx.restore()
+
+    def is_off_screen(self, w=SCREEN_W, h=SCREEN_H, margin=50) -> bool:
+        return self.x < -margin or self.x > w + margin or self.y < -margin or self.y > h + margin
+
+    def get_hit_circle(self):
+        return (self.x, self.y, self.size * self.hitbox_scale)
+
+    def should_be_removed(self):
+        """Check if asteroid should be removed (off screen or lingered too long)"""
+        if self.is_off_screen():
+            return True
+        if self.full_size_reached_at and (self._last_timestamp - self.full_size_reached_at) > (self.linger_time * 1000):
+            return True
+        return False
 
 
 class AsteroidAttack:
-    def __init__(self, spawnrate):
-       self.astriods = []
-       self.timer = 0
-       self.spawnrate = spawnrate
-    
-    def generate_astriods(self, current_time, size, player_x, player_y, speed):
-        if current_time - self.timer >= self.spawnrate:
-            self.timer = current_time
-            astriod = Asteroid(size, player_x, player_y, speed)
-            self.astriods.append(astriod)
-    
-    def render(self, ctx, current_time):
-        for index, astriod in enumerate(self.astriods):
-            astriod.render(ctx, current_time)
-            if astriod.hazard:
-                self.astriods.pop(index)
-            
+    def __init__(self, spritesheet, width: int, height: int, max_size_px: float, spawnrate: int):
+        self.sheet = spritesheet
+        self.w = width
+        self.h = height
+        self.max_size = max_size_px or 256
+        self.spawnrate = spawnrate
+        self.asteroids: list[Asteroid] = []
+        self._last_spawn = 0.0
+        self.max_asteroids = 15
+        self.cell_size = 0
+
+    def _spawn_one(self):
+        # Don't spawn if at the limit
+        if len(self.asteroids) >= self.max_asteroids:
+            return
+        
+        # Planet area (left side)
+        planet_width = self.w * 0.3 
+        space_start_x = planet_width + 50
+
+        x = random.uniform(space_start_x, self.w)
+        y = random.uniform(0, self.h)
+        
+        if x < (SCREEN_W / 2):
+            velocity_x = random.uniform(-15, -5)
+            if y < (SCREEN_H / 2):
+                velocity_y = random.uniform(-15, -5)
+            else:
+                velocity_y = random.uniform(5, 15)
+        else:
+            velocity_x = random.uniform(5, 15)
+            if y < (SCREEN_H / 2):
+                velocity_y = random.uniform(-15, -5)
+            else:
+                velocity_y = random.uniform(5, 15)
+
+        target = random.uniform(self.max_size * 0.7, self.max_size * 1.3)
+        idx = random.randint(0, 105)
+        a = Asteroid(self.sheet, x, y, velocity_x, velocity_y, target, idx)
+        self.asteroids.append(a)
+
+    def spawn_and_update(self, timestamp: float):
+        # Spawn at interval and only if under limit
+        if self._last_spawn == 0.0 or (timestamp - self._last_spawn) >= self.spawnrate:
+            if len(self.asteroids) < self.max_asteroids:
+                self._last_spawn = timestamp
+                self._spawn_one()
+
+        # Remove asteroids
+        before_count = len(self.asteroids)
+        self.asteroids = [a for a in self.asteroids if not a.should_be_removed()]
+        after_count = len(self.asteroids)
+        
+        # If we removed asteroids, we can spawn new ones
+        if after_count < before_count:
+            self._last_spawn = timestamp - (self.spawnrate * 0.7)
+
+    def update_and_render(self, ctx, timestamp: float):
+        self.spawn_and_update(timestamp)
+        for a in self.asteroids:
+            a.render(ctx, timestamp)
+
 

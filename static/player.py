@@ -14,7 +14,7 @@ class Player(SceneObject):
     Movement keys: WASD or Arrow keys.
     """
 
-    def __init__(self, sprite, x: float, y: float, speed: float = 100.0, scale: float = 0.1):
+    def __init__(self, sprite, x: float, y: float, speed: float = 100.0, scale: float = 0.1, hitbox_scale: float = 0.5):
         super().__init__()
 
         self.sprite = sprite
@@ -24,6 +24,7 @@ class Player(SceneObject):
         self.scale = scale
         self._half_w = 0
         self._half_h = 0
+        self.hitbox_scale = hitbox_scale
 
     def _update_sprite_dims(self):
         w = getattr(self.sprite, "width", 0) or 0
@@ -91,7 +92,18 @@ class Player(SceneObject):
         scaled_h = self._half_h * 2
         # this log is a bit spammy, commented it out unless needed
         # log.debug("Drawing player at (%s,%s) size=%sx%s", draw_x, draw_y, scaled_w, scaled_h)
+        
         ctx.drawImage(self.sprite, draw_x, draw_y, scaled_w, scaled_h)
+        
+        # Debug draw hitbox
+        if getattr(window, "DEBUG_DRAW_HITBOXES", False):
+            ctx.beginPath()
+            cx, cy, r = self.get_hit_circle()
+            ctx.strokeStyle = "#00FF88"
+            ctx.lineWidth = 2
+            ctx.arc(cx, cy, r, 0, 6.28318)
+            ctx.stroke()
+        
         # # outline for visibility
         # ctx.strokeStyle = "white"  # type: ignore[attr-defined]
         # ctx.lineWidth = 2  # type: ignore[attr-defined]
@@ -105,3 +117,18 @@ class Player(SceneObject):
 
     def get_position(self) -> Position:
         return Position(self.x, self.y)
+    
+    def get_hit_circle(self) -> tuple[float, float, float]:
+        """ Get the hit circle for the player"""
+        if not self._half_w or not self._half_h:
+            self._update_sprite_dims()
+        r = min(self._half_w, self._half_h) * self.hitbox_scale
+        return (self.x, self.y, r)
+
+    def get_aabb(self) -> tuple[float, float, float, float]:
+        """ Get the axis-aligned bounding box (AABB) for the player """
+        if not self._half_w or not self._half_h:
+            self._update_sprite_dims()
+        hw = self._half_w * self.hitbox_scale
+        hh = self._half_h * self.hitbox_scale
+        return (self.x - hw, self.y - hh, self.x + hw, self.y + hh)

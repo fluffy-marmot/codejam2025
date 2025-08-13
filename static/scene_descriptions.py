@@ -94,7 +94,6 @@ class PlanetScene(Scene):
         self.stars.star_shift(timestamp, 5)
         self.stars.render(ctx, timestamp)
         self.planet.render(ctx, timestamp)
-        get_player().render(ctx, timestamp) # this scene includes player
 
         # TODO: temporary debug\demo functionality: click goes back to the OrbitingPlanets scene
         if get_controls().click:

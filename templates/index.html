@@ -22,8 +22,14 @@
 
         window.sprites = {}
         for sprite in {{ sprite_list }}:
+            # Skip the folder name "asteroid sprites" which would request "asteroid%20sprites.png"
+            if sprite == "asteroid sprites":
+                continue
             window.sprites[sprite] = Image.new()
             window.sprites[sprite].src = sprites_url + sprite + ".png"
+
+        window.sprites["asteroids"] = Image.new()
+        window.sprites["asteroids"].src = sprites_url + "asteroids.png"
 
         window.planets = {{ planets_info|tojson|safe }}
         for planet in window.planets:
