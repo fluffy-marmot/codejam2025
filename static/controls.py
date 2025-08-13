@@ -1,15 +1,13 @@
-from js import document, window  # type: ignore
-from pyodide.ffi import create_proxy  # type: ignore
 # from pyscript import Element # type: ignore
-
 from dataclasses import dataclass
 from time import time
 
 from consolelogger import getLogger
-
+from pyodide.ffi import create_proxy  # type: ignore
 from spacemass import Position
 
 log = getLogger(__name__)
+
 
 @dataclass
 class MousePositions:
@@ -18,17 +16,16 @@ class MousePositions:
     click: Position
     move: Position
 
-class GameControls:
 
+class GameControls:
     MOUSE_LEFT = "mouse_left"
     MOUSE_RIGHT = "mouse_right"
     MOUSE_MIDDLE = "mouse_middle"
 
     # just to use internally in the class to translate the 0, 1, 2 javascript convention
-    mouse_button_map = { 0: MOUSE_LEFT, 1: MOUSE_MIDDLE, 2: MOUSE_RIGHT }
+    mouse_button_map = {0: MOUSE_LEFT, 1: MOUSE_MIDDLE, 2: MOUSE_RIGHT}
 
     def __init__(self, canvas, enable_logging=False):
-
         # keep track of what keys \ mouse buttons are currently pressed in this variable
         self.pressed = set()
         # keep track of the last coordinates used by all mouse events
@@ -39,7 +36,7 @@ class GameControls:
         # enable logging of mouse and key events in the console for debug purposes
         self._logging = enable_logging
         self._last_mousemove_log = 0
-        
+
         on_canvas_mousedown_proxy = create_proxy(self.on_canvas_mousedown)
         on_canvas_mouseup_proxy = create_proxy(self.on_canvas_mouseup)
         on_canvas_click_proxy = create_proxy(self.on_canvas_click)
@@ -67,7 +64,7 @@ class GameControls:
         if event.button in self.mouse_button_map:
             button = self.mouse_button_map[event.button]
             self.pressed.add(button)
-        
+
             if self._logging:
                 log.debug("mousedown %s %s, %s", button, pos.x, pos.y)
 
@@ -78,8 +75,9 @@ class GameControls:
 
         if event.button in self.mouse_button_map:
             button = self.mouse_button_map[event.button]
-            if button in self.pressed: self.pressed.remove(button)
-        
+            if button in self.pressed:
+                self.pressed.remove(button)
+
             if self._logging:
                 log.debug("mouseup %s %s, %s", button, pos.x, pos.y)
 
@@ -97,7 +95,7 @@ class GameControls:
         self.mouse.move = pos
 
         # throttle number of mousemove logs to prevent spamming the debug log
-        if self._logging and (now:=time()) - self._last_mousemove_log > 2.5:
+        if self._logging and (now := time()) - self._last_mousemove_log > 2.5:
             log.debug("mousemove %s, %s", pos.x, pos.y)
             self._last_mousemove_log = now
 
@@ -111,7 +109,8 @@ class GameControls:
             log.debug("keydown %s", event.key)
 
     def on_keyup(self, event):
-        if event.key in self.pressed: self.pressed.remove(event.key)
+        if event.key in self.pressed:
+            self.pressed.remove(event.key)
         if self._logging:
             log.debug("keyup %s", event.key)
 

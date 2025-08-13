@@ -1,5 +1,7 @@
 import logging
+
 from js import console  # type: ignore
+
 
 class ConsoleHandler(logging.Handler):
     def emit(self, record):
@@ -17,6 +19,7 @@ class ConsoleHandler(logging.Handler):
         except Exception:
             self.handleError(record)
 
+
 # why the heck does python's standard lib use camelCase? :(  I'm just mimicking logging.getLogger ...
 def getLogger(name):
     """
@@ -32,7 +35,7 @@ def getLogger(name):
 
     # set up the logger so it only outputs to the browser's javascript console. Spiffy
     handler = ConsoleHandler()
-    formatter = logging.Formatter('[%(levelname)s %(asctime)s] %(name)s: %(message)s', datefmt="%H:%M:%S")
+    formatter = logging.Formatter("[%(levelname)s %(asctime)s] %(name)s: %(message)s", datefmt="%H:%M:%S")
     handler.setFormatter(formatter)
 
     logger.handlers.clear()

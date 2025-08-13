@@ -2,14 +2,15 @@
 using # type: ignore since these imports are only available in the pyodide environment and pylance
 will complain about them otherwise
 """
-from js import document, window  # type: ignore
-from pyodide.ffi import create_proxy  # type: ignore
+
+import time
 
 from consolelogger import getLogger
 from controls import GameControls
+from js import document, window  # type: ignore
+from pyodide.ffi import create_proxy  # type: ignore
 from solar_system import SolarSystem
 from stars import StarSystem
-import time
 
 log = getLogger(__name__)
 
@@ -19,6 +20,7 @@ width, height = container.clientWidth, container.clientHeight
 canvas = document.getElementById("gameCanvas")
 ctx = canvas.getContext("2d")
 
+
 # TODO: the resizing and margins needs work, I suck with CSS / html layout
 def resize_canvas(event=None):
     width, height = container.clientWidth, container.clientHeight
@@ -26,6 +28,7 @@ def resize_canvas(event=None):
     canvas.height = height
     canvas.style.width = f"{width}px"
     canvas.style.height = f"{height}px"
+
 
 """
 I'm not entirely clear on what this create_proxy is doing, but when passing python functions as callbacks to
@@ -54,7 +57,7 @@ sprites = window.sprites
 log.info("Sprite URLs: %s", sprites)
 
 solar_sys = SolarSystem([canvas.width, canvas.height])
-#as number of stars increase, the radius should decrease
+# as number of stars increase, the radius should decrease
 num_stars = 100
 stars = StarSystem(
     num_stars=num_stars,
@@ -66,6 +69,7 @@ stars = StarSystem(
 stars.populate(width, height)
 # Game state
 t0 = time.time()
+
 
 def game_loop(timestamp):
     """
@@ -79,6 +83,8 @@ def game_loop(timestamp):
     # if controls.pressed:
     #     log.debug("Keys pressed: %s", controls.pressed)
     # log.debug(controls.mouse.move)
+
+    # Not doing anything with this at the moment, but this returns the planet clicked, if any
     if controls.click:
         log.debug("Mouse click at: %s", controls.mouse.click)
         planet = solar_sys.get_clicked_object(controls.mouse.click)
@@ -89,7 +95,7 @@ def game_loop(timestamp):
     ctx.fillStyle = "black"
     ctx.fillRect(0, 0, width, height)
 
-    stars.render(ctx, timestamp)  
+    stars.render(ctx, timestamp)
     solar_sys.update_orbits(0.20)
     solar_sys.render(ctx, timestamp)
 
@@ -99,6 +105,7 @@ def game_loop(timestamp):
     controls.click = False
     # Schedule next frame
     window.requestAnimationFrame(game_loop_proxy)
+
 
 game_loop_proxy = create_proxy(game_loop)
 
