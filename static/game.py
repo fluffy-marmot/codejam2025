@@ -1,13 +1,12 @@
 import time
 
+from consolelogger import getLogger
+from controls import GameControls
 from js import document, window  # type: ignore[attr-defined]
+from player import Player
 from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
-
-from .consolelogger import getLogger
-from .controls import GameControls
-from .solar_system import SolarSystem
-from .stars import StarSystem
-from .player import Player
+from solar_system import SolarSystem
+from stars import StarSystem
 
 log = getLogger(__name__)
 
@@ -59,15 +58,15 @@ solar_sys = SolarSystem([canvas.width, canvas.height])
 player_sprite = getattr(window, "player_sprite", None)
 log.info("Player sprite object: %s", player_sprite)
 if player_sprite is not None:
-    log.info("Player sprite src: %s", getattr(player_sprite, 'src', 'no src'))
+    log.info("Player sprite src: %s", getattr(player_sprite, "src", "no src"))
     player = Player(player_sprite, canvas.width / 2, canvas.height / 2, scale=0.1)
     window.player = player  # expose instance globally
     log.info("Created player at position (%s, %s)", player.x, player.y)
 else:
     log.error("No player_sprite found on window object!")
     player = None
-    
-#as number of stars increase, the radius should decrease
+
+# as number of stars increase, the radius should decrease
 num_stars = 100
 stars = StarSystem(
     num_stars=num_stars,

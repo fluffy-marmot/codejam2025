@@ -1,9 +1,9 @@
 from pathlib import Path
 
+from common import Position
 from js import Image  # type: ignore[attr-defined]
+from spacemass import SpaceMass
 
-from .spacemass import SpaceMass
-from .common import Position
 
 class Scene:
     def __init__(self) -> None:

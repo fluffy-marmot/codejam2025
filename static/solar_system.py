@@ -1,9 +1,8 @@
 import math
 
+from common import Position
 from js import window  # type: ignore[attr-defined]
-
-from .common import Position
-from .spacemass import SpaceMass
+from spacemass import SpaceMass
 
 GRAVI_CONST = 0.67
 planets = {planet["name"].lower(): planet for planet in window.planets}

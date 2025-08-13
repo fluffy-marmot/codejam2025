@@ -1,6 +1,6 @@
 from typing import overload
 
-from .common import Position, Rect
+from common import Position, Rect
 
 
 class SpaceMass:
