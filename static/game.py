@@ -1,9 +1,12 @@
+from js import document, window  # type: ignore[attr-defined]
+from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
+
 from consolelogger import getLogger
 from controls import GameControls
-from js import document, window  # type: ignore[attr-defined]
 from player import Player
-from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
 from solar_system import SolarSystem
+from scene_classes import SceneManager, Scene
+from scene_descriptions import create_scene_manager
 from stars import StarSystem
 
 log = getLogger(__name__)
@@ -11,8 +14,8 @@ log = getLogger(__name__)
 # References to the useful html elements
 container = document.getElementById("canvasContainer")
 width, height = container.clientWidth, container.clientHeight
-canvas = document.getElementById("gameCanvas")
-ctx = canvas.getContext("2d")
+canvas = window.canvas = document.getElementById("gameCanvas")
+ctx = window.ctx = window.canvas.getContext("2d")
 
 
 # TODO: the resizing and margins needs work, I suck with CSS / html layout
@@ -23,6 +26,9 @@ def resize_canvas(event=None) -> None:
     canvas.style.width = f"{width}px"
     canvas.style.height = f"{height}px"
 
+resize_proxy = create_proxy(resize_canvas)
+window.addEventListener("resize", resize_proxy)
+resize_canvas()
 
 """
 I'm not entirely clear on what this create_proxy is doing, but when passing python functions as callbacks to
@@ -30,61 +36,39 @@ I'm not entirely clear on what this create_proxy is doing, but when passing pyth
 instead of passing them as straight up python function references.
 """
 
-resize_proxy = create_proxy(resize_canvas)
-window.addEventListener("resize", resize_proxy)
-resize_canvas()
-
-window.controls = GameControls(canvas)
-controls = window.controls
+# setup of important systems, expose them globally via window object
+controls = window.controls = GameControls(canvas)
+scene_manager = window.scene_manager = create_scene_manager()
 sprites = window.sprites
-log.debug("Sprite URLs: %s", sprites)
+player = window.player = Player(sprites["player"], canvas.width / 2, canvas.height / 2, scale=0.1)
 
-solar_sys = SolarSystem([canvas.width, canvas.height])
-
-player = Player(sprites["player"], canvas.width / 2, canvas.height / 2, scale=0.1)
-window.player = player  # expose instance globally
+log.info("Sprite URLs: %s", sprites)
 log.info("Created player at position (%s, %s)", player.x, player.y)
 
-# as number of stars increase, the radius should decrease
-num_stars = 100
-stars = StarSystem(
-    num_stars=num_stars,
-    radius_min=1,
-    radius_max=3,
-    pulse_freq_min=3,
-    pulse_freq_max=6,
-)
-stars.populate(width, height)
-
-
 def game_loop(timestamp: float) -> None:
-    """Game loop that will run roughly 60 / sec, though the timing may be dependant on monitor refresh rates (?).
-
-    When called, timestamp argument will be time since the html document began to load, measured in miliseconds.
-    We can use ctx, a wrapper for an html canvas's context to draw things to the canvas, with e.g. methods like
-    fillRect.
     """
-    width, height = canvas.width, canvas.height
+    timestamp argument will be time since the html document began to load, in miliseconds.
+    """
 
     # if controls.pressed:
     #     log.debug("Keys pressed: %s", controls.pressed)
     # log.debug(controls.mouse.move)
 
     # Not doing anything with this at the moment, but this returns the planet clicked, if any
+    """ TODO
     if controls.click:
         log.debug("Mouse click at: %s", controls.mouse.click)
         planet = solar_sys.get_object_at_position(controls.mouse.click)
         if planet:
             log.debug("Clicked on: %s", planet.name)
+    """
 
     """ --- Do anything that needs to be drawn in this frame here --- """
-    ctx.fillStyle = "black"
-    ctx.fillRect(0, 0, width, height)
+    active_scene: Scene = scene_manager.get_active_scene()
+    active_scene.render(ctx, timestamp)
 
-    stars.render(ctx, timestamp)
-    solar_sys.update_orbits(0.20)
-    solar_sys.render(ctx, timestamp)
-
+    
+    """ TODO
     if player:
         player.render(ctx, timestamp)
     else:
@@ -93,6 +77,7 @@ def game_loop(timestamp: float) -> None:
         ctx.beginPath()
         ctx.arc(canvas.width / 2, canvas.height / 2, 15, 0, 6.283)
         ctx.fill()
+    """
 
     """ --- That was everything that needed to be drawn in that frame --- """
 
@@ -102,7 +87,6 @@ def game_loop(timestamp: float) -> None:
     window.requestAnimationFrame(game_loop_proxy)
 
 
-game_loop_proxy = create_proxy(game_loop)
-
 # Start loop
+game_loop_proxy = create_proxy(game_loop)
 window.requestAnimationFrame(game_loop_proxy)

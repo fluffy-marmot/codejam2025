@@ -3,6 +3,8 @@ import random
 
 from js import document  # type: ignore[attr-defined]
 
+from scene_classes import SceneObject
+
 canvas = document.getElementById("gameCanvas")
 ctx = canvas.getContext("2d")
 
@@ -68,8 +70,10 @@ class Star:
         return f"rgba({r}, {g}, {b}, {a})"
 
 
-class StarSystem:
+class StarSystem(SceneObject):
     def __init__(self, num_stars, radius_min, radius_max, pulse_freq_min, pulse_freq_max, num_frames=50):
+        super().__init__()
+
         self.num_frames = num_frames
         self.radius_min = radius_min
         self.radius_max = radius_max
@@ -98,3 +102,5 @@ class StarSystem:
 
         if len(self.stars) == 0:
             raise ValueError("There are no stars! Did you populate?")
+
+        super().render(ctx, timestamp)

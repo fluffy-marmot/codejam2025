@@ -1,12 +1,16 @@
 {
   "files": {
     "/static/game.py": "",
+
+    "/static/common.py": "",
     "/static/consolelogger.py": "",
     "/static/controls.py": "",
-    "/static/solar_system.py": "",
+    "/static/scene_classes.py": "",
+    "/static/scene_descriptions.py": "",
+
     "/static/spacemass.py": "",
-    "/static/stars.py": "",
+    "/static/solar_system.py": "",
     "/static/player.py": "",
-    "/static/common.py": ""
+    "/static/stars.py": ""
   }
 }

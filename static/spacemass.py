@@ -1,12 +1,14 @@
 from typing import overload
 
 from common import Position, Rect
+from scene_classes import SceneObject
 
-
-class SpaceMass:
+class SpaceMass(SceneObject):
     def __init__(
         self, name: str, spritesheet, mass: float, radius: float, init_velocity: float, num_frames=50
     ) -> None:
+        super().__init__()
+
         self.name = name
         self.spritesheet = spritesheet
         self.num_frames = num_frames
@@ -70,3 +72,5 @@ class SpaceMass:
             bounds.width,
             bounds.height,
         )
+
+        super().render(ctx, timestamp)

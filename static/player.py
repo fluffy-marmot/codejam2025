@@ -1,11 +1,13 @@
+from js import window  # type: ignore[attr-defined]
+
 from common import Position
 from consolelogger import getLogger
-from js import window  # type: ignore[attr-defined]
+from scene_classes import SceneObject
 
 log = getLogger(__name__)
 
 
-class Player:
+class Player(SceneObject):
     """Controllable player sprite.
 
     Exposed globally as window.player so other modules can use it.
@@ -13,6 +15,8 @@ class Player:
     """
 
     def __init__(self, sprite, x: float, y: float, speed: float = 100.0, scale: float = 0.1):
+        super().__init__()
+
         self.sprite = sprite
         self.x = x
         self.y = y
@@ -20,7 +24,6 @@ class Player:
         self.scale = scale
         self._half_w = 0
         self._half_h = 0
-        self.last_frame_time = 0
 
     def _update_sprite_dims(self):
         w = getattr(self.sprite, "width", 0) or 0
@@ -86,6 +89,7 @@ class Player:
         draw_y = self.y - self._half_h
         scaled_w = self._half_w * 2
         scaled_h = self._half_h * 2
+        # this log is a bit spammy, commented it out unless needed
         # log.debug("Drawing player at (%s,%s) size=%sx%s", draw_x, draw_y, scaled_w, scaled_h)
         ctx.drawImage(self.sprite, draw_x, draw_y, scaled_w, scaled_h)
         # # outline for visibility
@@ -93,7 +97,7 @@ class Player:
         # ctx.lineWidth = 2  # type: ignore[attr-defined]
         # ctx.strokeRect(draw_x, draw_y, scaled_w, scaled_h)  # type: ignore[attr-defined]
 
-        self.last_frame_time = timestamp
+        super().render(ctx, timestamp)
 
     def set_position(self, x: float, y: float):
         self.x = x

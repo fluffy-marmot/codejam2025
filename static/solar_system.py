@@ -1,7 +1,9 @@
+from js import window  # type: ignore[attr-defined]
+
 import math
 
 from common import Position
-from js import window  # type: ignore[attr-defined]
+from scene_classes import SceneObject
 from spacemass import SpaceMass
 
 GRAVI_CONST = 0.67
@@ -12,8 +14,10 @@ from consolelogger import getLogger
 log = getLogger(__name__)
 
 
-class SolarSystem:
+class SolarSystem(SceneObject):
     def __init__(self, screen_size=[512, 512]):
+        super().__init__()
+
         # Sun position (center of screen)
         self.sun_pos: Position = Position(screen_size[0] // 2, screen_size[1] // 2)
 
@@ -77,14 +81,16 @@ class SolarSystem:
             # Update position
             self.planets[i].set_position(Position(x, y))
 
-    def render(self, context, timestamp):
+    def render(self, ctx, timestamp):
         """Render the entire solar system"""
         # Render sun at center
-        self.sun.render(context, timestamp)
+        self.sun.render(ctx, timestamp)
 
         # Render all planets
         for planet in self.planets:
-            planet.render(context, timestamp)
+            planet.render(ctx, timestamp)
+
+        super().render(ctx, timestamp)
 
     def get_distance(self, pos1: Position, pos2: Position) -> float:
         """Calculate the distance between two positions.
