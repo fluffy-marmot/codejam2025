@@ -47,7 +47,7 @@ class SpaceMass:
         top = self.y - frame_size // 2 * sprite_size
         size = frame_size * sprite_size
 
-        return Rect(left, top, left + size, top + size, size, size)
+        return Rect(left, top, size, size)
 
     def render(self, ctx, current_time):
         # Update animation timing
