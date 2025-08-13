@@ -34,11 +34,11 @@ class Scene:
         if child in self.children and isinstance(child, SpaceMass):
             child.set_position(pos)
 
-    def render(self, ctx, current_time):
+    def render(self, ctx, timestamp):
         self.update()
         if self.background:
             ctx.drawImage(self.background, 0, 0, ctx.canvas.width, ctx.canvas.height)
 
         for child in self.children:
             if child.get_position():
-                child.render(ctx, current_time)
+                child.render(ctx, timestamp)

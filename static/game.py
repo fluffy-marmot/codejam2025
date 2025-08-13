@@ -1,5 +1,3 @@
-import time
-
 from consolelogger import getLogger
 from controls import GameControls
 from js import document, window  # type: ignore[attr-defined]
@@ -36,21 +34,10 @@ resize_proxy = create_proxy(resize_canvas)
 window.addEventListener("resize", resize_proxy)
 resize_canvas()
 
-"""
-controls object gives access to what keys are being currently pressed, accessible properties:
--   controls.pressed is a set of strings representing keys and mouse buttons currently held down
-    the strings for mouse buttons are given by GameControls.MOUSE_LEFT, etc.
--   controls.mouse gives access to all the coordinates of the last registered mouse event of each kind as the
-    tuples controls.mouse.mousedown, controls.mouse.mouseup, controls.mouse.click, controls.mouse.move
--   use controls.mouse.move for best current coordinates of the mouse
--   additionally, controls.click is a boolean representing if a click just occurred. It is set to False at the
-    end of each game loop if nothing makes use of the click event
--   use enable_logging=False if spam of mouse/key events in browser console gets annoying
-"""
-controls = GameControls(canvas)
+window.controls = GameControls(canvas)
+controls = window.controls
 sprites = window.sprites
-
-log.info("Sprite URLs: %s", sprites)
+log.debug("Sprite URLs: %s", sprites)
 
 solar_sys = SolarSystem([canvas.width, canvas.height])
 
@@ -68,8 +55,6 @@ stars = StarSystem(
     pulse_freq_max=6,
 )
 stars.populate(width, height)
-# Game state
-t0 = time.time()
 
 
 def game_loop(timestamp: float) -> None:
@@ -100,16 +85,8 @@ def game_loop(timestamp: float) -> None:
     solar_sys.update_orbits(0.20)
     solar_sys.render(ctx, timestamp)
 
-    # update + render player
-    global last_time
-    if not hasattr(game_loop, "_last_real_time"):
-        game_loop._last_real_time = time.time()
-    now_real = time.time()
-    dt = now_real - game_loop._last_real_time
-    game_loop._last_real_time = now_real
     if player:
-        player.update(dt, controls)
-        player.render(ctx)
+        player.render(ctx, timestamp)
     else:
         # Draw a debug indicator if no player
         ctx.fillStyle = "yellow"

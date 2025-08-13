@@ -20,6 +20,7 @@ class Player:
         self.scale = scale
         self._half_w = 0
         self._half_h = 0
+        self.last_frame_time = 0
 
     def _update_sprite_dims(self):
         w = getattr(self.sprite, "width", 0) or 0
@@ -28,7 +29,7 @@ class Player:
             self._half_w = (w * self.scale) / 2
             self._half_h = (h * self.scale) / 2
 
-    def update(self, dt: float, controls):
+    def update(self, timestamp: float):
         """Update player position based on pressed keys.
 
         dt: time delta (seconds)
@@ -41,7 +42,7 @@ class Player:
         if not self._half_w or not self._half_h:
             self._update_sprite_dims()
 
-        keys = controls.pressed
+        keys = window.controls.pressed
         dx = dy = 0.0
         if "w" in keys or "ArrowUp" in keys:
             dy -= 1
@@ -52,6 +53,8 @@ class Player:
         if "d" in keys or "ArrowRight" in keys:
             dx += 1
 
+        # miliseconds to seconds since that's what was being used
+        dt = (timestamp - self.last_frame_time) / 1000
         if dx or dy:
             # normalize diagonal movement
             mag = (dx * dx + dy * dy) ** 0.5
@@ -68,10 +71,13 @@ class Player:
             self.x = min(max(self._half_w, self.x), max_x)
             self.y = min(max(self._half_h, self.y), max_y)
 
-    def render(self, ctx):
+
+    def render(self, ctx, timestamp):
         if not self.sprite:
             log.debug("Player render: no sprite")
             return
+        
+        self.update(timestamp)
 
         if not self._half_w or not self._half_h:
             self._update_sprite_dims()
@@ -80,12 +86,14 @@ class Player:
         draw_y = self.y - self._half_h
         scaled_w = self._half_w * 2
         scaled_h = self._half_h * 2
-        log.debug("Drawing player at (%s,%s) size=%sx%s", draw_x, draw_y, scaled_w, scaled_h)
+        # log.debug("Drawing player at (%s,%s) size=%sx%s", draw_x, draw_y, scaled_w, scaled_h)
         ctx.drawImage(self.sprite, draw_x, draw_y, scaled_w, scaled_h)
         # # outline for visibility
         # ctx.strokeStyle = "white"  # type: ignore[attr-defined]
         # ctx.lineWidth = 2  # type: ignore[attr-defined]
         # ctx.strokeRect(draw_x, draw_y, scaled_w, scaled_h)  # type: ignore[attr-defined]
+
+        self.last_frame_time = timestamp
 
     def set_position(self, x: float, y: float):
         self.x = x

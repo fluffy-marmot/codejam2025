@@ -49,11 +49,11 @@ class SpaceMass:
 
         return Rect(left, top, size, size)
 
-    def render(self, ctx, current_time):
+    def render(self, ctx, timestamp):
         # Update animation timing
-        if current_time - self.animation_timer >= self.frame_delay:
+        if timestamp - self.animation_timer >= self.frame_delay:
             self.current_frame = (self.current_frame + 1) % self.num_frames
-            self.animation_timer = current_time
+            self.animation_timer = timestamp
 
         # assuming they're square, not best way to go about this, but we're using square sprites so far
         frame_size = self.spritesheet.height

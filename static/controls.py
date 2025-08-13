@@ -17,6 +17,19 @@ class MousePositions:
 
 
 class GameControls:
+    """
+    in game.py using 
+        controls = GameControls(canvas)
+    controls object gives access to what keys are being currently pressed, accessible properties:
+    -   controls.pressed is a set of strings representing keys and mouse buttons currently held down
+        the strings for mouse buttons are given by GameControls.MOUSE_LEFT, etc.
+    -   controls.mouse gives access to all the coordinates of the last registered mouse event of each kind as the
+        tuples controls.mouse.mousedown, controls.mouse.mouseup, controls.mouse.click, controls.mouse.move
+    -   use controls.mouse.move for best current coordinates of the mouse
+    -   additionally, controls.click is a boolean representing if a click just occurred. It is set to False at the
+        end of each game loop if nothing makes use of the click event
+    -   use enable_logging=False if spam of mouse/key events in browser console gets annoying
+    """
     MOUSE_LEFT = "mouse_left"
     MOUSE_RIGHT = "mouse_right"
     MOUSE_MIDDLE = "mouse_middle"

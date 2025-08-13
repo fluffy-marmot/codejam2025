@@ -21,10 +21,10 @@ class Star:
         self.animation_timer = 0
         self.glisten = False
 
-    def render(self, ctx, current_time, num_stars) -> None:
+    def render(self, ctx, timestamp, num_stars) -> None:
         # pulse
-        if current_time - self.animation_timer >= self.pulse_freq:
-            self.animation_timer = current_time
+        if timestamp - self.animation_timer >= self.pulse_freq:
+            self.animation_timer = timestamp
             if self.fade_in:
                 self.shade += 1
             else:
@@ -91,10 +91,10 @@ class StarSystem:
             star = Star(radius, x, y, pulse_freq, shade=shade, fade_in=fade_in)
             self.stars.append(star)
 
-    def render(self, ctx, current_time) -> None:
+    def render(self, ctx, timestamp) -> None:
         """Render every star."""
         for star in self.stars:
-            star.render(ctx, current_time, self.num_stars)
+            star.render(ctx, timestamp, self.num_stars)
 
         if len(self.stars) == 0:
             raise ValueError("There are no stars! Did you populate?")
