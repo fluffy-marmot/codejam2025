@@ -1,13 +1,9 @@
 import math
 import random
 
-from js import document  # type: ignore[attr-defined]
+from js import window  # type: ignore[attr-defined]
 
 from scene_classes import SceneObject
-
-canvas = document.getElementById("gameCanvas")
-ctx = canvas.getContext("2d")
-
 
 class Star:
     def __init__(self, radius, x, y, pulse_freq, shade=0, fade_in=True) -> None:
@@ -81,7 +77,10 @@ class StarSystem(SceneObject):
         self.pulse_freq_max = pulse_freq_max
         self.frame_delay = 135
         self.num_stars = num_stars
+        self.animation_timer = 0
         self.stars: list[Star] = []  # will be filled with star classes
+
+        self.populate(window.canvas.width, window.canvas.height)
 
     def populate(self, width, height) -> None:
         """Create a list of many Stars."""
@@ -104,3 +103,29 @@ class StarSystem(SceneObject):
             raise ValueError("There are no stars! Did you populate?")
 
         super().render(ctx, timestamp)
+
+    def create_star(self, x='random', y='random'):
+        if x == 'random':
+            x = random.randint(0, window.canvas.width)
+        if y == 'random':
+            y = random.randint(0, window.canvas.height)
+
+        pulse_freq = random.randint(self.pulse_freq_min, self.pulse_freq_max)
+        radius = random.randint(self.radius_min, self.radius_max)
+        shade = random.randint(0, 255)
+        fade_in = random.choice([True, False])
+        return Star(radius, x, y, pulse_freq, shade=shade, fade_in=fade_in)
+
+    def star_shift(self, current_time, shiftrate):
+        if current_time - self.animation_timer >= shiftrate:
+            self.animation_timer = current_time
+            replacement_stars = []
+            for index, star in enumerate(self.stars):
+                star.x += 1
+                if abs(star.x) > window.canvas.width or abs(star.y) > window.canvas.height:
+                    self.stars.pop(index) 
+                    replacement_star = self.create_star(0, 'random')
+                    replacement_stars.append(replacement_star)
+                    
+            for star in replacement_stars:
+                self.stars.append(star)

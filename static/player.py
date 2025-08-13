@@ -57,7 +57,7 @@ class Player(SceneObject):
             dx += 1
 
         # miliseconds to seconds since that's what was being used
-        dt = (timestamp - self.last_frame_time) / 1000
+        dt = (timestamp - self.last_timestamp) / 1000
         if dx or dy:
             # normalize diagonal movement
             mag = (dx * dx + dy * dy) ** 0.5

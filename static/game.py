@@ -4,17 +4,15 @@ from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
 from consolelogger import getLogger
 from controls import GameControls
 from player import Player
-from solar_system import SolarSystem
 from scene_classes import SceneManager, Scene
 from scene_descriptions import create_scene_manager
-from stars import StarSystem
 
 log = getLogger(__name__)
 
 # References to the useful html elements
 container = document.getElementById("canvasContainer")
 width, height = container.clientWidth, container.clientHeight
-canvas = window.canvas = document.getElementById("gameCanvas")
+canvas = window.canvas
 ctx = window.ctx = window.canvas.getContext("2d")
 
 
@@ -50,34 +48,16 @@ def game_loop(timestamp: float) -> None:
     timestamp argument will be time since the html document began to load, in miliseconds.
     """
 
-    # if controls.pressed:
-    #     log.debug("Keys pressed: %s", controls.pressed)
-    # log.debug(controls.mouse.move)
-
-    # Not doing anything with this at the moment, but this returns the planet clicked, if any
-    """ TODO
-    if controls.click:
-        log.debug("Mouse click at: %s", controls.mouse.click)
-        planet = solar_sys.get_object_at_position(controls.mouse.click)
-        if planet:
-            log.debug("Clicked on: %s", planet.name)
-    """
-
     """ --- Do anything that needs to be drawn in this frame here --- """
+
+    # these should disable bilinear filtering smoothing, which isn't friendly to pixelated graphics
+    ctx.imageSmoothingEnabled = False
+    ctx.webkitImageSmoothingEnabled = False
+    ctx.mozImageSmoothingEnabled = False
+    ctx.msImageSmoothingEnabled = False
+
     active_scene: Scene = scene_manager.get_active_scene()
     active_scene.render(ctx, timestamp)
-
-    
-    """ TODO
-    if player:
-        player.render(ctx, timestamp)
-    else:
-        # Draw a debug indicator if no player
-        ctx.fillStyle = "yellow"
-        ctx.beginPath()
-        ctx.arc(canvas.width / 2, canvas.height / 2, 15, 0, 6.283)
-        ctx.fill()
-    """
 
     """ --- That was everything that needed to be drawn in that frame --- """
 
