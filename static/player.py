@@ -1,5 +1,3 @@
-
-
 class Player:
     def __init__(self, spritesheet) -> None:
         self.sprite = spritesheet

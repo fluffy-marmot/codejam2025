@@ -1,9 +1,8 @@
-# from pyscript import Element # type: ignore
 from dataclasses import dataclass
 from time import time
 
 from consolelogger import getLogger
-from pyodide.ffi import create_proxy  # type: ignore
+from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
 from spacemass import Position
 
 log = getLogger(__name__)

@@ -1,20 +1,15 @@
-"""
-using # type: ignore since these imports are only available in the pyodide environment and pylance
-will complain about them otherwise
-"""
-
 import time
 
 from consolelogger import getLogger
 from controls import GameControls
-from js import document, window  # type: ignore
-from pyodide.ffi import create_proxy  # type: ignore
+from js import document, window  # type: ignore[attr-defined]
+from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
 from solar_system import SolarSystem
 from stars import StarSystem
 
 log = getLogger(__name__)
 
-""" references to the useful html elements """
+# References to the useful html elements
 container = document.getElementById("canvasContainer")
 width, height = container.clientWidth, container.clientHeight
 canvas = document.getElementById("gameCanvas")
@@ -22,7 +17,7 @@ ctx = canvas.getContext("2d")
 
 
 # TODO: the resizing and margins needs work, I suck with CSS / html layout
-def resize_canvas(event=None):
+def resize_canvas(event=None) -> None:
     width, height = container.clientWidth, container.clientHeight
     canvas.width = width
     canvas.height = height
@@ -71,9 +66,9 @@ stars.populate(width, height)
 t0 = time.time()
 
 
-def game_loop(timestamp):
-    """
-    Game loop that will run roughly 60 / sec, though the timing may be dependant on monitor refresh rates?
+def game_loop(timestamp: float) -> None:
+    """Game loop that will run roughly 60 / sec, though the timing may be dependant on monitor refresh rates (?).
+
     When called, timestamp argument will be time since the html document began to load, measured in miliseconds.
     We can use ctx, a wrapper for an html canvas's context to draw things to the canvas, with e.g. methods like
     fillRect.

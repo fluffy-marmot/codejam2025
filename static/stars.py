@@ -21,7 +21,7 @@ class Star:
         self.animation_timer = 0
         self.glisten = False
 
-    def render(self, ctx, current_time, num_stars):
+    def render(self, ctx, current_time, num_stars) -> None:
         # pulse
         if current_time - self.animation_timer >= self.pulse_freq:
             self.animation_timer = current_time
@@ -64,7 +64,7 @@ class Star:
         else:
             self.glisten = False
 
-    def rgba_to_str(self, r, g, b, a):
+    def rgba_to_str(self, r: int, g: int, b: int, a: int) -> str:
         return f"rgba({r}, {g}, {b}, {a})"
 
 
@@ -77,10 +77,10 @@ class StarSystem:
         self.pulse_freq_max = pulse_freq_max
         self.frame_delay = 135
         self.num_stars = num_stars
-        self.stars = []  # will be filled with star classes
+        self.stars: list[Star] = []  # will be filled with star classes
 
-    def populate(self, width, height):
-        "creates a list of many Stars"
+    def populate(self, width, height) -> None:
+        """Create a list of many Stars."""
         for _ in range(self.num_stars):
             x = random.randint(0, width)
             y = random.randint(0, height)
@@ -91,8 +91,8 @@ class StarSystem:
             star = Star(radius, x, y, pulse_freq, shade=shade, fade_in=fade_in)
             self.stars.append(star)
 
-    def render(self, ctx, current_time):
-        "render every star"
+    def render(self, ctx, current_time) -> None:
+        """Render every star."""
         for star in self.stars:
             star.render(ctx, current_time, self.num_stars)
 
