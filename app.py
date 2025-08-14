@@ -19,8 +19,7 @@ request so that it will be accessible in the index.html template and afterwards 
 """
 
 sprite_path = Path(BASE_DIR / "static" / "sprites")
-sprite_list = [sprite_file.stem for sprite_file in sprite_path.iterdir()]
-
+sprite_list = [sprite_file.stem for sprite_file in sprite_path.iterdir() if sprite_file.is_file()]
 
 @app.route("/")
 def index():
