@@ -17,6 +17,7 @@ width, height = container.clientWidth, container.clientHeight
 canvas = window.canvas
 ctx = window.ctx = window.canvas.getContext("2d")
 
+window.DEBUG_DRAW_HITBOXES = True
 
 # TODO: the resizing and margins needs work, I suck with CSS / html layout
 def resize_canvas(event=None) -> None:
@@ -42,11 +43,11 @@ controls = window.controls = GameControls(canvas)
 scene_manager = window.scene_manager = create_scene_manager()
 sprites = window.sprites
 player = window.player = Player(SpriteSheet("player"), canvas.width / 2, canvas.height / 2, scale=0.1)
+asteroids = window.asteroids = AsteroidAttack(sprites["asteroids"], width, height, 256, 1500)
 
 log.info("Sprite URLs: %s", sprites)
 log.info("Created player at position (%s, %s)", player.x, player.y)
 
-asteroids = AsteroidAttack(sprites["asteroids"], width, height, 256, 1500)
 
 
 def game_loop(timestamp: float) -> None:
@@ -65,12 +66,8 @@ def game_loop(timestamp: float) -> None:
     active_scene: Scene = scene_manager.get_active_scene()
     active_scene.render(ctx, timestamp)
 
-    # Draw asteroids only when in a planet scene
-    # Update + render handles spawn and drawing
-    if isinstance(active_scene, PlanetScene):
-        # If the active scene is a planet scene, we can draw asteroids
-        asteroids.update_and_render(ctx, timestamp)
-        player.render(ctx, timestamp)
+    # please keep any scene-specific rendering inside the render method of each scene
+    # code to render asteroids and player was moved to render method of class PlanetScene
 
     """ --- That was everything that needed to be drawn in that frame --- """
 

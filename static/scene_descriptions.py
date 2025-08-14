@@ -16,14 +16,14 @@ sprites = window.sprites
 # methods that may be useful across various scenes
 # --------------------
 
-
 def get_controls():
     return window.controls
-
 
 def get_player():
     return window.player
 
+def get_asteroids():
+    return window.asteroids
 
 def draw_black_background(ctx):
     ctx.fillStyle = "black"
@@ -111,6 +111,10 @@ class PlanetScene(Scene):
         self.stars.star_shift(timestamp, 5)
         self.stars.render(ctx, timestamp)
         self.planet.render(ctx, timestamp)
+
+        # Update + render handles spawn and drawing
+        get_asteroids().update_and_render(ctx, timestamp)
+        get_player().render(ctx, timestamp)
 
         # TODO: temporary debug\demo functionality: click goes back to the OrbitingPlanets scene
         if get_controls().click:

@@ -9,6 +9,13 @@ SCREEN_W, SCREEN_H = container.clientWidth, container.clientHeight
 
 ASTEROID_SHEET = window.sprites["asteroids"]
 
+# "magic numbers" obtained via a script in assets/make_spritesheets.py, end of the printout
+ASTEROID_RADII = [22, 26, 18, 19, 21, 25, 18, 23, 26, 20, 24, 13, 22, 18, 21, 23, 30, 19, 18, 18, 18, 21, 26, 
+                  20, 21, 16, 24, 22, 18, 25, 18, 20, 19, 21, 22, 18, 24, 20, 23, 20, 22, 20, 24, 17, 16, 16, 
+                  18, 21, 17, 22, 24, 25, 14, 24, 25, 14, 22, 23, 21, 18, 20, 18, 18, 19, 24, 23, 23, 27, 19, 
+                  24, 25, 20, 23, 21, 25, 22, 19, 25, 21, 16, 30, 26, 24, 30, 23, 21, 20, 18, 25, 16, 24, 21, 
+                  23, 18, 21, 24, 20, 23, 29, 20, 24, 22, 22, 19]
+
 class Asteroid:
     def __init__(self, sheet, x, y, vx, vy, target_size_px, sprite_index, grid_cols=11, cell_size=0):
         self.sheet = sheet
@@ -24,7 +31,8 @@ class Asteroid:
         self.sprite_index = sprite_index
         self.grid_cols = grid_cols
         self.cell_size = cell_size
-        self.hitbox_scale = 0.55
+        self.hitbox_scale = 0.45
+        self.hitbox_radius = ASTEROID_RADII[sprite_index]
         self._last_timestamp = None
         self.linger_time = 0.5
         self.full_size_reached_at = None
@@ -82,7 +90,7 @@ class Asteroid:
             ctx.beginPath()
             ctx.strokeStyle = "#FF5555"
             ctx.lineWidth = 2
-            ctx.arc(0, 0, size * self.hitbox_scale, 0, 2 * math.pi)
+            ctx.arc(0, 0, size * self.hitbox_radius / 100 *1.2, 0, 2 * math.pi)
             ctx.stroke()
         ctx.restore()
 
@@ -90,7 +98,7 @@ class Asteroid:
         return self.x < -margin or self.x > w + margin or self.y < -margin or self.y > h + margin
 
     def get_hit_circle(self):
-        return (self.x, self.y, self.size * self.hitbox_scale)
+        return (self.x, self.y, self.size * self.hitbox_radius / 100 *1.2)
 
     def should_be_removed(self):
         """Check if asteroid should be removed (off screen or lingered too long)"""
@@ -139,7 +147,7 @@ class AsteroidAttack:
                 velocity_y = random.uniform(5, 15)
 
         target = random.uniform(self.max_size * 0.7, self.max_size * 1.3)
-        idx = random.randint(0, 105)
+        idx = random.randint(0, 103) # randint is inclusive on both ends
         a = Asteroid(self.sheet, x, y, velocity_x, velocity_y, target, idx)
         self.asteroids.append(a)
 

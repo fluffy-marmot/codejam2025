@@ -5,6 +5,7 @@ planet sprites on that website
 """
 
 from pathlib import Path
+import numpy as np
 import os
 
 from PIL import Image
@@ -45,10 +46,14 @@ if asteroid_dir.exists():
         # Create the spritesheet
         spritesheet = Image.new("RGBA", (width * cols, height * rows), (0, 0, 0, 0))
         
+        collision_radii = []
         # Paste each asteroid
         for i, filename in enumerate(asteroid_files):
             asteroid = Image.open(asteroid_dir / filename)
-            
+            pixel_alpha_values = np.array(asteroid)[:, :, 3]
+            non_transparent_count = np.sum(pixel_alpha_values > 0)
+            collision_radii.append(int(np.sqrt(non_transparent_count / np.pi)))
+
             # Calculate position in grid
             col = i % cols
             row = i // cols
@@ -64,3 +69,6 @@ if asteroid_dir.exists():
         print(f"Asteroid spritesheet saved to: {output_path}")
         print(f"Grid dimensions: {cols} columns x {rows} rows")
         print(f"Each sprite: {width}x{height} pixels")
+
+        print("Collision radii:")
+        print(collision_radii)
