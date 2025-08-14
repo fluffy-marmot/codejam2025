@@ -7,6 +7,7 @@ from player import Player
 from spacemass import SpaceMass
 from solar_system import SolarSystem
 from stars import StarSystem
+from sprites import SpriteSheet
 
 log = getLogger(__name__)
 sprites = window.sprites
@@ -15,15 +16,19 @@ sprites = window.sprites
 # methods that may be useful across various scenes
 # --------------------
 
+
 def get_controls():
     return window.controls
+
 
 def get_player():
     return window.player
 
+
 def draw_black_background(ctx):
     ctx.fillStyle = "black"
     ctx.fillRect(0, 0, window.canvas.width, window.canvas.height)
+
 
 # --------------------
 # our main scene with the planets orbiting the sun
@@ -31,8 +36,8 @@ def draw_black_background(ctx):
 
 ORBITING_PLANETS_SCENE = "orbiting-planets-scene"
 
-class OrbitingPlanetsScene(Scene):
 
+class OrbitingPlanetsScene(Scene):
     def __init__(self, name: str, scene_manager: SceneManager):
         super().__init__(name, scene_manager)
 
@@ -49,7 +54,7 @@ class OrbitingPlanetsScene(Scene):
     def render(self, ctx, timestamp):
         draw_black_background(ctx)
         self.highlight_hovered_planet()
-        
+
         self.stars.render(ctx, timestamp)
         self.solar_sys.update_orbits(0.20)
         self.solar_sys.render(ctx, timestamp)
@@ -80,14 +85,14 @@ class OrbitingPlanetsScene(Scene):
 # game scene with zoomed in planet on left
 # --------------------
 
-class PlanetScene(Scene):
 
+class PlanetScene(Scene):
     def __init__(
-            self,
-            name: str, 
-            scene_manager: SceneManager, 
-            planet: SpaceMass,
-        ):
+        self,
+        name: str,
+        scene_manager: SceneManager,
+        planet: SpaceMass,
+    ):
         super().__init__(name, scene_manager)
 
         self.stars = StarSystem(
@@ -102,7 +107,7 @@ class PlanetScene(Scene):
 
     def render(self, ctx, timestamp):
         draw_black_background(ctx)
-        
+
         self.stars.star_shift(timestamp, 5)
         self.stars.render(ctx, timestamp)
         self.planet.render(ctx, timestamp)
@@ -110,11 +115,12 @@ class PlanetScene(Scene):
         # TODO: temporary debug\demo functionality: click goes back to the OrbitingPlanets scene
         if get_controls().click:
             self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
-    
+
 
 # --------------------
 # create scene manager
 # --------------------
+
 
 def create_scene_manager() -> SceneManager:
     """
@@ -126,9 +132,9 @@ def create_scene_manager() -> SceneManager:
     manager.add_scene(orbiting_planets_scene)
 
     for planet in "mercury venus earth mars jupiter saturn neptune uranus".split():
-        spacemass = SpaceMass(planet, sprites[planet], 0, window.canvas.height, 1.0)
+        spacemass = SpaceMass(SpriteSheet(planet), 0, window.canvas.height, 1.0)
         big_planet_scene = PlanetScene(f"{planet}-planet-scene", manager, spacemass)
         manager.add_scene(big_planet_scene)
 
-    manager.activate_scene(ORBITING_PLANETS_SCENE) # initial scene
+    manager.activate_scene(ORBITING_PLANETS_SCENE)  # initial scene
     return manager

@@ -7,6 +7,7 @@ from player import Player
 from scene_classes import SceneManager, Scene
 from scene_descriptions import create_scene_manager, PlanetScene
 from asteroid import AsteroidAttack
+from sprites import SpriteSheet
 
 log = getLogger(__name__)
 
@@ -25,6 +26,7 @@ def resize_canvas(event=None) -> None:
     canvas.style.width = f"{width}px"
     canvas.style.height = f"{height}px"
 
+
 resize_proxy = create_proxy(resize_canvas)
 window.addEventListener("resize", resize_proxy)
 resize_canvas()
@@ -39,12 +41,13 @@ instead of passing them as straight up python function references.
 controls = window.controls = GameControls(canvas)
 scene_manager = window.scene_manager = create_scene_manager()
 sprites = window.sprites
-player = window.player = Player(sprites["player"], canvas.width / 2, canvas.height / 2, scale=0.1)
+player = window.player = Player(SpriteSheet("player"), canvas.width / 2, canvas.height / 2, scale=0.1)
 
 log.info("Sprite URLs: %s", sprites)
 log.info("Created player at position (%s, %s)", player.x, player.y)
 
 asteroids = AsteroidAttack(sprites["asteroids"], width, height, 256, 1500)
+
 
 def game_loop(timestamp: float) -> None:
     """
@@ -58,7 +61,6 @@ def game_loop(timestamp: float) -> None:
     ctx.webkitImageSmoothingEnabled = False
     ctx.mozImageSmoothingEnabled = False
     ctx.msImageSmoothingEnabled = False
-    
 
     active_scene: Scene = scene_manager.get_active_scene()
     active_scene.render(ctx, timestamp)
@@ -69,7 +71,7 @@ def game_loop(timestamp: float) -> None:
         # If the active scene is a planet scene, we can draw asteroids
         asteroids.update_and_render(ctx, timestamp)
         player.render(ctx, timestamp)
-        
+
     """ --- That was everything that needed to be drawn in that frame --- """
 
     # if a click event occurred and nothing made use of it during this loop, clear the click flag

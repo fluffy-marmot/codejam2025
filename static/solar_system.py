@@ -1,13 +1,11 @@
-from js import window  # type: ignore[attr-defined]
-
 import math
 
 from common import Position
 from scene_classes import SceneObject
 from spacemass import SpaceMass
+from sprites import SpriteSheet
 
 GRAVI_CONST = 0.67
-planets = {planet["name"].lower(): planet for planet in window.planets}
 
 from consolelogger import getLogger
 
@@ -22,20 +20,20 @@ class SolarSystem(SceneObject):
         self.sun_pos: Position = Position(screen_size[0] // 2, screen_size[1] // 2)
 
         # Sun
-        self.sun = SpaceMass("sun", planets["sun"]["spritesheet"], 1000.0, 120.0, 0.0)
+        self.sun = SpaceMass(SpriteSheet("sun"), 1000.0, 120.0, 0.0)
         self.sun.set_position(self.sun_pos)
 
         # Inner planets
-        self.mercury = SpaceMass("mercury", planets["mercury"]["spritesheet"], 3.3, 10, 2.5)
-        self.venus = SpaceMass("venus", planets["venus"]["spritesheet"], 48.7, 14, 2.0)
-        self.earth = SpaceMass("earth", planets["earth"]["spritesheet"], 59.7, 16, 1.8)
-        self.mars = SpaceMass("mars", planets["mars"]["spritesheet"], 6.4, 12, 1.5)
+        self.mercury = SpaceMass(SpriteSheet("mercury"), 3.3, 10, 2.5)
+        self.venus = SpaceMass(SpriteSheet("venus"), 48.7, 14, 2.0)
+        self.earth = SpaceMass(SpriteSheet("earth"), 59.7, 16, 1.8)
+        self.mars = SpaceMass(SpriteSheet("mars"), 6.4, 12, 1.5)
 
         # Outer planets
-        self.jupiter = SpaceMass("jupiter", planets["jupiter"]["spritesheet"], 1898.0, 64.0, 1.0)
-        self.saturn = SpaceMass("saturn", planets["saturn"]["spritesheet"], 568.0, 46.0, 0.8)
-        self.uranus = SpaceMass("uranus", planets["uranus"]["spritesheet"], 86.8, 36.0, 0.6)
-        self.neptune = SpaceMass("neptune", planets["neptune"]["spritesheet"], 102.0, 15.0, 0.4)
+        self.jupiter = SpaceMass(SpriteSheet("jupiter"), 1898.0, 64.0, 1.0)
+        self.saturn = SpaceMass(SpriteSheet("saturn"), 568.0, 46.0, 0.8)
+        self.uranus = SpaceMass(SpriteSheet("uranus"), 86.8, 36.0, 0.6)
+        self.neptune = SpaceMass(SpriteSheet("neptune"), 102.0, 15.0, 0.4)
 
         self.planets = [
             self.mercury,
@@ -136,7 +134,7 @@ class SolarSystem(SceneObject):
         """
         closest_planet = None
         closest_distance = float("inf")
-        for i, planet in enumerate(self.planets):
+        for planet in self.planets:
             rect = planet.get_bounding_box()
             if rect.left <= pos.x <= rect.right and rect.top <= pos.y <= rect.bottom:
                 # Calculate distance from click point to planet center

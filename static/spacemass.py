@@ -2,16 +2,16 @@ from typing import overload
 
 from common import Position, Rect
 from scene_classes import SceneObject
+from sprites import SpriteSheet
+
 
 class SpaceMass(SceneObject):
-    def __init__(
-        self, name: str, spritesheet, mass: float, radius: float, init_velocity: float, num_frames=50
-    ) -> None:
+    def __init__(self, spritesheet: SpriteSheet, mass: float, radius: float, init_velocity: float) -> None:
         super().__init__()
 
-        self.name = name
         self.spritesheet = spritesheet
-        self.num_frames = num_frames
+        self.name = spritesheet.key
+
         self.mass = mass
         self.radius = radius
         self.initial_velocity = init_velocity
@@ -55,35 +55,33 @@ class SpaceMass(SceneObject):
     def render(self, ctx, timestamp):
         # Update animation timing
         if timestamp - self.animation_timer >= self.frame_delay:
-            self.current_frame = (self.current_frame + 1) % self.num_frames
+            self.current_frame = (self.current_frame + 1) % self.spritesheet.num_frames
             self.animation_timer = timestamp
 
-        # assuming they're square, not best way to go about this, but we're using square sprites so far
-        frame_size = self.spritesheet.height
         bounds = self.get_bounding_box()
-
+        frame_position = self.spritesheet.get_frame_position(self.current_frame)
         ctx.drawImage(
-            self.spritesheet,
-            frame_size * self.current_frame,  # left in spritesheet
-            0,
-            frame_size,
-            frame_size,
+            self.spritesheet.image,
+            frame_position.x,
+            frame_position.y,
+            self.spritesheet.frame_size,
+            self.spritesheet.frame_size,
             bounds.left,
             bounds.top,
             bounds.width,
             bounds.height,
         )
 
-        highlight = "#ffff00" # yellow highlight
+        highlight = "#ffff00"  # yellow highlight
         offset = 5
         # Draw highlight effect if planet is highlighted
         if self.highlighted:
             ctx.save()
-            ctx.strokeStyle = highlight 
+            ctx.strokeStyle = highlight
             ctx.shadowColor = highlight
             ctx.lineWidth = 3
             ctx.shadowBlur = 10
-            
+
             # Draw a circle around the planet
             center_x = bounds.left + bounds.width / 2
             center_y = bounds.top + bounds.height / 2

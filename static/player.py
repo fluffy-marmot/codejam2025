@@ -3,6 +3,7 @@ from js import window  # type: ignore[attr-defined]
 from common import Position
 from consolelogger import getLogger
 from scene_classes import SceneObject
+from sprites import SpriteSheet
 
 log = getLogger(__name__)
 
@@ -14,7 +15,9 @@ class Player(SceneObject):
     Movement keys: WASD or Arrow keys.
     """
 
-    def __init__(self, sprite, x: float, y: float, speed: float = 100.0, scale: float = 0.1, hitbox_scale: float = 0.5):
+    def __init__(
+        self, sprite: SpriteSheet, x: float, y: float, speed: float = 100.0, scale: float = 0.1, hitbox_scale: float = 0.5
+    ):
         super().__init__()
 
         self.sprite = sprite
@@ -27,8 +30,8 @@ class Player(SceneObject):
         self.hitbox_scale = hitbox_scale
 
     def _update_sprite_dims(self):
-        w = getattr(self.sprite, "width", 0) or 0
-        h = getattr(self.sprite, "height", 0) or 0
+        w = self.sprite.width
+        h = self.sprite.height
         if w and h:
             self._half_w = (w * self.scale) / 2
             self._half_h = (h * self.scale) / 2
@@ -75,12 +78,11 @@ class Player(SceneObject):
             self.x = min(max(self._half_w, self.x), max_x)
             self.y = min(max(self._half_h, self.y), max_y)
 
-
     def render(self, ctx, timestamp):
         if not self.sprite:
             log.debug("Player render: no sprite")
             return
-        
+
         self.update(timestamp)
 
         if not self._half_w or not self._half_h:
@@ -92,9 +94,9 @@ class Player(SceneObject):
         scaled_h = self._half_h * 2
         # this log is a bit spammy, commented it out unless needed
         # log.debug("Drawing player at (%s,%s) size=%sx%s", draw_x, draw_y, scaled_w, scaled_h)
-        
-        ctx.drawImage(self.sprite, draw_x, draw_y, scaled_w, scaled_h)
-        
+
+        ctx.drawImage(self.sprite.image, draw_x, draw_y, scaled_w, scaled_h)
+
         # Debug draw hitbox
         if getattr(window, "DEBUG_DRAW_HITBOXES", False):
             ctx.beginPath()
@@ -103,7 +105,7 @@ class Player(SceneObject):
             ctx.lineWidth = 2
             ctx.arc(cx, cy, r, 0, 6.28318)
             ctx.stroke()
-        
+
         # # outline for visibility
         # ctx.strokeStyle = "white"  # type: ignore[attr-defined]
         # ctx.lineWidth = 2  # type: ignore[attr-defined]
@@ -117,16 +119,16 @@ class Player(SceneObject):
 
     def get_position(self) -> Position:
         return Position(self.x, self.y)
-    
+
     def get_hit_circle(self) -> tuple[float, float, float]:
-        """ Get the hit circle for the player"""
+        """Get the hit circle for the player"""
         if not self._half_w or not self._half_h:
             self._update_sprite_dims()
         r = min(self._half_w, self._half_h) * self.hitbox_scale
         return (self.x, self.y, r)
 
     def get_aabb(self) -> tuple[float, float, float, float]:
-        """ Get the axis-aligned bounding box (AABB) for the player """
+        """Get the axis-aligned bounding box (AABB) for the player"""
         if not self._half_w or not self._half_h:
             self._update_sprite_dims()
         hw = self._half_w * self.hitbox_scale
