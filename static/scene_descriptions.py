@@ -48,15 +48,27 @@ class OrbitingPlanetsScene(Scene):
 
     def render(self, ctx, timestamp):
         draw_black_background(ctx)
-
+        self.highlight_hovered_planet()
+        
         self.stars.render(ctx, timestamp)
         self.solar_sys.update_orbits(0.20)
         self.solar_sys.render(ctx, timestamp)
 
         # from this scene, be ready to switch to a big planet scene if planet is clicked
-        self.check_planet_click()
+        self.switch_planet_scene()
 
-    def check_planet_click(self):
+    def highlight_hovered_planet(self):
+        # Reset all planets' highlight state first
+        for planet in self.solar_sys.planets:
+            planet.highlighted = False
+
+        planet = self.solar_sys.get_object_at_position(get_controls().mouse.move)
+        if planet is not None:
+            log.debug("Highlighting planet: %s", planet.name)
+            planet.highlighted = True
+
+    def switch_planet_scene(self):
+        """Switch to the clicked planet scene if a planet is clicked."""
         if get_controls().click:
             planet = self.solar_sys.get_object_at_position(get_controls().mouse.click)
             if planet:

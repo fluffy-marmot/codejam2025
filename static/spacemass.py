@@ -22,6 +22,7 @@ class SpaceMass(SceneObject):
         self.frame_delay = 135  # (approximately 6 FPS)
         self.x = 0
         self.y = 0
+        self.highlighted = False
 
     @overload
     def set_position(self, x: float, y: float): ...
@@ -72,5 +73,25 @@ class SpaceMass(SceneObject):
             bounds.width,
             bounds.height,
         )
+
+        highlight = "#ffff00" # yellow highlight
+        offset = 5
+        # Draw highlight effect if planet is highlighted
+        if self.highlighted:
+            ctx.save()
+            ctx.strokeStyle = highlight 
+            ctx.shadowColor = highlight
+            ctx.lineWidth = 3
+            ctx.shadowBlur = 10
+            
+            # Draw a circle around the planet
+            center_x = bounds.left + bounds.width / 2
+            center_y = bounds.top + bounds.height / 2
+            radius = bounds.width / 2 + offset  # Slightly larger than the planet
+
+            ctx.beginPath()
+            ctx.arc(center_x, center_y, radius, 0, 2 * 3.14159)
+            ctx.stroke()
+            ctx.restore()
 
         super().render(ctx, timestamp)
