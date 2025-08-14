@@ -48,7 +48,7 @@ class SolarSystem(SceneObject):
 
         # Initial positions (distance from sun in pixels)
         self.planet_distances = [110, 140, 160, 200, 270, 350, 420, 470]
-        self.planet_angles: list[float] = [0, 45, 90, 135, 180, 225, 270, 315]
+        self.planet_angles: list[float] = [20, 220, 100, 45, 0, 155, 270, 15]
 
         # Initialize planet positions
         for i, planet in enumerate(self.planets):

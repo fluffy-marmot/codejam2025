@@ -116,6 +116,8 @@ class GameControls:
         # flagged as down when they aren't anymore, checking event.buttons would be a good way to 'unstuck' them
 
     def on_keydown(self, event):
+        if event.key in ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]:
+            event.preventDefault()
         self.pressed.add(event.key)
         if self._logging:
             log.debug("keydown %s", event.key)

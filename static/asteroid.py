@@ -90,7 +90,7 @@ class Asteroid:
             ctx.beginPath()
             ctx.strokeStyle = "#FF5555"
             ctx.lineWidth = 2
-            ctx.arc(0, 0, size * self.hitbox_radius / 100 *1.2, 0, 2 * math.pi)
+            ctx.arc(0, 0, size * self.hitbox_radius / 100 *1, 0, 2 * math.pi)
             ctx.stroke()
         ctx.restore()
 
@@ -98,7 +98,7 @@ class Asteroid:
         return self.x < -margin or self.x > w + margin or self.y < -margin or self.y > h + margin
 
     def get_hit_circle(self):
-        return (self.x, self.y, self.size * self.hitbox_radius / 100 *1.2)
+        return (self.x, self.y, self.size * self.hitbox_radius / 100 *1)
 
     def should_be_removed(self):
         """Check if asteroid should be removed (off screen or lingered too long)"""
