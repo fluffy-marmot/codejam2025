@@ -230,6 +230,7 @@ class Player(SceneObject):
             self.momentum[0] = (self.x - ast_x) / distance_between_centers * 5.0
             self.momentum[1] = (self.y - ast_y) / distance_between_centers * 5.0
             self.health = max(0, self.health - 100 / distance_between_centers * 5)
+            window.audio_handler.play_bang()
             window.debris.generate_debris(self.get_position(), Position(ast_x, ast_y))
 
     def get_hit_circle(self) -> tuple[float, float, float]:

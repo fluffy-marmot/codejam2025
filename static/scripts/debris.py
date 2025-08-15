@@ -23,8 +23,8 @@ class Debris(SceneObject):
         self.duration -= 1
 
         # adjust position based on momentum and break Newton's laws a little
-        self.x += self.momentum.x * 0.01
-        self.y += self.momentum.y * 0.01
+        self.x += self.momentum.x * 0.4
+        self.y += self.momentum.y * 0.4
         self.momentum.x *= 0.97
         self.momentum.y *= 0.97
 
@@ -41,7 +41,7 @@ class Debris(SceneObject):
         ctx.arc(
             self.radius * 0.3 * self.duration / self.initial_duration, 
             0, 
-            self.radius * (1.4 - 0.8 * self.duration / self.initial_duration), 
+            self.radius * (1.2 - 0.8 * self.duration / self.initial_duration), 
             0, 2 * math.pi, True
         )
 
@@ -51,6 +51,28 @@ class Debris(SceneObject):
         ctx.fill()
 
         ctx.restore()
+        # DEBUGGING THE CIRCLES DEFINING CRESCENT ABOVE ^
+        if window.DEBUG_DRAW_HITBOXES:
+            ctx.save()
+            ctx.translate(*self.get_position())
+            ctx.rotate(self.rotation)
+            ctx.strokeStyle ="#FF0000"
+            ctx.beginPath()
+            ctx.arc(0, 0, self.radius, 0, 2 * math.pi, False)
+            ctx.stroke()
+            ctx.closePath()
+
+            ctx.strokeStyle ="#00FF00"
+            ctx.beginPath()
+            ctx.arc(
+                self.radius * 0.3 * self.duration / self.initial_duration, 
+                0, 
+                self.radius * (1.2 - 0.8 * self.duration / self.initial_duration), 
+                0, 2 * math.pi, True
+            )
+            ctx.stroke()
+            ctx.closePath()
+            ctx.restore()
 
         super().render(ctx, timestamp)
 
@@ -75,7 +97,7 @@ class DebrisSystem(SceneObject):
             position = player_pos.midpoint(asteroid_pos) + Position(randint(-20, 20), randint(-20, 20))
             shade = randint(128, 255)
             color = f"#{shade:x}{shade:x}{shade:x}"
-            radius = randint(10, 25) * 100 / distance
+            radius = randint(15, 25) * 50 / distance
             duration = randint(100, 200)
             rotation = 0
 
@@ -88,9 +110,10 @@ class DebrisSystem(SceneObject):
         
         for debris in new_debris:
             debris.momentum = Position(
-                (debris.x - new_debris_center.x) / 4.0,
-                (debris.y - new_debris_center.y) / 4.0        
+                (debris.x - new_debris_center.x) / 5.0,
+                (debris.y - new_debris_center.y) / 5.0        
             )
+            debris.rotation = math.atan2(-debris.y + new_debris_center.y, -debris.x + new_debris_center.x)
             
         self.debris_list.extend(new_debris)
 

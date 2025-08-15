@@ -1,0 +1,11 @@
+SPRITES
+
+Planet sprites generated with Pixel Planet Generator by Deep Fold 
+https://deep-fold.itch.io/pixel-planet-generator
+Licensed under the MIT License
+
+SOUNDS
+
+3 Explosion Bangs Copyright 2012 Iwan 'qubodup' Gabovitch <http://qubodup.net>
+https://opengameart.org/content/3-background-crash-explosion-bang-sounds
+Licensed under CC-BY 3.0

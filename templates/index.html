@@ -15,6 +15,10 @@
         <canvas id="gameCanvas" tabindex="0"></canvas>
     </div>
 
+    {% for audio_file in audio_list %}
+        <audio src="{{ url_for('static', filename='audio/' ~ audio_file) }}" preload="auto"></audio>
+    {% endfor %}
+
     <py-script config="{{ url_for('static', filename='pyscript.json') }}">
         from js import Image, window
 
@@ -28,6 +32,8 @@
             window.sprites[sprite] = Image.new()
             window.sprites[sprite].src = sprites_url + sprite + ".png"
 
+        window.audio_list = {{ audio_list }}
+
         window.sprites["asteroids"] = Image.new()
         window.sprites["asteroids"].src = sprites_url + "asteroids.png"
 
@@ -40,6 +46,9 @@
         from js import document
         window.canvas = document.getElementById('gameCanvas')
 
+        # initialize game scripts
+        from audio import AudioHandler
+        window.audio_handler = AudioHandler("{{ url_for('static', filename='') }}")
         import game
     </py-script>
 </body>

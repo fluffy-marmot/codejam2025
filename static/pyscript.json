@@ -5,6 +5,7 @@
     "/static/scripts/common.py": "",
     "/static/scripts/consolelogger.py": "",
     "/static/scripts/controls.py": "",
+    "/static/scripts/audio.py": "",
     "/static/scripts/scene_classes.py": "",
     "/static/scripts/scene_descriptions.py": "",
     "/static/scripts/sprites.py": "",

@@ -13,7 +13,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: blue;
+    background-color: black;
     flex: 1;
 }
 
@@ -21,4 +21,8 @@ body {
     margin: 0px;
     background: black;
     flex: 1;
+}
+
+audio {
+    display: none;
 }
