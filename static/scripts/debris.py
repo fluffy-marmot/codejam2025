@@ -97,7 +97,7 @@ class DebrisSystem(SceneObject):
             position = player_pos.midpoint(asteroid_pos) + Position(randint(-20, 20), randint(-20, 20))
             shade = randint(128, 255)
             color = f"#{shade:x}{shade:x}{shade:x}"
-            radius = randint(15, 25) * 50 / distance
+            radius = randint(15, 25) * min(50 / distance, 5)
             duration = randint(100, 200)
             rotation = 0
 
