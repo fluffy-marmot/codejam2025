@@ -85,8 +85,16 @@ class SolarSystem(SceneObject):
         self.sun.render(ctx, timestamp)
 
         # Render all planets
+        highlighted_planet = None
         for planet in self.planets:
+            if planet.highlighted:
+                highlighted_planet = planet
+                continue
             planet.render(ctx, timestamp)
+
+        # If a planet is highlighted, draw it last, so its text label is in front of other planets
+        if highlighted_planet:
+            highlighted_planet.render(ctx, timestamp)
 
         super().render(ctx, timestamp)
 

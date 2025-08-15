@@ -71,6 +71,19 @@ class SpaceMass(SceneObject):
             ctx.beginPath()
             ctx.arc(center_x, center_y, radius, 0, 2 * 3.14159)
             ctx.stroke()
+
+            # draw planet name labels when hovering over
+            ctx.shadowBlur = 0
+            ctx.beginPath()
+            ctx.moveTo(center_x, center_y - radius)
+            ctx.lineTo(center_x + 10, center_y - radius - 10)
+            ctx.font = "14px Verdana"
+            ctx.fillStyle = highlight
+            text_width = ctx.measureText(self.name.capitalize()).width
+            ctx.lineTo(center_x + 15 + text_width, center_y - radius - 10)
+            ctx.fillText(self.name.capitalize(), center_x + 15, center_y - radius - 15)
+            ctx.stroke()
+
             ctx.restore()
 
         super().render(ctx, timestamp)
