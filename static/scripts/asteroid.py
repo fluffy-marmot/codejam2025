@@ -27,7 +27,7 @@ class Asteroid:
         self.rotation_speed = random.uniform(-0.5, 0.5)
         self.target_size = target_size_px
         self.size = 5.0
-        self.grow_rate = target_size_px / 10.0
+        self.grow_rate = target_size_px / random.uniform(3.0, 9.0)
         self.sprite_index = sprite_index
         self.grid_cols = grid_cols
         self.cell_size = cell_size
@@ -110,7 +110,7 @@ class Asteroid:
 
 
 class AsteroidAttack:
-    def __init__(self, spritesheet, width: int, height: int, max_size_px: float, spawnrate: int):
+    def __init__(self, spritesheet, width: int, height: int, max_size_px: float, spawnrate: int=500):
         self.sheet = spritesheet
         self.w = width
         self.h = height
@@ -118,7 +118,7 @@ class AsteroidAttack:
         self.spawnrate = spawnrate
         self.asteroids: list[Asteroid] = []
         self._last_spawn = 0.0
-        self.max_asteroids = 15
+        self.max_asteroids = 50
         self.cell_size = 0
 
     def _spawn_one(self):
@@ -151,9 +151,13 @@ class AsteroidAttack:
         a = Asteroid(self.sheet, x, y, velocity_x, velocity_y, target, idx)
         self.asteroids.append(a)
 
+    # Spawn at interval and only if under limit
     def spawn_and_update(self, timestamp: float):
-        # Spawn at interval and only if under limit
-        if self._last_spawn == 0.0 or (timestamp - self._last_spawn) >= self.spawnrate:
+        # adjust spawnrate by a random factor so asteroids don't spawn at fixed intervals
+        spawnrate = self.spawnrate * random.uniform(0.2, 1.0)
+        # slow down spawnrate for this attempt a bit if there already many asteroids active
+        spawnrate = spawnrate * max(1, 1 + (len(self.asteroids) - 35) * 0.1)
+        if self._last_spawn == 0.0 or (timestamp - self._last_spawn) >= spawnrate:
             if len(self.asteroids) < self.max_asteroids:
                 self._last_spawn = timestamp
                 self._spawn_one()
