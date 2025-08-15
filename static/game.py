@@ -42,7 +42,7 @@ instead of passing them as straight up python function references.
 controls = window.controls = GameControls(canvas)
 scene_manager = window.scene_manager = create_scene_manager()
 sprites = window.sprites
-player = window.player = Player(SpriteSheet("player"), canvas.width / 2, canvas.height / 2, scale=0.1)
+player = window.player = Player(SpriteSheet("player"), SpriteSheet("health"), canvas.width / 2, canvas.height / 2, scale=0.1)
 asteroids = window.asteroids = AsteroidAttack(sprites["asteroids"], width, height, 256, 1500)
 scanner = window.scanner = Scanner(SpriteSheet("scanner"), player)
 log.info("Sprite URLs: %s", sprites)

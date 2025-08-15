@@ -21,7 +21,7 @@ class Player(SceneObject):
     """
 
     def __init__(
-        self, sprite: SpriteSheet, x: float, y: float, speed: float = 100.0, scale: float = 0.1, hitbox_scale: float = 0.5, 
+        self, sprite: SpriteSheet, bar_icon: SpriteSheet, x: float, y: float, speed: float = 100.0, scale: float = 0.1, hitbox_scale: float = 0.5, 
     ):
         super().__init__()
 
@@ -43,7 +43,7 @@ class Player(SceneObject):
         self.rotation_speed = 8.0 
         self.is_moving = False
         self.is_disabled = False
-
+        self.bar_icon = bar_icon
     def _update_sprite_dims(self):
         w = self.sprite.width
         h = self.sprite.height
@@ -174,6 +174,12 @@ class Player(SceneObject):
         inner_height = outer_height - 4
         padding = 30
 
+        ctx.drawImage(
+                self.bar_icon.image,
+                window.canvas.width - outer_width - padding - 30,
+                window.canvas.height - outer_height - padding - 2,
+            )
+        
         ctx.lineWidth = 1
         ctx.strokeStyle = "#FFFFFF"
         ctx.strokeRect(
@@ -305,7 +311,7 @@ class Scanner:
         else:
             self.last_scan_tick = None
             self.scanning = False
-            
+
         if current_time - self.disable_timer >= self.disable_ship_ms:
             self.disable_timer = current_time
             if " " not in keys:
@@ -318,6 +324,14 @@ class Scanner:
         inner_height = outer_height - 4
         padding = 30
 
+        ctx.drawImage(
+                self.sprite.image,
+                window.canvas.width - outer_width - padding - 30,
+                window.canvas.height + outer_height - padding - 2,
+                16,
+                16
+            )
+        
         ctx.lineWidth = 1
         ctx.strokeStyle = "#FFFFFF"
         ctx.strokeRect(
