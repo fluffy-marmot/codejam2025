@@ -21,16 +21,22 @@ class Player(SceneObject):
     """
 
     def __init__(
-        self, sprite: SpriteSheet, bar_icon: SpriteSheet, x: float, y: float, speed: float = 100.0, scale: float = 0.1, hitbox_scale: float = 0.5, 
+        self, 
+        sprite: SpriteSheet, 
+        bar_icon: SpriteSheet, 
+        x: float, 
+        y: float, 
+        speed: float = 100.0, 
+        scale: float = 0.1, 
+        hitbox_scale: float = 0.5, 
     ):
         super().__init__()
 
         self.health = FULL_HEALTH
         self.health_history = deque([FULL_HEALTH] * 200)
         self.sprite = sprite
+        self.set_position(x, y)
         self.default_pos = (x, y)
-        self.x = x
-        self.y = y
         self.speed = speed
         self.momentum = [0, 0]
         self.scale = scale
@@ -44,6 +50,7 @@ class Player(SceneObject):
         self.is_moving = False
         self.is_disabled = False
         self.bar_icon = bar_icon
+
     def _update_sprite_dims(self):
         w = self.sprite.width
         h = self.sprite.height
@@ -223,6 +230,7 @@ class Player(SceneObject):
             self.momentum[0] = (self.x - ast_x) / distance_between_centers * 5.0
             self.momentum[1] = (self.y - ast_y) / distance_between_centers * 5.0
             self.health = max(0, self.health - 100 / distance_between_centers * 5)
+            window.debris.generate_debris(self.get_position(), Position(ast_x, ast_y))
 
     def get_hit_circle(self) -> tuple[float, float, float]:
         """Get the hit circle for the player"""
@@ -261,7 +269,7 @@ class Scanner:
         self.last_scan_tick = None                 
         self.finished = False #when the bar is full
         self.scanning = False
-        
+
     def render_beam(self, ctx): #seprate function so it can go under the planet
         player_x, player_y = self.player.get_position()
         ctx.fillStyle = "rgba(255, 0, 0, 0.5)"

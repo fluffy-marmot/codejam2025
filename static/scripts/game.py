@@ -1,6 +1,7 @@
 from js import document, window  # type: ignore[attr-defined]
 from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
 
+from debris import DebrisSystem
 from consolelogger import getLogger
 from controls import GameControls
 from player import Player, Scanner
@@ -43,7 +44,10 @@ controls = window.controls = GameControls(canvas)
 scene_manager = window.scene_manager = create_scene_manager()
 sprites = window.sprites
 player = window.player = Player(SpriteSheet("player"), SpriteSheet("health"), canvas.width / 2, canvas.height / 2, scale=0.1)
-asteroids = window.asteroids = AsteroidAttack(sprites["asteroids"], width, height, 256, 1500)
+window.asteroids = AsteroidAttack(sprites["asteroids"], width, height, 256, 1500)
+window.debris = DebrisSystem()
+
+
 scanner = window.scanner = Scanner(SpriteSheet("scanner"), player)
 log.info("Sprite URLs: %s", sprites)
 log.info("Created player at position (%s, %s)", player.x, player.y)

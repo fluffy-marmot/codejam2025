@@ -12,6 +12,7 @@
     "/static/scripts/solar_system.py": "",
     "/static/scripts/player.py": "",
     "/static/scripts/asteroid.py": "",
+    "/static/scripts/debris.py": "",
     "/static/scripts/stars.py": ""
   }
 }

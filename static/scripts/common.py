@@ -1,6 +1,6 @@
+from __future__ import annotations
 from dataclasses import dataclass
-from typing import NamedTuple
-
+from typing import Iterator
 
 @dataclass
 class Rect:
@@ -26,6 +26,20 @@ class Rect:
         self.top = value - self.height
 
 
-class Position(NamedTuple):
+@dataclass
+class Position:
     x: float
     y: float
+
+    def __iter__(self) -> Iterator[float]:
+        yield self.x
+        yield self.y
+
+    def __add__(self, other_pos: Position) -> Position:
+        return Position(self.x + other_pos.x, self.y + other_pos.y)
+
+    def midpoint(self, other_pos: Position) -> Position:
+        return Position((self.x + other_pos.x) / 2, (self.y + other_pos.y) / 2)
+
+    def distance(self, other_pos: Position) -> float:
+        return ((self.x - other_pos.x)**2 + (self.y - other_pos.y)**2)**0.5

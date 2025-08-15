@@ -3,6 +3,7 @@ from js import document, window  # type: ignore[attr-defined]
 from consolelogger import getLogger
 from scene_classes import Scene, SceneObject, SceneManager
 
+from debris import DebrisSystem
 from player import Player
 from spacemass import SpaceMass
 from solar_system import SolarSystem
@@ -22,8 +23,12 @@ def get_controls():
 def get_player():
     return window.player
 
-def get_asteroids():
+def get_asteroid_system():
     return window.asteroids
+
+def get_debris_system():
+    return window.debris
+
 def get_scanner():
     return window.scanner
 
@@ -82,7 +87,8 @@ class OrbitingPlanetsScene(Scene):
                 log.debug("Clicked on: %s", planet.name)
                 self.scene_manager.activate_scene(f"{planet.name}-planet-scene")
                 get_player().reset_position()
-                get_asteroids().reset()
+                get_asteroid_system().reset()
+                get_debris_system().reset()
 
 
 # --------------------
@@ -119,8 +125,11 @@ class PlanetScene(Scene):
         self.planet.render(ctx, timestamp)
 
         # Update + render handles spawn and drawing
-        get_asteroids().update_and_render(ctx, timestamp)
+        get_asteroid_system().update_and_render(ctx, timestamp)
         get_player().render(ctx, timestamp)
+        get_debris_system().update()
+        get_debris_system().render(ctx, timestamp)
+
         get_scanner().render(ctx, timestamp)
         # TODO: temporary debug\demo functionality: click goes back to the OrbitingPlanets scene
         if get_controls().click:
