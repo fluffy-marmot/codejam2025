@@ -17,7 +17,7 @@ width, height = container.clientWidth, container.clientHeight
 canvas = window.canvas
 ctx = window.ctx = window.canvas.getContext("2d")
 
-window.DEBUG_DRAW_HITBOXES = True
+window.DEBUG_DRAW_HITBOXES = False
 
 # TODO: the resizing and margins needs work, I suck with CSS / html layout
 def resize_canvas(event=None) -> None:
