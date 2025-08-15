@@ -1,6 +1,4 @@
-from typing import overload
-
-from common import Position, Rect
+from common import Rect
 from scene_classes import SceneObject
 from sprites import SpriteSheet
 
@@ -23,23 +21,6 @@ class SpaceMass(SceneObject):
         self.x = 0
         self.y = 0
         self.highlighted = False
-
-    @overload
-    def set_position(self, x: float, y: float): ...
-
-    @overload
-    def set_position(self, x: Position): ...
-
-    def set_position(self, x, y=None):
-        if y is not None:
-            self.x = x
-            self.y = y
-        else:
-            self.x = x.x
-            self.y = x.y
-
-    def get_position(self) -> Position:
-        return Position(self.x, self.y)
 
     def get_bounding_box(self) -> Rect:
         # Scale sprite based on radius

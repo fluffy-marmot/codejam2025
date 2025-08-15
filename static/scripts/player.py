@@ -205,13 +205,6 @@ class Player(SceneObject):
             inner_width * self.health / FULL_HEALTH,
             inner_height
         )
-
-    def set_position(self, x: float, y: float):
-        self.x = x
-        self.y = y
-
-    def get_position(self) -> Position:
-        return Position(self.x, self.y)
     
     def check_collision(self, asteroid: Asteroid):
         # skip if asteroid is too far in the background
@@ -268,6 +261,7 @@ class Scanner:
         self.last_scan_tick = None                 
         self.finished = False #when the bar is full
         self.scanning = False
+        
     def render_beam(self, ctx): #seprate function so it can go under the planet
         player_x, player_y = self.player.get_position()
         ctx.fillStyle = "rgba(255, 0, 0, 0.5)"

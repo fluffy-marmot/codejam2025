@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, overload
+
+from common import Position
 
 HTMLImageElement = Any
 CanvasRenderingContext2D = Any
@@ -13,11 +15,35 @@ class SceneObject:
 
         """ every scene object keeps track of the last milisecond timestamp when it was rendered """
         self.last_timestamp = 0
+        ...
 
     def render(self, ctx: CanvasRenderingContext2D, timestamp: float):
         ...
         # update the last rendered timestamp
         self.last_timestamp = timestamp
+
+    """ 
+    A few subclasses use these position methods so moved them here for shared functionality.
+    SceneObject subclasses where these don't make sense can just ignore them. (e.g. SolarSystem)
+    """
+    @overload
+    def set_position(self, x: float, y: float): ...
+
+    @overload
+    def set_position(self, x: Position): ...
+
+    def set_position(self, x_or_pos, y=None):
+        if y is not None:
+            x = x_or_pos
+            self.x = x
+            self.y = y
+        else:
+            pos = x_or_pos
+            self.x = pos.x
+            self.y = pos.y
+
+    def get_position(self) -> Position:
+        return Position(self.x, self.y)
 
 # --------------------
 # Scene Class

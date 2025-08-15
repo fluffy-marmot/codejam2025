@@ -78,7 +78,7 @@ class StarSystem(SceneObject):
         self.frame_delay = 135
         self.num_stars = num_stars
         self.animation_timer = 0
-        self.stars: list[Star] = []  # will be filled with star classes
+        self.stars: list[Star] = []  # will be filled with star object instances
 
         self.populate(window.canvas.width, window.canvas.height)
 
