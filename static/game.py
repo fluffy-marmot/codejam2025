@@ -3,7 +3,7 @@ from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
 
 from consolelogger import getLogger
 from controls import GameControls
-from player import Player
+from player import Player, Scanner
 from scene_classes import SceneManager, Scene
 from scene_descriptions import create_scene_manager, PlanetScene
 from asteroid import AsteroidAttack
@@ -44,7 +44,7 @@ scene_manager = window.scene_manager = create_scene_manager()
 sprites = window.sprites
 player = window.player = Player(SpriteSheet("player"), canvas.width / 2, canvas.height / 2, scale=0.1)
 asteroids = window.asteroids = AsteroidAttack(sprites["asteroids"], width, height, 256, 1500)
-
+scanner = window.scanner = Scanner(SpriteSheet("scanner"), player)
 log.info("Sprite URLs: %s", sprites)
 log.info("Created player at position (%s, %s)", player.x, player.y)
 

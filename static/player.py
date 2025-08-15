@@ -21,7 +21,7 @@ class Player(SceneObject):
     """
 
     def __init__(
-        self, sprite: SpriteSheet, x: float, y: float, speed: float = 100.0, scale: float = 0.1, hitbox_scale: float = 0.5
+        self, sprite: SpriteSheet, x: float, y: float, speed: float = 100.0, scale: float = 0.1, hitbox_scale: float = 0.5, 
     ):
         super().__init__()
 
@@ -41,6 +41,8 @@ class Player(SceneObject):
         self.target_rotation = 0.0
         self.max_tilt = math.pi / 8  # Maximum tilt angle (22.5 degrees)
         self.rotation_speed = 8.0 
+        self.is_moving = False
+        self.is_disabled = False
 
     def _update_sprite_dims(self):
         w = self.sprite.width
@@ -64,14 +66,15 @@ class Player(SceneObject):
 
         keys = window.controls.pressed
         dx = dy = 0.0
-        if "w" in keys or "ArrowUp" in keys:
-            dy -= 1
-        if "s" in keys or "ArrowDown" in keys:
-            dy += 1
-        if "a" in keys or "ArrowLeft" in keys:
-            dx -= 1
-        if "d" in keys or "ArrowRight" in keys:
-            dx += 1
+        if not self.is_disabled:
+            if "w" in keys or "ArrowUp" in keys:
+                dy -= 1
+            if "s" in keys or "ArrowDown" in keys:
+                dy += 1
+            if "a" in keys or "ArrowLeft" in keys:
+                dx -= 1
+            if "d" in keys or "ArrowRight" in keys:
+                dx += 1
 
         # TODO: remove this, for testing momentum
         if "m" in keys:
@@ -102,6 +105,10 @@ class Player(SceneObject):
             dy /= mag
             self.x += dx * self.speed * dt
             self.y += dy * self.speed * dt
+
+            self.is_moving = True
+        else:
+            self.is_moving = False
 
         # update player position based on momentum (after they were hit and bumped by an asteroid)
         if self.momentum[0] or self.momentum[1]:
@@ -237,3 +244,96 @@ class Player(SceneObject):
         self.x, self.y = self.default_pos
         self.rotation = 0.0
         self.target_rotation = 0.0
+
+class Scanner:
+    def __init__(self, sprite: SpriteSheet, player: Player, scale: float = 0.1,
+                 disable_ship_ms: float = 1000, beamwidth=100, scanning_dur_s=5):
+        self.sprite = sprite
+        self.scale = scale
+        self.player = player
+        self.scaled_w = self.sprite.width * self.scale
+        self.scaled_h = self.sprite.height * self.scale
+        self.disable_ship_ms = disable_ship_ms
+        self.disable_timer = 0
+        self.beamwidth = beamwidth
+        self.scanningdur = scanning_dur_s * 1000  # ms
+        self.scanning_progress = 0                
+        self.bar_max = self.scanningdur
+        self.last_scan_tick = None                 
+        self.finished = False #when the bar is full
+        self.scanning = False
+    def render_beam(self, ctx): #seprate function so it can go under the planet
+        player_x, player_y = self.player.get_position()
+        ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
+        origin_x = player_x - 175
+        origin_y = player_y - 15
+        ctx.beginPath()
+        ctx.moveTo(origin_x, origin_y)
+        ctx.lineTo(0, player_y - self.beamwidth)
+        ctx.moveTo(origin_x, origin_y)
+        ctx.lineTo(0, player_y + self.beamwidth)
+        ctx.lineTo(0, player_y - self.beamwidth)
+        ctx.fill()
+
+    def render(self, ctx, current_time):
+        "renders the scanner sprite and the bar"
+        player_x, player_y = self.player.get_position()
+        keys = window.controls.pressed
+
+        if " " in keys and not self.player.is_moving:
+            self.scanning = True
+            # scanner image
+            ctx.drawImage(
+                self.sprite.image,
+                player_x - 175,
+                player_y - 25,
+                self.scaled_w,
+                self.scaled_h
+            )
+
+            self.player.is_disabled = True
+
+            if self.last_scan_tick is None:
+                self.last_scan_tick = current_time
+
+            elapsed_since_last = current_time - self.last_scan_tick
+            self.scanning_progress = min(self.scanning_progress + elapsed_since_last, self.bar_max)
+            self.last_scan_tick = current_time
+
+ 
+
+        else:
+            self.last_scan_tick = None
+            self.scanning = False
+            
+        if current_time - self.disable_timer >= self.disable_ship_ms:
+            self.disable_timer = current_time
+            if " " not in keys:
+                self.player.is_disabled = False
+
+        # progress bar
+        outer_width = window.canvas.width // 4
+        outer_height = 12
+        inner_width = outer_width - 4
+        inner_height = outer_height - 4
+        padding = 30
+
+        ctx.lineWidth = 1
+        ctx.strokeStyle = "#FFFFFF"
+        ctx.strokeRect(
+            window.canvas.width - outer_width - padding,
+            window.canvas.height + outer_height - padding,
+            outer_width,
+            outer_height
+        )
+
+        ctx.fillStyle = "#FF0000"
+        ctx.fillRect(
+            window.canvas.width - outer_width - padding + 2,
+            window.canvas.height + outer_height - padding + 2,
+            inner_width * self.scanning_progress / self.bar_max,
+            inner_height
+        )
+
+        if self.scanning_progress == self.bar_max:
+            self.finished = True
