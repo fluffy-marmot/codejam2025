@@ -7,6 +7,7 @@ from consolelogger import getLogger
 from scene_classes import SceneObject
 from sprites import SpriteSheet
 from asteroid import Asteroid
+import math
 
 log = getLogger(__name__)
 
@@ -27,6 +28,7 @@ class Player(SceneObject):
         self.health = FULL_HEALTH
         self.health_history = deque([FULL_HEALTH] * 200)
         self.sprite = sprite
+        self.default_pos = (x, y)
         self.x = x
         self.y = y
         self.speed = speed
@@ -35,6 +37,10 @@ class Player(SceneObject):
         self._half_w = 0
         self._half_h = 0
         self.hitbox_scale = hitbox_scale
+        self.rotation = 0.0          # rotation in radians
+        self.target_rotation = 0.0
+        self.max_tilt = math.pi / 8  # Maximum tilt angle (22.5 degrees)
+        self.rotation_speed = 8.0 
 
     def _update_sprite_dims(self):
         w = self.sprite.width
@@ -76,6 +82,19 @@ class Player(SceneObject):
 
         # miliseconds to seconds since that's what was being used
         dt = (timestamp - self.last_timestamp) / 1000
+        
+        # Update target rotation based on horizontal movement
+        if dx < 0:  # Moving left
+            self.target_rotation = -self.max_tilt  # Tilt left
+        elif dx > 0:  # Moving right
+            self.target_rotation = self.max_tilt   # Tilt right
+        else:
+            self.target_rotation = 0.0
+        
+        # Smoothly interpolate current rotation toward target
+        rotation_diff = self.target_rotation - self.rotation
+        self.rotation += rotation_diff * self.rotation_speed * dt
+        
         if dx or dy:
             # normalize diagonal movement
             mag = (dx * dx + dy * dy) ** 0.5
@@ -85,7 +104,6 @@ class Player(SceneObject):
             self.y += dy * self.speed * dt
 
         # update player position based on momentum (after they were hit and bumped by an asteroid)
-
         if self.momentum[0] or self.momentum[1]:
             self.x += self.momentum[0] * self.speed * dt
             self.y += self.momentum[1] * self.speed * dt
@@ -93,7 +111,6 @@ class Player(SceneObject):
             self.momentum[1] *= 0.97
             if abs(self.momentum[0]) < 0.5: self.momentum[0] = 0
             if abs(self.momentum[1]) < 0.5: self.momentum[1] = 0
-
 
         # clamp inside canvas
         canvas = getattr(window, "gameCanvas", None)
@@ -113,30 +130,29 @@ class Player(SceneObject):
         if not self._half_w or not self._half_h:
             self._update_sprite_dims()
 
-        draw_x = self.x - self._half_w
-        draw_y = self.y - self._half_h
         scaled_w = self._half_w * 2
         scaled_h = self._half_h * 2
-        # this log is a bit spammy, commented it out unless needed
-        # log.debug("Drawing player at (%s,%s) size=%sx%s", draw_x, draw_y, scaled_w, scaled_h)
 
-        ctx.drawImage(self.sprite.image, draw_x, draw_y, scaled_w, scaled_h)
+        # Save the canvas state before applying rotation
+        ctx.save()
+        
+        # Move to player center and apply rotation
+        ctx.translate(self.x, self.y)
+        ctx.rotate(self.rotation)
+        
+        # Draw sprite centered at origin
+        ctx.drawImage(self.sprite.image, -self._half_w, -self._half_h, scaled_w, scaled_h)
 
         # Debug draw hitbox
         if getattr(window, "DEBUG_DRAW_HITBOXES", False):
-            # this was for player circular hitbox, but not really making any use of that at the moment
-            # ctx.beginPath()
-            # cx, cy, r = self.get_hit_circle()
-            # ctx.strokeStyle = "#00FF88"
-            # ctx.lineWidth = 2
-            # ctx.arc(cx, cy, r, 0, 6.28318)
-            # ctx.stroke()
-
-            # outline for visibility
-            ctx.strokeStyle = "white"  # type: ignore[attr-defined]
-            ctx.lineWidth = 2  # type: ignore[attr-defined]
-            ctx.strokeRect(draw_x, draw_y, scaled_w, scaled_h)  # type: ignore[attr-defined]
+            ctx.strokeStyle = "white"
+            ctx.lineWidth = 2
+            ctx.strokeRect(-self._half_w, -self._half_h, scaled_w, scaled_h)
         
+        # Restore canvas state (removes rotation and translation)
+        ctx.restore()
+        
+        # Collision detection (done after restore so it's in world coordinates)
         for asteroid in window.asteroids.asteroids:
             self.check_collision(asteroid)
 
@@ -202,8 +218,6 @@ class Player(SceneObject):
             self.momentum[1] = (self.y - ast_y) / distance_between_centers * 5.0
             self.health = max(0, self.health - 100 / distance_between_centers * 5)
 
-
-    # not currently using these, just using the bounding box of the sprite for collision for now
     def get_hit_circle(self) -> tuple[float, float, float]:
         """Get the hit circle for the player"""
         if not self._half_w or not self._half_h:
@@ -218,3 +232,8 @@ class Player(SceneObject):
         hw = self._half_w * self.hitbox_scale
         hh = self._half_h * self.hitbox_scale
         return (self.x - hw, self.y - hh, self.x + hw, self.y + hh)
+
+    def reset_position(self):
+        self.x, self.y = self.default_pos
+        self.rotation = 0.0
+        self.target_rotation = 0.0

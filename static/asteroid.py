@@ -171,5 +171,10 @@ class AsteroidAttack:
         self.spawn_and_update(timestamp)
         for a in self.asteroids:
             a.render(ctx, timestamp)
+            
+    def reset(self):
+        self.asteroids.clear()
+        self._last_spawn = 0.0
+        self.cell_size = 0
 
 

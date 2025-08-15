@@ -79,6 +79,8 @@ class OrbitingPlanetsScene(Scene):
             if planet:
                 log.debug("Clicked on: %s", planet.name)
                 self.scene_manager.activate_scene(f"{planet.name}-planet-scene")
+                get_player().reset_position()
+                get_asteroids().reset()
 
 
 # --------------------
