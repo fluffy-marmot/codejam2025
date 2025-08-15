@@ -79,20 +79,9 @@ class StarSystem(SceneObject):
         self.num_stars = num_stars
         self.animation_timer = 0
         self.stars: list[Star] = []  # will be filled with star object instances
-
-        self.populate(window.canvas.width, window.canvas.height)
-
-    def populate(self, width, height) -> None:
-        """Create a list of many Stars."""
-        for _ in range(self.num_stars):
-            x = random.randint(0, width)
-            y = random.randint(0, height)
-            pulse_freq = random.randint(self.pulse_freq_min, self.pulse_freq_max)
-            radius = random.randint(self.radius_min, self.radius_max)
-            shade = random.randint(0, 255)
-            fade_in = random.choice([True, False])
-            star = Star(radius, x, y, pulse_freq, shade=shade, fade_in=fade_in)
-            self.stars.append(star)
+        
+        for _ in range(num_stars):
+            self.stars.append(self.create_star("random", "random"))
 
     def render(self, ctx, timestamp) -> None:
         """Render every star."""
