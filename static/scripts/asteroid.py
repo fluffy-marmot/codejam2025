@@ -2,6 +2,8 @@ import math
 import random
 
 from js import document, window  # type: ignore[attr-defined]
+from common import Position
+from scene_classes import SceneObject
 
 # Canvas dimensions
 canvas = document.getElementById("gameCanvas")
@@ -18,11 +20,11 @@ ASTEROID_RADII = [22, 26, 18, 19, 21, 25, 18, 23, 26, 20, 24, 13, 22, 18, 21, 23
                   23, 18, 21, 24, 20, 23, 29, 20, 24, 22, 22, 19]
 
 
-class Asteroid:
-    def __init__(self, sheet, x, y, vx, vy, target_size_px, sprite_index, grid_cols=11, cell_size=0):
+class Asteroid (SceneObject):
+    def __init__(self, sheet, x, y, vx, vy, target_size_px, sprite_index, grid_cols=11, cell_size=0, health=500):
+        super().__init__()
+        super().set_position(x, y)
         self.sheet = sheet
-        self.x = x
-        self.y = y
         self.velocity_x = vx
         self.velocity_y = vy
         self.rotation = 0.0
@@ -38,6 +40,7 @@ class Asteroid:
         self._last_timestamp = None
         self.linger_time = 0.5
         self.full_size_reached_at = None
+        self.health = health
 
     def _ensure_cell_size(self):
         if not self.cell_size:
@@ -109,6 +112,10 @@ class Asteroid:
         if self.full_size_reached_at and (self._last_timestamp - self.full_size_reached_at) > (
             self.linger_time * 1000
         ):
+            return True
+        if self.health <= 0:
+            window.debris.generate_debris(window.player.get_position(), self.get_position(), 4)
+            window.debris.generate_debris(window.player.get_position(), self.get_position(), 3.75)
             return True
         return False
 

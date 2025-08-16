@@ -93,14 +93,14 @@ class DebrisSystem(SceneObject):
             debris.update()
         self.debris_list = list(filter(lambda deb: deb.duration > 0, self.debris_list))
 
-    def generate_debris(self, player_pos: Position, asteroid_pos: Position) -> None:
+    def generate_debris(self, player_pos: Position, asteroid_pos: Position, max_size=3) -> None:
         distance = player_pos.distance(asteroid_pos)
         new_debris = []
         for _ in range(randint(3, 5)):
             position = player_pos.midpoint(asteroid_pos) + Position(randint(-20, 20), randint(-20, 20))
             shade = randint(128, 255)
             color = f"#{shade:x}{shade:x}{shade:x}"
-            radius = randint(15, 25) * min(50 / distance, 4)
+            radius = randint(15, 25) * min(50 / distance, max_size)
             duration = randint(100, 200)
             rotation = 0
 
