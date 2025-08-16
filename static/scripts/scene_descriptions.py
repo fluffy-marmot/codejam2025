@@ -133,8 +133,8 @@ class PlanetScene(Scene):
         draw_black_background(ctx)
         self.stars.star_shift(timestamp, 5)
         self.stars.render(ctx, timestamp)
-        if get_scanner().scanning:
-            get_scanner().render_beam(ctx)
+        get_scanner().update(ctx, timestamp)
+        get_scanner().render_beam(ctx)
         self.planet.render(ctx, timestamp)
 
         # Update + render handles spawn and drawing
@@ -149,7 +149,6 @@ class PlanetScene(Scene):
         if get_scanner().finished:
             self.handle_scene_completion(timestamp)
 
-        # Handle results screen display and interaction
         if self.results.active:
             self.results.render(ctx, timestamp)
         if self.should_exit_scene():

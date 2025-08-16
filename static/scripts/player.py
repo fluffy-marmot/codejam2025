@@ -1,6 +1,7 @@
 import math
 from collections import deque
 from math import dist
+from dataclasses import dataclass
 
 from common import Position
 from consolelogger import getLogger
@@ -13,7 +14,6 @@ from asteroid import Asteroid
 log = getLogger(__name__)
 
 FULL_HEALTH = 1000
-
 
 class Player(SceneObject):
     """Controllable player sprite.
@@ -260,12 +260,17 @@ class Player(SceneObject):
         self.rotation = 0.0
         self.target_rotation = 0.0
 
+@dataclass
+class ScanStatus:
+    active: bool = False  # Whether the scan is active
+    valid: bool = False    # Whether the scan is valid
 
 class Scanner:
     def __init__(
         self,
         sprite: SpriteSheet,
         player: Player,
+        min_x: float = -1,
         scale: float = 0.1,
         disable_ship_ms: float = 1000,
         beamwidth=100,
@@ -274,6 +279,7 @@ class Scanner:
         self.sprite = sprite
         self.scale = scale
         self.player = player
+        self.min_x = min_x
         self.scaled_w = self.sprite.width * self.scale
         self.scaled_h = self.sprite.height * self.scale
         self.disable_ship_ms = disable_ship_ms
@@ -284,9 +290,35 @@ class Scanner:
         self.bar_max = self.scanningdur
         self.last_scan_tick = None
         self.finished = False  # when the bar is full
-        self.scanning = False
+        self.status = ScanStatus()
+        
+    def update(self, ctx, current_time):
+        keys = window.controls.pressed
+        self.status.active = " " in keys
+        self.status.valid = self.player.x > self.min_x
+        
+        if self.status.active and self.status.valid:
+            self.player.is_disabled = True  
 
+            if self.last_scan_tick is None:
+                self.last_scan_tick = current_time
+
+            elapsed_since_last = current_time - self.last_scan_tick
+            self.scanning_progress = min(self.scanning_progress + elapsed_since_last, self.bar_max)
+            self.last_scan_tick = current_time
+        else:
+            self.last_scan_tick = None
+
+        # Re-enable player if disable_time has elapsed or player is not scanning
+        if current_time - self.disable_timer >= self.disable_ship_ms or not self.status.active:
+            if " " not in keys:
+                self.player.is_disabled = False
+                self.disable_timer = current_time
+    
     def render_beam(self, ctx):  # seprate function so it can go under the planet
+        if not self.status.active or not self.status.valid:
+            return
+        
         player_x, player_y = self.player.get_position()
         ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
         origin_x = player_x - 175
@@ -297,36 +329,21 @@ class Scanner:
         ctx.moveTo(origin_x, origin_y)
         ctx.lineTo(0, player_y + self.beamwidth)
         ctx.lineTo(0, player_y - self.beamwidth)
-        ctx.fill()
+        ctx.fill()    
 
     def render(self, ctx, current_time):
-        "renders the scanner sprite and the bar"
+        "Renders the scanner sprite and the progress bar"
         player_x, player_y = self.player.get_position()
-        keys = window.controls.pressed
+        if self.finished:
+            return # Don't render if finished
 
-        if " " in keys and not self.player.is_moving:
-            self.scanning = True
-            # scanner image
-            ctx.drawImage(self.sprite.image, player_x - 175, player_y - 25, self.scaled_w, self.scaled_h)
-
-            self.player.is_disabled = True
-
-            if self.last_scan_tick is None:
-                self.last_scan_tick = current_time
-
-            elapsed_since_last = current_time - self.last_scan_tick
-            self.scanning_progress = min(self.scanning_progress + elapsed_since_last, self.bar_max)
-            self.last_scan_tick = current_time
-
-        else:
-            self.last_scan_tick = None
-            self.scanning = False
-
-        if current_time - self.disable_timer >= self.disable_ship_ms:
-            self.disable_timer = current_time
-            if " " not in keys:
-                self.player.is_disabled = False
-
+        if self.status.active:
+            if self.status.valid:
+                ctx.drawImage(self.sprite.image, player_x - 175, player_y - 25, self.scaled_w, self.scaled_h)
+            else:
+                ctx.fillStyle = "red"
+                ctx.font = "20px Arial"
+                ctx.fillText("Too close to scan!", player_x - 175, player_y - 25)
         # progress bar
         outer_width = window.canvas.width // 4
         outer_height = 12
@@ -359,7 +376,7 @@ class Scanner:
             inner_height,
         )
 
-        if self.scanning_progress >= self.bar_max and not self.finished:
+        if self.scanning_progress >= self.bar_max:
             log.debug(f"Done scanning")
             self.finished = True
 
