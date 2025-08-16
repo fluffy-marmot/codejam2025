@@ -110,7 +110,7 @@ class ObjectDataParser(BaseParser):
         """Parse the text to find the object's radius."""
         radius_match = re.search(r"Radius \(km\)\s*=\s*([\d\.]+)", text)
         radius = float(radius_match.group(1)) if radius_match else None
-        return ObjectData(radius=radius)
+        return ObjectData(text=text, radius=radius)
 
 
 class VectorDataParser(BaseParser):

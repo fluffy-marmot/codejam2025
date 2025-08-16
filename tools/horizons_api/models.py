@@ -22,7 +22,7 @@ class MajorBody:
 @dataclass
 class ObjectData:
     """Represents physical characteristics of a celestial body."""
-
+    text: str
     radius: float | None = None
 
 

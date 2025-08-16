@@ -9,6 +9,8 @@ from horizons_api import HorizonsClient, TimePeriod
 HORIZONS_URL = "https://ssd.jpl.nasa.gov/api/horizons.api"
 HORIZONS_DATA_DIR = "horizons_data"
 
+SUN_ID = 10
+
 # set logging config here, since this is a standalone script
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -16,8 +18,8 @@ log = logging.getLogger(__name__)
 if __name__ == "__main__":
     client = HorizonsClient()
     # create dir for horizons API data if it doesn't already exist
-    script_path = Path(__file__).resolve().parent
-    horizons_path = script_path / HORIZONS_DATA_DIR
+    working_dir = Path.cwd()
+    horizons_path = working_dir / HORIZONS_DATA_DIR
     if not horizons_path.exists():
         Path.mkdir(horizons_path, parents=True, exist_ok=True)
 
@@ -34,30 +36,17 @@ if __name__ == "__main__":
     tomorrow = today + timedelta(days=1)
 
     for planet in template:
-        id = planet["id"]
-        name = planet["name"]
+        id: int = planet["id"]
+        name: str = planet["name"]
+        time_period = TimePeriod(start=today, end=tomorrow)
 
-        """
-        This query type returns kind of a messy info dump on physical characteristics of a planet;
-        we probably don't need most of this, but some stuff may be useful like radius of each planet
-        to decide how big to draw them? will create files like "599-Earth-info.txt" in horizons/ dir.
-        """
-        client.get_object_data(id, save_to=horizons_path / f"{id}-{name}-info.txt")
+        object = client.get_object_data(id)
 
-        if id == 10:
+        if id == SUN_ID:
             continue  # skip sun since we don't need its position
 
-        """
-        This is used to get coordinates, can be given a small stepsize to get many snapshots of coordinates
-        but for now we only need a single one, using today's date. The return is a big text dump with a lot of
-        random text info attached, using regex to extract the X and Y coordinates. I think if we ignore Z
-        coordinate, it should be basically be a projection along ecliptic plane which is a good enough
-        representation of planet positions for a simple game.
-        """
-        time_period = TimePeriod(start=today, end=tomorrow)
         pos_response = client.get_vectors(id, time_period)
-        planet["x"] = pos_response.x
-        planet["y"] = pos_response.y
+        planet["info"] = object.text
 
     with Path.open(horizons_path / "planets.json", "w") as f:
         json.dump(template, f, indent=4)
