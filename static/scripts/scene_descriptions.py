@@ -152,6 +152,7 @@ class PlanetScene(Scene):
         if self.results.active:
             self.results.render(ctx, timestamp)
         if self.should_exit_scene():
+            get_scanner().reset()
             self.planet.switch_view()
             self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
 
@@ -159,8 +160,6 @@ class PlanetScene(Scene):
 
     def handle_scene_completion(self, timestamp):
         """Handle when the scanning is finished and planet is complete."""
-        get_scanner().finished = False
-        get_scanner().reset_bar()
         get_player().active = False
         self.results.active = True
         self.planet.complete = True

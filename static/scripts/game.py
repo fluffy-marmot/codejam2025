@@ -51,7 +51,7 @@ window.asteroids = AsteroidAttack(sprites["asteroids"], width, height, 256)
 window.debris = DebrisSystem()
 
 
-scanner = window.scanner = Scanner(SpriteSheet("scanner"), player, min_x=width * 0.45)
+scanner = window.scanner = Scanner(SpriteSheet("scanner"), player, min_x=width * 0.45, scan_mult=5)
 log.info("Sprite URLs: %s", sprites)
 log.info("Created player at position (%s, %s)", player.x, player.y)
 
