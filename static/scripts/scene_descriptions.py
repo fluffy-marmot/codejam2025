@@ -15,31 +15,24 @@ sprites = window.sprites
 # methods useful across various scenes
 # --------------------
 
-
 def get_controls():
     return window.controls
-
 
 def get_player():
     return window.player
 
-
 def get_asteroid_system():
     return window.asteroids
-
 
 def get_debris_system():
     return window.debris
 
-
 def get_scanner():
     return window.scanner
-
 
 def draw_black_background(ctx):
     ctx.fillStyle = "black"
     ctx.fillRect(0, 0, window.canvas.width, window.canvas.height)
-
 
 def get_planet(name: str) -> dict[str, str] | None:
     for planet in window.planets:
@@ -112,6 +105,7 @@ class OrbitingPlanetsScene(Scene):
 
         self.planet_info_overlay.deactivate()
         self.scene_manager.activate_scene(planet_scene_name)
+        self.solar_sys.get_planet(planet_name).switch_view()
         get_player().reset_position()
         get_player().active = True
         get_asteroid_system().reset()
@@ -172,6 +166,7 @@ class PlanetScene(Scene):
         get_scanner().reset_bar()
         get_player().active = False
         self.results_overlay.active = True
+        self.planet.switch_view()
         self.planet.complete = True
 
 

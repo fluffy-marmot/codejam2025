@@ -61,6 +61,11 @@ class SolarSystem(SceneObject):
     def update(self):
         self.update_orbits(0.20)
 
+    def get_planet(self, planet_name: str) -> SpaceMass:
+        for planet in self.planets:
+            if planet.name == planet_name:
+                return planet
+
     def update_orbits(self, dt: float):
         """Update planet positions using simple circular orbits"""
         for i, planet in enumerate(self.planets):
