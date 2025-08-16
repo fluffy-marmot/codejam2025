@@ -1,8 +1,7 @@
-from js import window  # type: ignore[attr-defined]
 from common import Position
-
-from scene_classes import HTMLImageElement
 from consolelogger import getLogger
+from js import window  # type: ignore[attr-defined]
+from scene_classes import HTMLImageElement
 
 log = getLogger(__name__)
 

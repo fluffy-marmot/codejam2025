@@ -1,31 +1,37 @@
-from common import Rect
-from scene_classes import SceneObject
+from dataclasses import dataclass
+from common import Rect, PlanetState
+from consolelogger import getLogger
 from sprites import SpriteSheet
+from scene_classes import SceneObject
+
+log = getLogger(__name__)
 
 
 class SpaceMass(SceneObject):
-    def __init__(self, spritesheet: SpriteSheet, mass: float, radius: float, init_velocity: float) -> None:
+    def __init__(self, spritesheet: SpriteSheet, orbit_state: PlanetState, planet_scene_state: PlanetState) -> None:
         super().__init__()
 
         self.spritesheet = spritesheet
         self.name = spritesheet.key
 
-        self.mass = mass
-        self.radius = radius
-        self.initial_velocity = init_velocity
-        self.velocity_x = 0.0
-        self.velocity_y = 0.0
+        self.state: PlanetState = orbit_state
+        self._saved_state: PlanetState = planet_scene_state
+
+        self.x = self.state.x
+        self.y = self.state.y
+
         self.current_frame = 0
         self.animation_timer = 0
         self.frame_delay = 135  # (approximately 6 FPS)
-        self.x = 0
-        self.y = 0
+
         self.highlighted = False
         self.complete = False
 
+        # State management
+
     def get_bounding_box(self) -> Rect:
         # Scale sprite based on radius
-        sprite_size = int(self.radius) / 80.0
+        sprite_size = int(self.state.radius) / 80.0
         frame_size = self.spritesheet.height
 
         left = self.x - frame_size // 2 * sprite_size
@@ -53,16 +59,16 @@ class SpaceMass(SceneObject):
             bounds.width,
             bounds.height,
         )
-        if self.complete:
-            print("plant complete")
-            highlight = "#00ff00"
-        else:
-            print("plant not complete")
-            highlight = "#ffff00"  # yellow highlight
-            
+
         offset = 5
         # Draw highlight effect if planet is highlighted
         if self.highlighted:
+            if self.complete:
+                log.debug("plant complete")
+                highlight = "#00ff00"
+            else:
+                log.debug("plant not complete")
+                highlight = "#ffff00"  # yellow highlight
             ctx.save()
             ctx.strokeStyle = highlight
             ctx.shadowColor = highlight
@@ -93,3 +99,10 @@ class SpaceMass(SceneObject):
             ctx.restore()
 
         super().render(ctx, timestamp)
+
+    def switch_view(self) -> None:
+        """Configure planet view"""
+        self.state.x, self.state.y = self.x, self.y
+        self.state, self._saved_state = self._saved_state, self.state
+        self.x, self.y = self.state.x, self.state.y
+        self.highlighted = False  # Clear highlighting when switching views

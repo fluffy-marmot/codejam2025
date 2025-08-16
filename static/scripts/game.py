@@ -1,14 +1,13 @@
-from js import document, window  # type: ignore[attr-defined]
-from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
-
-from debris import DebrisSystem
 from consolelogger import getLogger
 from controls import GameControls
-from player import Player, Scanner
-from scene_classes import SceneManager, Scene
-from scene_descriptions import create_scene_manager, PlanetScene
 from asteroid import AsteroidAttack
+from debris import DebrisSystem
+from player import Player, Scanner
+from js import document, window  # type: ignore[attr-defined]
+from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
 from sprites import SpriteSheet
+from scene_classes import Scene
+from scene_descriptions import create_scene_manager
 
 log = getLogger(__name__)
 
@@ -20,6 +19,7 @@ canvas = window.canvas
 ctx = window.ctx = window.canvas.getContext("2d")
 
 window.DEBUG_DRAW_HITBOXES = False
+
 
 # TODO: the resizing and margins needs work, I suck with CSS / html layout
 def resize_canvas(event=None) -> None:
@@ -44,7 +44,9 @@ instead of passing them as straight up python function references.
 controls = window.controls = GameControls(canvas)
 scene_manager = window.scene_manager = create_scene_manager()
 sprites = window.sprites
-player = window.player = Player(SpriteSheet("player"), SpriteSheet("health"), canvas.width / 2, canvas.height / 2, scale=0.1)
+player = window.player = Player(
+    SpriteSheet("player"), SpriteSheet("health"), canvas.width / 2, canvas.height / 2, scale=0.1
+)
 window.asteroids = AsteroidAttack(sprites["asteroids"], width, height, 256)
 window.debris = DebrisSystem()
 

@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from time import time
 
+from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
+
 from common import Position
 from consolelogger import getLogger
-from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
 
 log = getLogger(__name__)
 
@@ -18,7 +19,7 @@ class MousePositions:
 
 class GameControls:
     """
-    in game.py using 
+    in game.py using
         controls = GameControls(canvas)
     controls object gives access to what keys are being currently pressed, accessible properties:
     -   controls.pressed is a set of strings representing keys and mouse buttons currently held down
@@ -30,6 +31,7 @@ class GameControls:
         end of each game loop if nothing makes use of the click event
     -   use enable_logging=False if spam of mouse/key events in browser console gets annoying
     """
+
     MOUSE_LEFT = "mouse_left"
     MOUSE_RIGHT = "mouse_right"
     MOUSE_MIDDLE = "mouse_middle"

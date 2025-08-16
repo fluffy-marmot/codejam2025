@@ -2,8 +2,8 @@ import math
 import random
 
 from js import window  # type: ignore[attr-defined]
-
 from scene_classes import SceneObject
+
 
 class Star:
     def __init__(self, radius, x, y, pulse_freq, shade=0, fade_in=True) -> None:
@@ -79,7 +79,7 @@ class StarSystem(SceneObject):
         self.num_stars = num_stars
         self.animation_timer = 0
         self.stars: list[Star] = []  # will be filled with star object instances
-        
+
         for _ in range(num_stars):
             self.stars.append(self.create_star("random", "random"))
 
@@ -93,10 +93,10 @@ class StarSystem(SceneObject):
 
         super().render(ctx, timestamp)
 
-    def create_star(self, x='random', y='random'):
-        if x == 'random':
+    def create_star(self, x="random", y="random"):
+        if x == "random":
             x = random.randint(0, window.canvas.width)
-        if y == 'random':
+        if y == "random":
             y = random.randint(0, window.canvas.height)
 
         pulse_freq = random.randint(self.pulse_freq_min, self.pulse_freq_max)
@@ -112,9 +112,9 @@ class StarSystem(SceneObject):
             for index, star in enumerate(self.stars):
                 star.x += 1
                 if abs(star.x) > window.canvas.width or abs(star.y) > window.canvas.height:
-                    self.stars.pop(index) 
-                    replacement_star = self.create_star(0, 'random')
+                    self.stars.pop(index)
+                    replacement_star = self.create_star(0, "random")
                     replacement_stars.append(replacement_star)
-                    
+
             for star in replacement_stars:
                 self.stars.append(star)

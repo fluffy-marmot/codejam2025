@@ -1,9 +1,10 @@
 import math
 
-from common import Position
-from scene_classes import SceneObject
-from spacemass import SpaceMass
+from common import Position, PlanetState
 from sprites import SpriteSheet
+from scene_classes import SceneObject
+
+from spacemass import SpaceMass
 
 GRAVI_CONST = 0.67
 
@@ -13,27 +14,27 @@ log = getLogger(__name__)
 
 
 class SolarSystem(SceneObject):
-    def __init__(self, screen_size=[512, 512]):
+    def __init__(self, screen_size=[512, 512], *, planet_scene_state: PlanetState):
         super().__init__()
 
         # Sun position (center of screen)
         self.sun_pos: Position = Position(screen_size[0] // 2, screen_size[1] // 2)
 
         # Sun
-        self.sun = SpaceMass(SpriteSheet("sun"), 1000.0, 120.0, 0.0)
+        self.sun = SpaceMass(SpriteSheet("sun"), PlanetState(1000.0, 120.0, 0.0), planet_scene_state)
         self.sun.set_position(self.sun_pos)
 
         # Inner planets
-        self.mercury = SpaceMass(SpriteSheet("mercury"), 3.3, 10, 2.5)
-        self.venus = SpaceMass(SpriteSheet("venus"), 48.7, 14, 2.0)
-        self.earth = SpaceMass(SpriteSheet("earth"), 59.7, 16, 1.8)
-        self.mars = SpaceMass(SpriteSheet("mars"), 6.4, 12, 1.5)
+        self.mercury = SpaceMass(SpriteSheet("mercury"), PlanetState(3.3, 10, 2.5), planet_scene_state)
+        self.venus = SpaceMass(SpriteSheet("venus"), PlanetState(48.7, 14, 2.0), planet_scene_state)
+        self.earth = SpaceMass(SpriteSheet("earth"), PlanetState(59.7, 16, 1.8), planet_scene_state)
+        self.mars = SpaceMass(SpriteSheet("mars"), PlanetState(6.4, 12, 1.5), planet_scene_state)
 
         # Outer planets
-        self.jupiter = SpaceMass(SpriteSheet("jupiter"), 1898.0, 64.0, 1.0)
-        self.saturn = SpaceMass(SpriteSheet("saturn"), 568.0, 46.0, 0.8)
-        self.uranus = SpaceMass(SpriteSheet("uranus"), 86.8, 36.0, 0.6)
-        self.neptune = SpaceMass(SpriteSheet("neptune"), 102.0, 15.0, 0.4)
+        self.jupiter = SpaceMass(SpriteSheet("jupiter"), PlanetState(1898.0, 64.0, 1.0), planet_scene_state)
+        self.saturn = SpaceMass(SpriteSheet("saturn"), PlanetState(568.0, 46.0, 0.8), planet_scene_state)
+        self.uranus = SpaceMass(SpriteSheet("uranus"), PlanetState(86.8, 36.0, 0.6), planet_scene_state)
+        self.neptune = SpaceMass(SpriteSheet("neptune"), PlanetState(102.0, 15.0, 0.4), planet_scene_state)
 
         self.planets = [
             self.mercury,
@@ -63,7 +64,7 @@ class SolarSystem(SceneObject):
     def update_orbits(self, dt: float):
         """Update planet positions using simple circular orbits"""
         for i, planet in enumerate(self.planets):
-            angular_velocity = planet.initial_velocity * 0.01
+            angular_velocity = planet.state.initial_velocity * 0.01
 
             # Update angle
             self.planet_angles[i] += angular_velocity * dt * 60  # Scale for 60 FPS
@@ -113,7 +114,7 @@ class SolarSystem(SceneObject):
             return 0
 
         # F = G * m1 * m2 / r^2
-        force = GRAVI_CONST * self.sun.mass * planet.mass / (distance * distance)
+        force = GRAVI_CONST * self.sun.state.mass * planet.state.mass / (distance * distance)
 
         return force
 
