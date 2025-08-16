@@ -309,7 +309,6 @@ class Scanner:
             self.scanning_progress = min(self.scanning_progress + elapsed_since_last, self.bar_max)
             self.last_scan_tick = current_time
 
- 
 
         else:
             self.last_scan_tick = None
@@ -352,5 +351,8 @@ class Scanner:
             inner_height
         )
 
-        if self.scanning_progress == self.bar_max:
+        if self.scanning_progress >= self.bar_max and not self.finished:
+            print(f"your done")
             self.finished = True
+    def reset_bar(self):
+        self.scanning_progress = 0

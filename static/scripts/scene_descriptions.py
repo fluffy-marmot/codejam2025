@@ -117,7 +117,6 @@ class PlanetScene(Scene):
 
     def render(self, ctx, timestamp):
         draw_black_background(ctx)
-
         self.stars.star_shift(timestamp, 5)
         self.stars.render(ctx, timestamp)
         if get_scanner().scanning:
@@ -135,7 +134,16 @@ class PlanetScene(Scene):
         if get_controls().click:
             self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
 
+        if get_scanner().finished:
+            print("done!")
+            get_scanner().finished = False
+            get_scanner().reset_bar()
+            self.planet.complete = True
+            
+            self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
 
+        print(self.planet.complete)
+        
 # --------------------
 # create scene manager
 # --------------------

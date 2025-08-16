@@ -21,6 +21,7 @@ class SpaceMass(SceneObject):
         self.x = 0
         self.y = 0
         self.highlighted = False
+        self.complete = False
 
     def get_bounding_box(self) -> Rect:
         # Scale sprite based on radius
@@ -52,8 +53,13 @@ class SpaceMass(SceneObject):
             bounds.width,
             bounds.height,
         )
-
-        highlight = "#ffff00"  # yellow highlight
+        if self.complete:
+            print("plant complete")
+            highlight = "#00ff00"
+        else:
+            print("plant not complete")
+            highlight = "#ffff00"  # yellow highlight
+            
         offset = 5
         # Draw highlight effect if planet is highlighted
         if self.highlighted:
