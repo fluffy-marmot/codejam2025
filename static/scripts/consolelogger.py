@@ -21,7 +21,7 @@ class ConsoleHandler(logging.Handler):
 
 
 # why the heck does python's standard lib use camelCase? :(  I'm just mimicking logging.getLogger ...
-def getLogger(name) -> logging.Logger:
+def getLogger(name, show_time: bool = False) -> logging.Logger:
     """
     to get a logger in another file that outputs only to the browser javascript console and doesn't insert
     its output into the webpage, simply use:
@@ -35,8 +35,11 @@ def getLogger(name) -> logging.Logger:
 
     # set up the logger so it only outputs to the browser's javascript console. Spiffy
     handler = ConsoleHandler()
-    formatter = logging.Formatter("[%(levelname)s %(asctime)s] %(name)s: %(message)s", datefmt="%H:%M:%S")
-    handler.setFormatter(formatter)
+    if not show_time:
+        handler.setFormatter(logging.Formatter("[%(levelname)s] %(name)s: %(message)s"))
+    else:
+        formatter = logging.Formatter("[%(levelname)s %(asctime)s] %(name)s: %(message)s", datefmt="%H:%M:%S")
+        handler.setFormatter(formatter)
 
     logger.handlers.clear()
     logger.addHandler(handler)

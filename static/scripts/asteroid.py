@@ -1,6 +1,7 @@
-from js import document, window  # type: ignore[attr-defined]
 import math
 import random
+
+from js import document, window  # type: ignore[attr-defined]
 
 # Canvas dimensions
 canvas = document.getElementById("gameCanvas")
@@ -10,11 +11,113 @@ SCREEN_W, SCREEN_H = container.clientWidth, container.clientHeight
 ASTEROID_SHEET = window.sprites["asteroids"]
 
 # "magic numbers" obtained via a script in assets/make_spritesheets.py, end of the printout
-ASTEROID_RADII = [22, 26, 18, 19, 21, 25, 18, 23, 26, 20, 24, 13, 22, 18, 21, 23, 30, 19, 18, 18, 18, 21, 26, 
-                  20, 21, 16, 24, 22, 18, 25, 18, 20, 19, 21, 22, 18, 24, 20, 23, 20, 22, 20, 24, 17, 16, 16, 
-                  18, 21, 17, 22, 24, 25, 14, 24, 25, 14, 22, 23, 21, 18, 20, 18, 18, 19, 24, 23, 23, 27, 19, 
-                  24, 25, 20, 23, 21, 25, 22, 19, 25, 21, 16, 30, 26, 24, 30, 23, 21, 20, 18, 25, 16, 24, 21, 
-                  23, 18, 21, 24, 20, 23, 29, 20, 24, 22, 22, 19]
+ASTEROID_RADII = [
+    22,
+    26,
+    18,
+    19,
+    21,
+    25,
+    18,
+    23,
+    26,
+    20,
+    24,
+    13,
+    22,
+    18,
+    21,
+    23,
+    30,
+    19,
+    18,
+    18,
+    18,
+    21,
+    26,
+    20,
+    21,
+    16,
+    24,
+    22,
+    18,
+    25,
+    18,
+    20,
+    19,
+    21,
+    22,
+    18,
+    24,
+    20,
+    23,
+    20,
+    22,
+    20,
+    24,
+    17,
+    16,
+    16,
+    18,
+    21,
+    17,
+    22,
+    24,
+    25,
+    14,
+    24,
+    25,
+    14,
+    22,
+    23,
+    21,
+    18,
+    20,
+    18,
+    18,
+    19,
+    24,
+    23,
+    23,
+    27,
+    19,
+    24,
+    25,
+    20,
+    23,
+    21,
+    25,
+    22,
+    19,
+    25,
+    21,
+    16,
+    30,
+    26,
+    24,
+    30,
+    23,
+    21,
+    20,
+    18,
+    25,
+    16,
+    24,
+    21,
+    23,
+    18,
+    21,
+    24,
+    20,
+    23,
+    29,
+    20,
+    24,
+    22,
+    22,
+    19,
+]
+
 
 class Asteroid:
     def __init__(self, sheet, x, y, vx, vy, target_size_px, sprite_index, grid_cols=11, cell_size=0):
@@ -81,7 +184,7 @@ class Asteroid:
         ctx.save()
         ctx.translate(self.x, self.y)
         ctx.rotate(self.rotation)
-        
+
         # Draw centered
         ctx.drawImage(self.sheet, x, y, w, h, -size / 2, -size / 2, size, size)
 
@@ -90,7 +193,7 @@ class Asteroid:
             ctx.beginPath()
             ctx.strokeStyle = "#FF5555"
             ctx.lineWidth = 2
-            ctx.arc(0, 0, size * self.hitbox_radius / 100 *1, 0, 2 * math.pi)
+            ctx.arc(0, 0, size * self.hitbox_radius / 100 * 1, 0, 2 * math.pi)
             ctx.stroke()
         ctx.restore()
 
@@ -98,19 +201,21 @@ class Asteroid:
         return self.x < -margin or self.x > w + margin or self.y < -margin or self.y > h + margin
 
     def get_hit_circle(self):
-        return (self.x, self.y, self.size * self.hitbox_radius / 100 *1)
+        return (self.x, self.y, self.size * self.hitbox_radius / 100 * 1)
 
     def should_be_removed(self):
         """Check if asteroid should be removed (off screen or lingered too long)"""
         if self.is_off_screen():
             return True
-        if self.full_size_reached_at and (self._last_timestamp - self.full_size_reached_at) > (self.linger_time * 1000):
+        if self.full_size_reached_at and (self._last_timestamp - self.full_size_reached_at) > (
+            self.linger_time * 1000
+        ):
             return True
         return False
 
 
 class AsteroidAttack:
-    def __init__(self, spritesheet, width: int, height: int, max_size_px: float, spawnrate: int=500):
+    def __init__(self, spritesheet, width: int, height: int, max_size_px: float, spawnrate: int = 500):
         self.sheet = spritesheet
         self.w = width
         self.h = height
@@ -125,14 +230,14 @@ class AsteroidAttack:
         # Don't spawn if at the limit
         if len(self.asteroids) >= self.max_asteroids:
             return
-        
+
         # Planet area (left side)
-        planet_width = self.w * 0.3 
+        planet_width = self.w * 0.3
         space_start_x = planet_width + 50
 
         x = random.uniform(space_start_x, self.w)
         y = random.uniform(0, self.h)
-        
+
         if x < (SCREEN_W / 2):
             velocity_x = random.uniform(-15, -5)
             if y < (SCREEN_H / 2):
@@ -147,7 +252,7 @@ class AsteroidAttack:
                 velocity_y = random.uniform(5, 15)
 
         target = random.uniform(self.max_size * 0.7, self.max_size * 1.3)
-        idx = random.randint(0, 103) # randint is inclusive on both ends
+        idx = random.randint(0, 103)  # randint is inclusive on both ends
         a = Asteroid(self.sheet, x, y, velocity_x, velocity_y, target, idx)
         self.asteroids.append(a)
 
@@ -166,7 +271,7 @@ class AsteroidAttack:
         before_count = len(self.asteroids)
         self.asteroids = [a for a in self.asteroids if not a.should_be_removed()]
         after_count = len(self.asteroids)
-        
+
         # If we removed asteroids, we can spawn new ones
         if after_count < before_count:
             self._last_spawn = timestamp - (self.spawnrate * 0.7)
@@ -175,10 +280,8 @@ class AsteroidAttack:
         self.spawn_and_update(timestamp)
         for a in self.asteroids:
             a.render(ctx, timestamp)
-            
+
     def reset(self):
         self.asteroids.clear()
         self._last_spawn = 0.0
         self.cell_size = 0
-
-

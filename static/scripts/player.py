@@ -1,17 +1,19 @@
-from js import window  # type: ignore[attr-defined]
-
-from math import dist
+import math
 from collections import deque
+from math import dist
+
 from common import Position
 from consolelogger import getLogger
-from scene_classes import SceneObject
+from js import window  # type: ignore[attr-defined]
 from sprites import SpriteSheet
+from scene_classes import SceneObject
+
 from asteroid import Asteroid
-import math
 
 log = getLogger(__name__)
 
 FULL_HEALTH = 1000
+
 
 class Player(SceneObject):
     """Controllable player sprite.
@@ -21,14 +23,14 @@ class Player(SceneObject):
     """
 
     def __init__(
-        self, 
-        sprite: SpriteSheet, 
-        bar_icon: SpriteSheet, 
-        x: float, 
-        y: float, 
-        speed: float = 100.0, 
-        scale: float = 0.1, 
-        hitbox_scale: float = 0.5, 
+        self,
+        sprite: SpriteSheet,
+        bar_icon: SpriteSheet,
+        x: float,
+        y: float,
+        speed: float = 100.0,
+        scale: float = 0.1,
+        hitbox_scale: float = 0.5,
     ):
         super().__init__()
 
@@ -43,10 +45,10 @@ class Player(SceneObject):
         self._half_w = 0
         self._half_h = 0
         self.hitbox_scale = hitbox_scale
-        self.rotation = 0.0          # rotation in radians
+        self.rotation = 0.0  # rotation in radians
         self.target_rotation = 0.0
         self.max_tilt = math.pi / 8  # Maximum tilt angle (22.5 degrees)
-        self.rotation_speed = 8.0 
+        self.rotation_speed = 8.0
         self.is_moving = False
         self.is_disabled = False
         self.bar_icon = bar_icon
@@ -93,19 +95,19 @@ class Player(SceneObject):
 
         # miliseconds to seconds since that's what was being used
         dt = (timestamp - self.last_timestamp) / 1000
-        
+
         # Update target rotation based on horizontal movement
         if dx < 0:  # Moving left
             self.target_rotation = -self.max_tilt  # Tilt left
         elif dx > 0:  # Moving right
-            self.target_rotation = self.max_tilt   # Tilt right
+            self.target_rotation = self.max_tilt  # Tilt right
         else:
             self.target_rotation = 0.0
-        
+
         # Smoothly interpolate current rotation toward target
         rotation_diff = self.target_rotation - self.rotation
         self.rotation += rotation_diff * self.rotation_speed * dt
-        
+
         if dx or dy:
             # normalize diagonal movement
             mag = (dx * dx + dy * dy) ** 0.5
@@ -124,8 +126,10 @@ class Player(SceneObject):
             self.y += self.momentum[1] * self.speed * dt
             self.momentum[0] *= 0.97
             self.momentum[1] *= 0.97
-            if abs(self.momentum[0]) < 0.5: self.momentum[0] = 0
-            if abs(self.momentum[1]) < 0.5: self.momentum[1] = 0
+            if abs(self.momentum[0]) < 0.5:
+                self.momentum[0] = 0
+            if abs(self.momentum[1]) < 0.5:
+                self.momentum[1] = 0
 
         # clamp inside canvas
         canvas = getattr(window, "gameCanvas", None)
@@ -150,11 +154,11 @@ class Player(SceneObject):
 
         # Save the canvas state before applying rotation
         ctx.save()
-        
+
         # Move to player center and apply rotation
         ctx.translate(self.x, self.y)
         ctx.rotate(self.rotation)
-        
+
         # Draw sprite centered at origin
         ctx.drawImage(self.sprite.image, -self._half_w, -self._half_h, scaled_w, scaled_h)
 
@@ -163,10 +167,10 @@ class Player(SceneObject):
             ctx.strokeStyle = "white"
             ctx.lineWidth = 2
             ctx.strokeRect(-self._half_w, -self._half_h, scaled_w, scaled_h)
-        
+
         # Restore canvas state (removes rotation and translation)
         ctx.restore()
-        
+
         # Collision detection (done after restore so it's in world coordinates)
         if self.active:
             for asteroid in window.asteroids.asteroids:
@@ -184,40 +188,41 @@ class Player(SceneObject):
         padding = 30
 
         ctx.drawImage(
-                self.bar_icon.image,
-                window.canvas.width - outer_width - padding - 30,
-                window.canvas.height - outer_height - padding - 2,
-            )
-        
+            self.bar_icon.image,
+            window.canvas.width - outer_width - padding - 30,
+            window.canvas.height - outer_height - padding - 2,
+        )
+
         ctx.lineWidth = 1
         ctx.strokeStyle = "#FFFFFF"
         ctx.strokeRect(
-            window.canvas.width - outer_width - padding, 
+            window.canvas.width - outer_width - padding,
             window.canvas.height - outer_height - padding,
-            outer_width, 
-            outer_height
+            outer_width,
+            outer_height,
         )
 
         ctx.fillStyle = "#FF0000"
         ctx.fillRect(
-            window.canvas.width - outer_width - padding + 2, 
+            window.canvas.width - outer_width - padding + 2,
             window.canvas.height - outer_height - padding + 2,
             inner_width * self.health_history.popleft() / FULL_HEALTH,
-            inner_height
+            inner_height,
         )
         self.health_history.append(self.health)
 
         ctx.fillStyle = "#00FF00"
         ctx.fillRect(
-            window.canvas.width - outer_width - padding + 2, 
+            window.canvas.width - outer_width - padding + 2,
             window.canvas.height - outer_height - padding + 2,
             inner_width * self.health / FULL_HEALTH,
-            inner_height
+            inner_height,
         )
-    
+
     def check_collision(self, asteroid: Asteroid):
         # skip if asteroid is too far in the background
-        if asteroid.size < asteroid.target_size * 0.70: return
+        if asteroid.size < asteroid.target_size * 0.70:
+            return
 
         ast_x, ast_y, ast_radius = asteroid.get_hit_circle()
         player_x_min, player_x_max = self.x - self._half_w, self.x + self._half_w
@@ -227,7 +232,7 @@ class Player(SceneObject):
         hitbox_closest_y = max(player_y_min, min(ast_y, player_y_max))
 
         # if the closest point on the rectangle is inside the asteroid's circle, we have collision:
-        if (hitbox_closest_x - ast_x) ** 2 + (hitbox_closest_y - ast_y) ** 2 < ast_radius ** 2:
+        if (hitbox_closest_x - ast_x) ** 2 + (hitbox_closest_y - ast_y) ** 2 < ast_radius**2:
             distance_between_centers = dist((ast_x, ast_y), (self.x, self.y))
             self.momentum[0] = (self.x - ast_x) / distance_between_centers * 5.0
             self.momentum[1] = (self.y - ast_y) / distance_between_centers * 5.0
@@ -255,9 +260,17 @@ class Player(SceneObject):
         self.rotation = 0.0
         self.target_rotation = 0.0
 
+
 class Scanner:
-    def __init__(self, sprite: SpriteSheet, player: Player, scale: float = 0.1,
-                 disable_ship_ms: float = 1000, beamwidth=100, scanning_dur_s=5):
+    def __init__(
+        self,
+        sprite: SpriteSheet,
+        player: Player,
+        scale: float = 0.1,
+        disable_ship_ms: float = 1000,
+        beamwidth=100,
+        scanning_dur_s=5,
+    ):
         self.sprite = sprite
         self.scale = scale
         self.player = player
@@ -267,13 +280,13 @@ class Scanner:
         self.disable_timer = 0
         self.beamwidth = beamwidth
         self.scanningdur = scanning_dur_s * 1000  # ms
-        self.scanning_progress = 0                
+        self.scanning_progress = 0
         self.bar_max = self.scanningdur
-        self.last_scan_tick = None                 
-        self.finished = False #when the bar is full
+        self.last_scan_tick = None
+        self.finished = False  # when the bar is full
         self.scanning = False
 
-    def render_beam(self, ctx): #seprate function so it can go under the planet
+    def render_beam(self, ctx):  # seprate function so it can go under the planet
         player_x, player_y = self.player.get_position()
         ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
         origin_x = player_x - 175
@@ -294,13 +307,7 @@ class Scanner:
         if " " in keys and not self.player.is_moving:
             self.scanning = True
             # scanner image
-            ctx.drawImage(
-                self.sprite.image,
-                player_x - 175,
-                player_y - 25,
-                self.scaled_w,
-                self.scaled_h
-            )
+            ctx.drawImage(self.sprite.image, player_x - 175, player_y - 25, self.scaled_w, self.scaled_h)
 
             self.player.is_disabled = True
 
@@ -310,7 +317,6 @@ class Scanner:
             elapsed_since_last = current_time - self.last_scan_tick
             self.scanning_progress = min(self.scanning_progress + elapsed_since_last, self.bar_max)
             self.last_scan_tick = current_time
-
 
         else:
             self.last_scan_tick = None
@@ -329,20 +335,20 @@ class Scanner:
         padding = 30
 
         ctx.drawImage(
-                self.sprite.image,
-                window.canvas.width - outer_width - padding - 30,
-                window.canvas.height + outer_height - padding - 2,
-                16,
-                16
-            )
-        
+            self.sprite.image,
+            window.canvas.width - outer_width - padding - 30,
+            window.canvas.height + outer_height - padding - 2,
+            16,
+            16,
+        )
+
         ctx.lineWidth = 1
         ctx.strokeStyle = "#FFFFFF"
         ctx.strokeRect(
             window.canvas.width - outer_width - padding,
             window.canvas.height + outer_height - padding,
             outer_width,
-            outer_height
+            outer_height,
         )
 
         ctx.fillStyle = "#FF0000"
@@ -350,11 +356,12 @@ class Scanner:
             window.canvas.width - outer_width - padding + 2,
             window.canvas.height + outer_height - padding + 2,
             inner_width * self.scanning_progress / self.bar_max,
-            inner_height
+            inner_height,
         )
 
         if self.scanning_progress >= self.bar_max and not self.finished:
-            print(f"your done")
+            log.debug(f"Done scanning")
             self.finished = True
+
     def reset_bar(self):
         self.scanning_progress = 0
