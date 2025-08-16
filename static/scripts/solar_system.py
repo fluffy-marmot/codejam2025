@@ -98,20 +98,6 @@ class SolarSystem(SceneObject):
 
         super().render(ctx, timestamp)
 
-    def get_distance(self, pos1: Position, pos2: Position) -> float:
-        """Calculate the distance between two positions.
-
-        Arguments:
-            pos1 (Position): The first position.
-            pos2 (Position): The second position.
-
-        Returns:
-            The distance between the two positions.
-        """
-        dx = pos2.x - pos1.x
-        dy = pos2.y - pos1.y
-        return math.sqrt(dx * dx + dy * dy)
-
     # I Couldn't get this to work 〒__〒
     def calculateGForce(self, planet_index: int) -> float:
         """Calculate gravitational force between the sun and a planet"""
@@ -120,7 +106,7 @@ class SolarSystem(SceneObject):
         planet = self.planets[planet_index]
 
         # Calculate distance between sun and planet
-        distance = self.get_distance(self.sun_pos, planet_pos)
+        distance = planet_pos.distance(self.sun_pos)
 
         # Prevent division by zero
         if distance == 0:
@@ -147,7 +133,7 @@ class SolarSystem(SceneObject):
             if rect.left <= pos.x <= rect.right and rect.top <= pos.y <= rect.bottom:
                 # Calculate distance from click point to planet center
                 planet_center = Position(rect.left + rect.width / 2, rect.top + rect.height / 2)
-                distance = self.get_distance(pos, planet_center)
+                distance = planet_center.distance(pos)
                 if distance < closest_distance:
                     closest_distance = distance
                     closest_planet = planet
