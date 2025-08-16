@@ -12,6 +12,7 @@ from scene_descriptions import create_scene_manager
 log = getLogger(__name__)
 
 # References to the useful html elements
+loadingLabel = document.getElementById("loadingLabel")
 container = document.getElementById("canvasContainer")
 width, height = container.clientWidth, container.clientHeight
 canvas = window.canvas
@@ -54,6 +55,7 @@ scanner = window.scanner = Scanner(SpriteSheet("scanner"), player)
 log.info("Sprite URLs: %s", sprites)
 log.info("Created player at position (%s, %s)", player.x, player.y)
 
+loadingLabel.style.display = "none"
 
 def game_loop(timestamp: float) -> None:
     """

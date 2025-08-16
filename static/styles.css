@@ -23,6 +23,18 @@ body {
     flex: 1;
 }
 
+#loadingLabel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Courier New', monospace;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: green;
+    z-index: 10;
+}
+
 audio {
     display: none;
 }
