@@ -20,4 +20,4 @@ class AudioHandler:
 
     def play_bang(self) -> None:
         # these bangs are kind of loud, playing it at reduced volume
-        self.play_sound(random.choice(["bang1.ogg", "bang2.ogg", "bang3.ogg"]), volume=0.75)
+        self.play_sound(random.choice(["bang1.ogg", "bang2.ogg", "bang3.ogg"]), volume=0.4)
