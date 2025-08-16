@@ -1,8 +1,7 @@
-from dataclasses import dataclass
-from common import Rect, PlanetState
+from common import PlanetState, Rect
 from consolelogger import getLogger
-from sprites import SpriteSheet
 from scene_classes import SceneObject
+from sprites import SpriteSheet
 
 log = getLogger(__name__)
 
@@ -59,6 +58,10 @@ class SpaceMass(SceneObject):
             bounds.width,
             bounds.height,
         )
+        if self.complete:
+            highlight = "#00ff00"
+        else:
+            highlight = "#ffff00"  # yellow highlight
 
         offset = 5
         # Draw highlight effect if planet is highlighted
@@ -89,7 +92,7 @@ class SpaceMass(SceneObject):
             ctx.beginPath()
             ctx.moveTo(center_x, center_y - radius)
             ctx.lineTo(center_x + 10, center_y - radius - 10)
-            ctx.font = "14px Verdana"
+            ctx.font = "14px Courier New"
             ctx.fillStyle = highlight
             text_width = ctx.measureText(self.name.capitalize()).width
             ctx.lineTo(center_x + 15 + text_width, center_y - radius - 10)

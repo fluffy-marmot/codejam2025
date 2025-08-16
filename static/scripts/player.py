@@ -2,13 +2,12 @@ import math
 from collections import deque
 from math import dist
 
+from asteroid import Asteroid
 from common import Position
 from consolelogger import getLogger
 from js import window  # type: ignore[attr-defined]
-from sprites import SpriteSheet
 from scene_classes import SceneObject
-
-from asteroid import Asteroid
+from sprites import SpriteSheet
 
 log = getLogger(__name__)
 
@@ -360,7 +359,7 @@ class Scanner:
         )
 
         if self.scanning_progress >= self.bar_max and not self.finished:
-            log.debug(f"Done scanning")
+            log.debug("Scanner progress complete")
             self.finished = True
 
     def reset_bar(self):
