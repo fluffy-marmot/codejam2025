@@ -54,10 +54,8 @@ class SpaceMass(SceneObject):
             bounds.height,
         )
         if self.complete:
-            print("plant complete")
             highlight = "#00ff00"
         else:
-            print("plant not complete")
             highlight = "#ffff00"  # yellow highlight
             
         offset = 5

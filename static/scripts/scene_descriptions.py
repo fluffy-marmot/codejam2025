@@ -1,8 +1,8 @@
 from js import document, window  # type: ignore[attr-defined]
+from functools import partial
 
 from consolelogger import getLogger
 from scene_classes import Scene, SceneObject, SceneManager, CanvasRenderingContext2D
-
 from common import Position, Rect
 from debris import DebrisSystem
 from player import Player
@@ -63,6 +63,11 @@ class OrbitingPlanetsScene(Scene):
             pulse_freq_min=3,
             pulse_freq_max=6,
         )
+        self.planet_info_overlay = TextOverlay("planet-info-overlay", scene_manager, "")
+        # attach a behavior to click event outside the overlay's button - hide the overlay
+        self.planet_info_overlay.other_click_callable = self.planet_info_overlay.deactivate
+        self.planet_info_overlay.set_button("Travel")
+
 
     def render(self, ctx, timestamp):
         draw_black_background(ctx)
@@ -73,7 +78,20 @@ class OrbitingPlanetsScene(Scene):
         self.solar_sys.render(ctx, timestamp)
 
         # from this scene, be ready to switch to a big planet scene if planet is clicked
-        self.switch_planet_scene()
+        if self.planet_info_overlay.active:
+            self.planet_info_overlay.render(ctx, timestamp)
+        else:
+            self.check_planet_click()
+
+    def check_planet_click(self):
+        if get_controls().click:
+            planet = self.solar_sys.get_object_at_position(get_controls().mouse.click)
+            if planet:
+                log.debug("Clicked on: %s", planet.name)
+                self.planet_info_overlay.button_click_callable = partial(self.switch_planet_scene, planet.name)
+                self.planet_info_overlay.set_text("\n".join(get_planet(planet.name)["level"]))
+                self.planet_info_overlay.margins = Position(300, 150)
+                self.planet_info_overlay.active = True
 
     def highlight_hovered_planet(self):
         # Reset all planets' highlight state first
@@ -81,21 +99,19 @@ class OrbitingPlanetsScene(Scene):
             planet.highlighted = False
 
         planet = self.solar_sys.get_object_at_position(get_controls().mouse.move)
-        if planet is not None:
-            log.debug("Highlighting planet: %s", planet.name)
+        if planet is not None and not self.planet_info_overlay.active:
             planet.highlighted = True
 
-    def switch_planet_scene(self):
-        """Switch to the clicked planet scene if a planet is clicked."""
-        if get_controls().click:
-            planet = self.solar_sys.get_object_at_position(get_controls().mouse.click)
-            if planet:
-                log.debug("Clicked on: %s", planet.name)
-                self.scene_manager.activate_scene(f"{planet.name}-planet-scene")
-                get_player().reset_position()
-                get_player().active = True
-                get_asteroid_system().reset()
-                get_debris_system().reset()
+    def switch_planet_scene(self, planet_name):
+        planet_scene_name = f"{planet_name}-planet-scene"
+        log.debug("Activating planet scene: %s", planet_scene_name)
+
+        self.planet_info_overlay.deactivate()
+        self.scene_manager.activate_scene(planet_scene_name)
+        get_player().reset_position()
+        get_player().active = True
+        get_asteroid_system().reset()
+        get_debris_system().reset()
 
 # --------------------
 # game scene with zoomed in planet on left
@@ -119,13 +135,8 @@ class PlanetScene(Scene):
         )
         self.planet = planet
         planet.set_position(0, window.canvas.height // 2)
-        self.results = ResultsScreen(name=f"{planet.name}-results", scene_manager=scene_manager, planet=self.planet)
-    
-    def should_exit_scene(self) -> bool:
-        # TODO temporary debug / demo function: click goes back to the OrbitingPlanets scene
-        if get_controls().click:
-            return True
-        return False
+        self.results_overlay = ResultsScreen(f"{planet.name}-results", scene_manager, self.planet)
+        self.results_overlay.other_click_callable = self.handle_scene_completion
 
     def render(self, ctx, timestamp):
         draw_black_background(ctx)
@@ -143,24 +154,23 @@ class PlanetScene(Scene):
 
         get_scanner().render(ctx, timestamp)
 
-        # Handle scene completion
+        # Activate the results sub-scene if scanner progress is complete
         if get_scanner().finished:
-            self.handle_scene_completion(timestamp)
+            self.results_overlay.active = True
 
         # Handle results screen display and interaction
-        self.results.render(ctx, timestamp)
-        if self.should_exit_scene():
-            self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
+        self.results_overlay.render(ctx, timestamp)
 
-        log.debug(self.planet.complete)
-
-    def handle_scene_completion(self, timestamp):
+    def handle_scene_completion(self):
         """Handle when the scanning is finished and planet is complete."""
-        log.debug("done!")
+        log.debug(f"Finished planet {self.planet.name}! Reactivating orbiting planets scene.")
+        self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
+
+        # reset anything relevant
         get_scanner().finished = False
         get_scanner().reset_bar()
         get_player().active = False
-        self.results.active = True
+        self.results_overlay.active = True
         self.planet.complete = True
 
 # --------------------
@@ -174,10 +184,16 @@ class TextOverlay(Scene):
     def __init__(self, name: str, scene_manager: SceneManager, text: str):
         super().__init__(name, scene_manager)
         self.set_text(text)
+        self.calculate_and_set_font()
         self.char_delay = 10  # milliseconds between characters
-        self.active = False
         self.margins = Position(200, 50)
         self.button_label = None
+        self.button_click_callable = None
+        self.other_click_callable = None
+        self.deactivate()
+
+    def deactivate(self):
+        self.active = False
 
     def set_text(self, text: str):
         """ """
@@ -189,6 +205,13 @@ class TextOverlay(Scene):
     def set_button(self, button_label: str | None):
         self.button_label = button_label
 
+    def calculate_and_set_font(self) -> str:
+        # Set text style based on window size
+        base_size = min(window.canvas.width, window.canvas.height) / 50
+        font_size = max(12, min(20, base_size))  # Scale between 12px and 20px
+        self.font = {"size": font_size, "font": "'Courier New', monospace"}
+        return self.font
+
     def update_textstream(self, timestamp):
         """ Update streaming text """ 
         if timestamp - self.last_char_time > self.char_delay and self.char_index < len(self.text):
@@ -197,39 +220,37 @@ class TextOverlay(Scene):
             self.char_index += chars_to_add
             self.last_char_time = timestamp
 
-    def render_and_handle_button(self, ctx: CanvasRenderingContext2D, overlay_bounds: Rect):
-        if not self.button_label: return
+    def render_and_handle_button(self, ctx: CanvasRenderingContext2D, overlay_bounds: Rect) -> Rect:
+        """ 
+        this function returns the button's bounding Rect as a byproduct, so it can be
+        conveniently used to check for click events in the calling function
+        """
+        if not self.button_label: return None
 
         ctx.save()
         ctx.font = "14px Courier New"
         text_width = ctx.measureText(self.button_label).width
 
-        button_rect = Rect(overlay_bounds.right - (text_width + 20), 
-                           overlay_bounds.bottom - 34, text_width + 10, 24 )
+        button_bounds = Rect(overlay_bounds.right - (text_width + 30), 
+                           overlay_bounds.bottom - 44, text_width + 20, 34 )
         
-        ctx.fillstyle = "rgba(0, 0, 0, 0.95)"
-        ctx.fillrect(*button_rect)
+        ctx.fillStyle = "rgba(0, 0, 0, 0.95)"
+        ctx.fillRect(*button_bounds)
 
         # check whether mouse is currently moving over the button
-        if button_rect.contains(get_controls().mouse.move):
-            ctx.fillstyle = "ffff00"
-            if get_controls().click:
-                ... # handle button being clicked
+        if button_bounds.contains(get_controls().mouse.move):
+            ctx.fillStyle = "#ffff00"
         else:
-            ctx.fillstyle = "00ff00"
+            ctx.fillStyle = "#00ff00"
 
-        ctx.fillText(self.button_label, button_rect.left + 10, button_rect.bottom - 10)
+        ctx.fillText(self.button_label, button_bounds.left + 10, button_bounds.bottom - 10)
         ctx.strokeStyle = "rgba(0, 255, 0, 0.95)"
         ctx.lineWidth = 2
-        ctx.strokeRect(*button_rect)
+        ctx.strokeRect(*button_bounds)
         
-        
-
-
 
         ctx.restore()
-
-
+        return button_bounds
 
     def render(self, ctx: CanvasRenderingContext2D, timestamp):
         if not self.active or not self.text:
@@ -250,25 +271,34 @@ class TextOverlay(Scene):
         ctx.strokeStyle = "rgba(0, 255, 0, 0.8)"
         ctx.lineWidth = 2
         ctx.strokeRect(*overlay_bounds)
+        ctx.strokeRect(overlay_bounds.left + 3, overlay_bounds.top + 3, 
+                       overlay_bounds.width - 6, overlay_bounds.height - 6)
         
-        # Set text style based on window size
-        base_size = min(window.canvas.width, window.canvas.height) / 50
-        font_size = max(12, min(20, base_size))  # Scale between 12px and 20px
+        font = self.font or self.calculate_and_set_font()
+        ctx.font = f"{font['size']}px {font['font']}"
         ctx.fillStyle = "#00ff00"
-        ctx.font = f"{font_size}px 'Courier New', monospace"
         
         # Draw streaming text
         lines = self.displayed_text.split('\n')
-        line_height = font_size + 4
-        start_y = self.margins.y + font_size + 10
+        line_height = font["size"] + 4
+        start_y = self.margins.y + font["size"] + 10
         
         for i, line in enumerate(lines):
             y_pos = start_y + i * line_height
             if y_pos < window.canvas.height - self.margins.y - 20:  # Don't draw outside bounds
                 ctx.fillText(line, self.margins.x + 20, y_pos)
 
-        self.render_and_handle_button()
-
+        button_bounds = self.render_and_handle_button(ctx, overlay_bounds)
+        if get_controls().click:
+            log.debug(self.button_click_callable)
+            log.debug(self.other_click_callable)
+            # if a click occurred and we don't have a button or we clicked outside the button
+            if button_bounds is None or not button_bounds.contains(get_controls().mouse.click):
+                if self.other_click_callable is not None:
+                    self.other_click_callable()
+            # otherwise, button was clicked
+            elif self.button_click_callable is not None:
+                self.button_click_callable()
 
 class ResultsScreen(TextOverlay):
     def __init__(self, name: str, scene_manager: SceneManager, planet: SpaceMass):

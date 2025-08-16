@@ -354,7 +354,7 @@ class Scanner:
         )
 
         if self.scanning_progress >= self.bar_max and not self.finished:
-            print(f"your done")
+            log.debug("Scanner progress complete")
             self.finished = True
     def reset_bar(self):
         self.scanning_progress = 0
