@@ -12,13 +12,10 @@ CanvasRenderingContext2D = Any
 
 class SceneObject:
     def __init__(self):
-
         """ every scene object keeps track of the last milisecond timestamp when it was rendered """
         self.last_timestamp = 0
-        ...
 
     def render(self, ctx: CanvasRenderingContext2D, timestamp: float):
-        ...
         # update the last rendered timestamp
         self.last_timestamp = timestamp
 

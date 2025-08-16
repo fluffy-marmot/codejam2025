@@ -50,6 +50,7 @@ class Player(SceneObject):
         self.is_moving = False
         self.is_disabled = False
         self.bar_icon = bar_icon
+        self.active = True
 
     def _update_sprite_dims(self):
         w = self.sprite.width
@@ -167,8 +168,9 @@ class Player(SceneObject):
         ctx.restore()
         
         # Collision detection (done after restore so it's in world coordinates)
-        for asteroid in window.asteroids.asteroids:
-            self.check_collision(asteroid)
+        if self.active:
+            for asteroid in window.asteroids.asteroids:
+                self.check_collision(asteroid)
 
         self.render_health_bar(ctx)
 
