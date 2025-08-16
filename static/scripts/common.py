@@ -9,6 +9,15 @@ class Rect:
     width: float
     height: float
 
+    def __iter__(self) -> Iterator[float]:
+        yield self.left
+        yield self.top
+        yield self.width
+        yield self.height
+
+    def contains(self, point: Position) -> bool:
+        return self.left <= point.x <= self.right and self.top <= point.y <= self.bottom
+
     @property
     def right(self) -> float:
         return self.left + self.width

@@ -83,7 +83,7 @@ class SpaceMass(SceneObject):
             ctx.beginPath()
             ctx.moveTo(center_x, center_y - radius)
             ctx.lineTo(center_x + 10, center_y - radius - 10)
-            ctx.font = "14px Verdana"
+            ctx.font = "14px Courier New"
             ctx.fillStyle = highlight
             text_width = ctx.measureText(self.name.capitalize()).width
             ctx.lineTo(center_x + 15 + text_width, center_y - radius - 10)
