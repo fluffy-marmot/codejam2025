@@ -3,6 +3,7 @@ import math
 import re
 import textwrap
 
+from player import Player
 from common import PlanetState, Position, Rect
 from consolelogger import getLogger
 from scene_classes import CanvasRenderingContext2D, Scene, SceneManager
@@ -234,6 +235,7 @@ class PlanetScene(Scene):
 
         # Update + render handles spawn and drawing
         get_asteroid_system().update_and_render(ctx, timestamp)
+        self.check_special_level_interactions(timestamp)
         
         # Check for player death first
         if get_player().health <= 0:
@@ -273,8 +275,20 @@ class PlanetScene(Scene):
         if self.death_screen.active:
             self.death_screen.render(ctx, timestamp)
         # Handle results screen display and interaction
-        elif self.results_overlay.active:
-            self.results_overlay.render(ctx, timestamp)
+        self.results_overlay.render(ctx, timestamp)
+    
+    def check_special_level_interactions(self, timestamp: int):
+        """
+        Handle special level interactions
+
+        This is probably not best place to handle the special level stuff like Jupiter gravity affecting
+        player and Mercury slowly damaging player, but it's crunch time so whatever works :)
+        """
+        # nudge player in the direction of jupiter if on the left 2/3 of the screen
+        if self.planet.name.lower() == "jupiter":
+            get_player().nudge_towards(self.planet.get_position(), 0.6)
+        elif self.planet.name.lower() == "mercury":
+            get_player().health = max(0, get_player().health - (timestamp - self.last_timestamp) / 1_200_000)
 
     def handle_scene_completion(self):
         """Handle when the scanning is finished and planet is complete."""
@@ -302,6 +316,10 @@ class PlanetScene(Scene):
         self.death_sound_played = False  # Reset for next time
         self.explosion_started = False  # Reset explosion state
         self.planet.switch_view()
+
+        # special level interaction: finishing earth gives player full health back
+        if self.planet.name.lower() == "earth":
+            get_player().health = Player.FULL_HEALTH
 
 
 # --------------------

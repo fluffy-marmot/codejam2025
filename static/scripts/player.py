@@ -12,15 +12,14 @@ from window import SpriteSheet, window
 
 log = getLogger(__name__)
 
-FULL_HEALTH = 1000
-
-
 class Player(SceneObject):
     """Controllable player sprite.
 
     Exposed globally as window.player so other modules can use it.
     Movement keys: WASD or Arrow keys.
     """
+
+    FULL_HEALTH = 1000
 
     def __init__(
         self,
@@ -34,8 +33,8 @@ class Player(SceneObject):
     ):
         super().__init__()
 
-        self.health = FULL_HEALTH
-        self.health_history = deque([FULL_HEALTH] * 200)
+        self.health = Player.FULL_HEALTH
+        self.health_history = deque([Player.FULL_HEALTH] * 200)
         self.sprite = sprite
         self.set_position(x, y)
         self.default_pos = (x, y)
@@ -210,7 +209,7 @@ class Player(SceneObject):
         ctx.fillRect(
             window.canvas.width - outer_width - padding + 2,
             window.canvas.height - outer_height - padding + 2,
-            inner_width * self.health_history.popleft() / FULL_HEALTH,
+            inner_width * self.health_history.popleft() / Player.FULL_HEALTH,
             inner_height,
         )
         self.health_history.append(self.health)
@@ -219,7 +218,7 @@ class Player(SceneObject):
         ctx.fillRect(
             window.canvas.width - outer_width - padding + 2,
             window.canvas.height - outer_height - padding + 2,
-            inner_width * self.health / FULL_HEALTH,
+            inner_width * self.health / Player.FULL_HEALTH,
             inner_height,
         )
 
@@ -251,6 +250,24 @@ class Player(SceneObject):
             self.health = max(0, self.health - 100 / distance_between_centers * 5 * asteroid.damage_mul)
             window.audio_handler.play_bang()
             window.debris.generate_debris(self.get_position(), Position(ast_x, ast_y))
+
+    def nudge_towards(self, pos: Position, momentum_amount: float) -> None:
+        distance = self.get_position().distance(pos)
+        if distance == 0: return
+
+        x_dir = (pos.x - self.x) / distance
+        y_dir = (pos.y - self.y) / distance
+
+        self.x += x_dir * 0.75
+        self.y += y_dir * 0.75
+
+        # x_dir = math.cos((pos.x - self.x )/(pos.y - self.y))
+        # y_dir = math.sin((pos.x - self.x )/(pos.y - self.y))
+
+        # if abs(self.momentum[0]) < 1:
+        #     self.momentum[0] += x_dir * momentum_amount
+        # if abs(self.momentum[1]) < 1:
+        #     self.momentum[1] += y_dir * momentum_amount
 
     def get_hit_circle(self) -> tuple[float, float, float]:
         """Get the hit circle for the player"""
