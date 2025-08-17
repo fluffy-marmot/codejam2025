@@ -7,9 +7,9 @@ from dataclasses import dataclass
 from asteroid import Asteroid
 from common import Position
 from consolelogger import getLogger
-from js import window  # type: ignore[attr-defined]
+
 from scene_classes import SceneObject
-from sprites import SpriteSheet
+from window import window, SpriteSheet
 
 log = getLogger(__name__)
 
@@ -164,7 +164,7 @@ class Player(SceneObject):
         ctx.drawImage(self.sprite.image, -self._half_w, -self._half_h, scaled_w, scaled_h)
 
         # Debug draw hitbox
-        if getattr(window, "DEBUG_DRAW_HITBOXES", False):
+        if window.DEBUG_DRAW_HITBOXES:
             ctx.strokeStyle = "white"
             ctx.lineWidth = 2
             ctx.strokeRect(-self._half_w, -self._half_h, scaled_w, scaled_h)

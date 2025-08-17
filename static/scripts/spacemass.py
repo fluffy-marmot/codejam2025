@@ -1,7 +1,7 @@
 from common import PlanetState, Rect
 from consolelogger import getLogger
 from scene_classes import SceneObject
-from sprites import SpriteSheet
+from window import SpriteSheet
 
 log = getLogger(__name__)
 

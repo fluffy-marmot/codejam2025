@@ -2,14 +2,13 @@ from functools import partial
 
 from common import Position, Rect, PlanetState
 from consolelogger import getLogger
-from js import window  # type: ignore[attr-defined]  # type: ignore[attr-defined]
 from scene_classes import CanvasRenderingContext2D, Scene, SceneManager
 from solar_system import SolarSystem
 from spacemass import SpaceMass
 from stars import StarSystem
+from window import window
 
 log = getLogger(__name__, False)
-sprites = window.sprites
 
 # --------------------
 # methods useful across various scenes
@@ -118,7 +117,7 @@ class OrbitingPlanetsScene(Scene):
         get_player().reset_position()
         get_player().active = True
         get_asteroid_system().reset()
-        get_debris_system().reset()
+        get_debris_system().reset()   
         get_scanner().reset()
 
 

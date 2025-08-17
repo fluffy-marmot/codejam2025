@@ -1,7 +1,6 @@
+from js import window as js_window  # type: ignore[attr-defined]
 from common import Position
 from consolelogger import getLogger
-from js import window  # type: ignore[attr-defined]
-from scene_classes import HTMLImageElement
 
 log = getLogger(__name__)
 
@@ -11,7 +10,8 @@ class SpriteSheet:
 
     def __init__(self, key: str):
         self.key = key.lower()
-        self.image: HTMLImageElement = window.sprites[self.key]
+        # Get raw image from js_window.sprites directly to avoid circular import
+        self.image = js_window.sprites[self.key]
 
     @property
     def height(self):

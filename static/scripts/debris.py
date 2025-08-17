@@ -2,7 +2,7 @@ import math
 from random import randint
 
 from common import Position
-from js import window  # type: ignore[attr-defined]
+from window import window
 from scene_classes import SceneObject
 
 

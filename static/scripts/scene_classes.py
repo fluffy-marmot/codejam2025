@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, overload
+from typing import overload
 
-from common import Position
+from common import Position, CanvasRenderingContext2D
 
-HTMLImageElement = Any
-CanvasRenderingContext2D = Any
 
 # ====================================================
 # Scene Object abstract class
