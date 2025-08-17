@@ -1,4 +1,6 @@
 from functools import partial
+import re
+import textwrap
 
 from player import Player
 from common import PlanetState, Position, Rect
@@ -6,10 +8,9 @@ from consolelogger import getLogger
 from scene_classes import CanvasRenderingContext2D, Scene, SceneManager
 from solar_system import SolarSystem
 from spacemass import SpaceMass
-from stars import StarSystem
+from stars import StarSystem, StarSystem3d
 from window import window
 from js import document #type:ignore
-import textwrap
 canvas = document.getElementById("gameCanvas")
 container = document.getElementById("canvasContainer")
 SCREEN_W, SCREEN_H = container.clientWidth, container.clientHeight
@@ -49,8 +50,6 @@ def rgba_to_hex(rgba_str):
     Convert "rgba(r, g, b, a)" to hex string "#RRGGBB".
     Alpha is ignored.
     """
-    import re
-
     # Extract the numbers
     match = re.match(r"rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\s*\)", rgba_str)
     if not match:
@@ -175,6 +174,15 @@ class PlanetScene(Scene):
         self.results_overlay.other_click_callable = self.handle_scene_completion
         self.results_overlay.muted = False
         self.results_overlay.center = True
+        
+        # Add death screen
+        self.death_screen = DeathScreen(f"{planet.name}-death", scene_manager)
+        self.death_screen.other_click_callable = self.handle_player_death
+        self.death_sound_played = False  # Track if death sound has been played
+        
+        # Add explosion animation
+        self.player_explosion = PlayerExplosion()
+        self.explosion_started = False
 
     def render(self, ctx, timestamp):
         draw_black_background(ctx)
@@ -187,7 +195,29 @@ class PlanetScene(Scene):
         # Update + render handles spawn and drawing
         get_asteroid_system().update_and_render(ctx, timestamp)
         self.check_special_level_interactions(timestamp)
-        get_player().render(ctx, timestamp)
+        
+        # Check for player death first
+        if get_player().health <= 0:
+            if not self.explosion_started:
+                # Start explosion animation at player position
+                player_x, player_y = get_player().get_position()
+                self.player_explosion.start_explosion(player_x, player_y)
+                self.explosion_started = True
+                get_player().invincible = True
+            
+            # Render explosion instead of player
+            if self.player_explosion.active:
+                self.player_explosion.render(ctx, timestamp)
+            # Only show death screen after explosion is finished
+            elif self.player_explosion.finished:
+                if not self.death_sound_played:
+                    window.audio_handler.play_death()
+                    self.death_sound_played = True
+                self.death_screen.active = True
+        else:
+            # Normal player rendering when alive
+            get_player().render(ctx, timestamp)
+        
         get_debris_system().update()
         get_debris_system().render(ctx, timestamp)
 
@@ -197,9 +227,12 @@ class PlanetScene(Scene):
         if get_scanner().finished:
             self.results_overlay.active = True
             get_player().invincible = True
-        else:
+        elif get_player().health > 0:  # Only reset invincibility if player is alive
             get_player().invincible = False
 
+        # Handle death screen display and interaction
+        if self.death_screen.active:
+            self.death_screen.render(ctx, timestamp)
         # Handle results screen display and interaction
         self.results_overlay.render(ctx, timestamp)
     
@@ -225,6 +258,24 @@ class PlanetScene(Scene):
         self.planet.switch_view()
         self.planet.complete = True
 
+    def handle_player_death(self):
+        """Handle when the player dies and clicks on the death screen."""
+        log.debug(f"Player died on {self.planet.name}! Returning to orbiting planets scene.")
+        
+        # Reset all planet completions when player dies
+        orbiting_scene = next(scene for scene in self.scene_manager._scenes if scene.name == ORBITING_PLANETS_SCENE)
+        for planet in orbiting_scene.solar_sys.planets:
+            planet.complete = False
+        log.debug("All planet completions reset due to player death")
+        
+        self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
+        get_player().active = False
+        get_player().health = 1000  # Reset player health to FULL_HEALTH
+        self.death_screen.deactivate()
+        self.death_sound_played = False  # Reset for next time
+        self.explosion_started = False  # Reset explosion state
+        self.planet.switch_view()
+
         # special level interaction: finishing earth gives player full health back
         if self.planet.name.lower() == "earth":
             get_player().health = Player.FULL_HEALTH
@@ -235,7 +286,7 @@ class PlanetScene(Scene):
 # --------------------
 
 class StartScene(Scene):
-    def __init__(self, name: str, scene_manager: SceneManager):
+    def __init__(self, name: str, scene_manager: SceneManager, bobbing_timer = 135, bobbing_max = 20):
         super().__init__(name, scene_manager)
         self.stars = StarSystem(
             num_stars=100,  # as number of stars increase, the radius should decrease
@@ -254,13 +305,38 @@ class StartScene(Scene):
         self.dialogue_manager = Dialogue('dialogue', scene_manager, dialogue)
         self.dialogue_manager.active = True
         self.dialogue_manager.margins = Position(300, 150)
-        
-
+        self.starsystem = StarSystem3d(100, max_depth=100)
+        self.player = None
+        self.bobbing_timer = bobbing_timer
+        self.bobbing_max = bobbing_max
+        self.is_bobbing_up = True
+        self.bobbing_offset = 0
+        self.animation_timer = 0
     def render(self, ctx, timestamp):
+        if self.player is None:
+            player = get_player()
+            player.is_disabled = True
+        
+        if timestamp - self.animation_timer >= self.bobbing_timer:
+            print(f"bobbing, val={self.bobbing_offset}")
+            self.animation_timer = timestamp
+            if self.is_bobbing_up:
+                self.bobbing_offset += 1
+            else:
+                self.bobbing_offset -= 1
+
+            player.y = (SCREEN_H//2 + self.bobbing_offset)
+
+            if abs(self.bobbing_offset) > self.bobbing_max:
+                self.is_bobbing_up = not self.is_bobbing_up
+            
+                
         draw_black_background(ctx)
-        self.stars.render(ctx, timestamp)
+        #self.stars.render(ctx, timestamp)
         self.dialogue_manager.render(ctx, timestamp)
         self.dialogue_manager.rect=(0, SCREEN_H-150, SCREEN_W, 150)  # x, y, width, height
+        self.starsystem.render(ctx, speed=0.3, scale=70)
+        player.render(ctx, timestamp)
         if get_controls().click:
             self.dialogue_manager.next()
         
@@ -396,10 +472,15 @@ class TextOverlay(Scene):
         # Draw streaming text
         lines = self.displayed_text.split("\n")
         line_height = font["size"] + 4
-        start_y = overlay_bounds.top + font["size"] + 10  # use overlay_bounds.top
+        
         if self.center:
+            # Center both horizontally and vertically
+            total_text_height = len(lines) * line_height
+            start_y = overlay_bounds.top + (overlay_bounds.height - total_text_height) / 2 + font["size"]
             start_x = (window.canvas.width - self._text_width) / 2 
-        else: start_x = overlay_bounds.left + 10 
+        else:
+            start_y = overlay_bounds.top + font["size"] + 10  # use overlay_bounds.top
+            start_x = overlay_bounds.left + 10 
 
         for i, line in enumerate(lines):
             y_pos = start_y + i * line_height
@@ -426,6 +507,82 @@ class ResultsScreen(TextOverlay):
         super().__init__(name, scene_manager, text)
         # default sizing for scan results screen
         self.margins = Position(200, 50)
+
+class DeathScreen(TextOverlay):
+    def __init__(self, name: str, scene_manager: SceneManager):
+        super().__init__(name, scene_manager, "YOU DIED", color="rgba(0, 255, 0, 0.9)")
+        # Center the death screen
+        self.margins = Position(150, 150)
+        self.center = True
+        self.muted = False  # Play sound when death screen appears
+    
+    def calculate_and_set_font(self) -> str:
+        base_size = min(window.canvas.width, window.canvas.height) / 15
+        font_size = max(32, min(72, base_size))  # Scale between 32px and 72px
+        self.font = {"size": font_size, "font": "'Courier New', monospace"}
+        return self.font
+    
+    def _prepare_font(self, ctx):
+        font = self.font or self.calculate_and_set_font()
+        ctx.font = f"bold {font['size']}px {font['font']}"
+        ctx.fillStyle = rgba_to_hex(self.color)
+        return font
+
+class PlayerExplosion:
+    def __init__(self):
+        self.explosion_sprite = window.get_sprite("Explosion Animation")
+        self.active = False
+        self.current_frame = 0
+        self.frame_count = 11  # Number of frames
+        self.frame_duration = 100  # milliseconds per frame
+        self.last_frame_time = 0
+        self.position = (0, 0)
+        self.scale = 4.0
+        self.finished = False
+    
+    def start_explosion(self, x: float, y: float):
+        """Start the explosion animation at the given position"""
+        self.active = True
+        self.current_frame = 0
+        self.position = (x, y)
+        self.last_frame_time = 0
+        self.finished = False
+    
+    def update(self, timestamp: float):
+        """Update the explosion animation"""
+        if not self.active or self.finished:
+            return
+        
+        if timestamp - self.last_frame_time >= self.frame_duration:
+            self.current_frame += 1
+            self.last_frame_time = timestamp
+            
+            if self.current_frame >= self.frame_count:
+                self.finished = True
+                self.active = False
+    
+    def render(self, ctx, timestamp: float):
+        """Render the current explosion frame"""
+        if not self.active or self.finished:
+            return
+        
+        self.update(timestamp)
+        
+        frame_width = self.explosion_sprite.width // self.frame_count
+        frame_height = self.explosion_sprite.height
+        
+        source_x = self.current_frame * frame_width
+        source_y = 0
+        
+        scaled_width = frame_width * self.scale
+        scaled_height = frame_height * self.scale
+        
+        ctx.drawImage(
+            self.explosion_sprite.image,
+            source_x, source_y, frame_width, frame_height,  # source rectangle
+            self.position[0] - scaled_width/2, self.position[1] - scaled_height/2,  # destination position
+            scaled_width, scaled_height  # destination size
+        )
 
 class Dialogue(TextOverlay):
     def __init__(self, name: str, scene_manager: SceneManager, text: str):

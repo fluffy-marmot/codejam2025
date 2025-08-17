@@ -13,6 +13,7 @@ class AudioHandler:
         self.text_sound = self.load_audio("text.ogg")
         self.scan_sound = self.load_audio("scan.ogg")
         self.music_main = self.load_audio("music_main.ogg")
+        self.death_sound = self.load_audio("death.ogg")
 
         self.active_music = None
 
@@ -61,3 +62,6 @@ class AudioHandler:
             return
         self.active_music = self.music_main
         self.play_unique_sound(self.music_main, pause_it, volume=0.65)
+
+    def play_death(self, volume=1.0) -> None:
+        self.play_sound(self.death_sound, volume=0.6)
