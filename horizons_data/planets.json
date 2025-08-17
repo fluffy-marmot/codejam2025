@@ -23,7 +23,12 @@
             "Mercury's asteroid field isn't particularly dense, but due to its",
             "proximity to the Sun, and the constant bombardment of high-energy",
             "particles, the ship will suffer slow damage over time."
-        ]
+        ],
+        "asteroid_counts": 3,
+        "asteroid_speed": 5,
+        "asteroid_damage": 2,
+        "asteroid_dur": 4,
+        "scan_diff": 20
     },
     {
         "id": 299,
@@ -40,7 +45,12 @@
             "Asteroid damage    : **********",
             "Asteroid durability: ***",
             "Scan difficulty    : ******"
-        ]
+        ],
+        "asteroid_counts": 1,
+        "asteroid_speed": 1,
+        "asteroid_damage": 1,
+        "asteroid_dur": 1,
+        "scan_diff": 1
     },
     {
         "id": 399,
@@ -59,7 +69,12 @@
             "Scan difficulty    : **********",
             "\n",
             "Sparse field of very damaging asteroids"
-        ]
+        ],
+        "asteroid_counts": 1,
+        "asteroid_speed": 1,
+        "asteroid_damage": 1,
+        "asteroid_dur": 1,
+        "scan_diff": 1
     },
     {
         "id": 499,
@@ -80,8 +95,12 @@
             "In high orbit over Earth, safely above the new asteroid fields lies",
             "Chiaki Spacestation, which will afford you an opportunity for a ship",
             "repair upon completing this mission."
-        ]
-
+        ],
+        "asteroid_counts": 1,
+        "asteroid_speed": 1,
+        "asteroid_damage": 1,
+        "asteroid_dur": 1,
+        "scan_diff": 1
     },
     {
         "id": 599,
@@ -102,7 +121,12 @@
             "Besides Jupiter's dangerous asteroid fields, the solar system's",
             "largest planet has a strong gravitational field that you will",
             "constantly need to fight against."
-        ]
+        ],
+        "asteroid_counts": 1,
+        "asteroid_speed": 1,
+        "asteroid_damage": 1,
+        "asteroid_dur": 1,
+        "scan_diff": 1
     },
     {
         "id": 699,
@@ -119,7 +143,12 @@
             "Asteroid damage    : *****",
             "Asteroid durability: *****",
             "Scan difficulty    : *****"
-        ]
+        ],
+        "asteroid_counts": 1,
+        "asteroid_speed": 1,
+        "asteroid_damage": 1,
+        "asteroid_dur": 1,
+        "scan_diff": 1
     },
     {
         "id": 799,
@@ -136,7 +165,12 @@
             "Asteroid damage    : *****",
             "Asteroid durability: *****",
             "Scan difficulty    : *****"
-        ]
+        ],
+        "asteroid_counts": 1,
+        "asteroid_speed": 1,
+        "asteroid_damage": 1,
+        "asteroid_dur": 1,
+        "scan_diff": 1
     },
     {
         "id": 899,
@@ -153,6 +187,11 @@
             "Asteroid damage    : *****",
             "Asteroid durability: *****",
             "Scan difficulty    : *****"
-        ]
+        ],
+        "asteroid_counts": 1,
+        "asteroid_speed": 1,
+        "asteroid_damage": 1,
+        "asteroid_dur": 1,
+        "scan_diff": 1
     }
 ]
