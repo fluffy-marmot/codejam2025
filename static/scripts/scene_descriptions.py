@@ -65,6 +65,7 @@ class OrbitingPlanetsScene(Scene):
         # attach a behavior to click event outside the overlay's button - hide the overlay
         self.planet_info_overlay.other_click_callable = self.planet_info_overlay.deactivate
         self.planet_info_overlay.set_button("Travel")
+        self.scene_manager = scene_manager
 
     def render(self, ctx, timestamp):
         draw_black_background(ctx)
@@ -83,13 +84,21 @@ class OrbitingPlanetsScene(Scene):
     def check_planet_click(self):
         if get_controls().click:
             planet = self.solar_sys.get_object_at_position(get_controls().mouse.click)
-            if planet:
+            if not planet.complete:
                 log.debug("Clicked on: %s", planet.name)
                 self.planet_info_overlay.button_click_callable = partial(self.switch_planet_scene, planet.name)
                 self.planet_info_overlay.set_text("\n".join(get_planet(planet.name)["level"]))
                 self.planet_info_overlay.margins = Position(300, 150)
                 self.planet_info_overlay.active = True
-
+            else:
+                print("planet is gurt")
+                log.debug("Clicked on: %s", planet.name)
+                print("Clicked on: %s", planet.name)
+                self.planet_info_overlay = ResultsScreen(f"{planet.name}-results", self.scene_manager, planet)
+                self.planet_info_overlay.set_text("\n".join(get_planet(planet.name)["level"]))
+                self.planet_info_overlay.margins = Position(300, 150)
+                self.planet_info_overlay.active = True
+            
     def highlight_hovered_planet(self):
         # Reset all planets' highlight state first
         for planet in self.solar_sys.planets:
