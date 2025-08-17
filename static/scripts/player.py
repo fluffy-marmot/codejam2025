@@ -366,7 +366,10 @@ class Scanner:
 
     def render_beam(self, ctx):  # seprate function so it can go under the planet
         if not self.status.active or not self.status.valid:
+            window.audio_handler.play_scan(pause_it=True)
             return
+        
+        window.audio_handler.play_scan()
 
         player_x, player_y = self.player.get_position()
         origin_x = player_x - 150

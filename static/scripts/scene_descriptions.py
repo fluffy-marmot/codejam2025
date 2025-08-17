@@ -88,6 +88,8 @@ class OrbitingPlanetsScene(Scene):
         self.scene_manager = scene_manager
 
     def render(self, ctx, timestamp):
+        window.audio_handler.play_music_main()
+
         draw_black_background(ctx)
         self.highlight_hovered_planet()
 
@@ -191,7 +193,6 @@ class PlanetScene(Scene):
 
         # Activate the results sub-scene if scanner progress is complete
         if get_scanner().finished:
-            print("your done with this planet")
             self.results_overlay.active = True
             get_player().invincible = True
         else:
@@ -226,12 +227,12 @@ class StartScene(Scene):
         )
         #self.player = get_player()
         
-        dialouge = """Alien 1: Why does boss need so much planet data..?
+        dialogue = """Alien 1: Why does boss need so much planet data..?
         Alien 2: I dont know man
         Alien 1: Soosh is goated
         """
         
-        self.dialogue_manager = Dialogue('dialouge', scene_manager, dialouge)
+        self.dialogue_manager = Dialogue('dialogue', scene_manager, dialogue)
         self.dialogue_manager.active = True
         self.dialogue_manager.margins = Position(300, 150)
         
@@ -436,11 +437,12 @@ class Dialogue(TextOverlay):
 
     def render(self, ctx: CanvasRenderingContext2D, timestamp):
         """Render the currently active line."""
-        if self.active:
-            print("rendering")
+        # PLEASE USE LOG INSTEAD OF PRINT
+        # if self.active:
+        #     print("rendering")
     
-        else:
-            print("wtf")
+        # else:
+        #     print("wtf")
     
         
         super().render(ctx, timestamp)
