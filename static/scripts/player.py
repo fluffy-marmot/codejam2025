@@ -298,8 +298,6 @@ class Scanner:
         self.scale = scale
         self.player = player
         self.min_x = min_x
-        self.scaled_w = self.sprite.width * self.scale
-        self.scaled_h = self.sprite.height * self.scale
         self.disable_ship_ms = disable_ship_ms
         self.disable_timer = 0
         
@@ -462,7 +460,9 @@ class Scanner:
 
         if self.status.active:
             if self.status.valid:
-                ctx.drawImage(self.sprite.image, player_x - 175, player_y - 25, self.scaled_w, self.scaled_h)
+                scaled_w = self.sprite.width * self.scale
+                scaled_h = self.sprite.height * self.scale
+                ctx.drawImage(self.sprite.image, player_x - 175, player_y - 25, scaled_w, scaled_h)
             elif self.status.too_close:
                 ctx.fillStyle = "white"
                 ctx.font = "15px Courier New"
