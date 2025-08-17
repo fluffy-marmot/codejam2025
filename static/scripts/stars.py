@@ -140,19 +140,22 @@ class Star3d(Star):
             self.x = random.uniform(-1, 1)
             self.y = random.uniform(-1, 1)
 
-    def project(self, cx, cy, scale):
+    def project(self, cx, cy, max_radius, scale):
         """Project 3D coords to 2D screen coords."""
         screen_x = cx + (self.x / self.z) * scale
         screen_y = cy + (self.y / self.z) * scale
         size = max(1, (1 / self.z) * scale * 0.5)  # star grows as z decreases
-     
+        if size > max_radius:
+            size = max_radius
 
         return screen_x, screen_y, size
 
+
 class StarSystem3d:
-    def __init__(self, num_stars, max_depth=5):
+    def __init__(self, num_stars, max_depth=5, max_radius = 20):
         self.num_stars = num_stars
         self.max_depth = max_depth
+        self.max_radius = max_radius
         self.stars: list[Star3d] = []
         for _ in range(num_stars):
             self.stars.append(self.create_star())
@@ -174,9 +177,9 @@ class StarSystem3d:
 
         for index, star in enumerate(self.stars):
             star.update(speed, self.max_depth)
-            sx, sy, size = star.project(cx, cy, scale)
+            sx, sy, size = star.project(cx, cy, self.max_radius, scale)
 
-            
+            # If star leaves screen, recycle it
             if sx < 0 or sx > window.canvas.width or sy < 0 or sy > window.canvas.height:
                 self.stars.pop(index)
                 self.stars.append(self.create_star())
