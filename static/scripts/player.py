@@ -306,15 +306,25 @@ class Scanner:
         self.last_scan_tick = None
         self.finished = False  # when the bar is full
         self.status = ScanStatus()
-        
+        self.scan_locked = False
     def update(self, ctx, current_time):
         if self.finished:
             return 
 
         keys = window.controls.pressed
-        self.status.active = " " in keys
+
+        if " " in keys and not self.scan_locked:
+            self.status.active = True
+        else:
+            self.status.active = False
+            
         self.status.too_close = self.player.x <= self.min_x
         self.status.player_interrupted = self.player.momentum != [0, 0]
+        if self.status.player_interrupted is True:
+            self.scan_locked = True
+        
+        if not " " in keys:
+            self.scan_locked = False
 
         if self.status.active and self.status.valid:
             self.player.is_disabled = True  
