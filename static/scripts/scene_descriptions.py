@@ -102,18 +102,18 @@ class OrbitingPlanetsScene(Scene):
     def check_planet_click(self):
         if get_controls().click:
             planet = self.solar_sys.get_object_at_position(get_controls().mouse.click)
+            if planet is None: return
+            log.debug("Clicked on: %s", planet.name)
             if not planet.complete:
-                log.debug("Clicked on: %s", planet.name)
+                self.planet_info_overlay.set_button("Travel")
                 self.planet_info_overlay.button_click_callable = partial(self.switch_planet_scene, planet.name)
                 self.planet_info_overlay.set_text("\n".join(get_planet(planet.name)["level"]))
                 self.planet_info_overlay.margins = Position(300, 150)
                 self.planet_info_overlay.active = True
             else:
-                log.debug("Clicked on: %s", planet.name)
-                print("Clicked on: %s", planet.name)
-                self.planet_info_overlay = ResultsScreen(f"{planet.name}-results", self.scene_manager, planet)
-                self.planet_info_overlay.set_text("\n".join(get_planet(planet.name)["level"]))
-                self.planet_info_overlay.margins = Position(300, 150)
+                self.planet_info_overlay.set_button(None)
+                self.planet_info_overlay.set_text(get_planet(planet.name)["info"])
+                self.planet_info_overlay.margins = Position(200, 50)
                 self.planet_info_overlay.active = True
             
     def highlight_hovered_planet(self):
