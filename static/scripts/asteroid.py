@@ -1,9 +1,10 @@
 import math
 import random
 
-from js import document, window  # type: ignore[attr-defined]
+from js import document  # type: ignore[attr-defined]
 from common import Position
 from scene_classes import SceneObject
+from window import window, SpriteSheet
 
 # Canvas dimensions
 canvas = document.getElementById("gameCanvas")
@@ -20,8 +21,8 @@ ASTEROID_RADII = [22, 26, 18, 19, 21, 25, 18, 23, 26, 20, 24, 13, 22, 18, 21, 23
                   23, 18, 21, 24, 20, 23, 29, 20, 24, 22, 22, 19]
 
 
-class Asteroid (SceneObject):
-    def __init__(self, sheet, x, y, vx, vy, target_size_px, sprite_index, grid_cols=11, cell_size=0, health=500):
+class Asteroid(SceneObject):
+    def __init__(self, sheet: SpriteSheet, x: float, y: float, vx: float, vy: float, target_size_px: float, sprite_index: int, grid_cols: int = 11, cell_size: float = 0, health: int = 500):
         super().__init__()
         super().set_position(x, y)
         self.sheet = sheet
@@ -44,9 +45,8 @@ class Asteroid (SceneObject):
 
     def _ensure_cell_size(self):
         if not self.cell_size:
-            width = getattr(self.sheet, "width", 0) or 0
-            if width:
-                self.cell_size = max(1, int(width // self.grid_cols))
+            if self.sheet.width:
+                self.cell_size = max(1, int(self.sheet.width // self.grid_cols))
 
     def _src_rect(self):
         self._ensure_cell_size()
@@ -88,7 +88,7 @@ class Asteroid (SceneObject):
         ctx.rotate(self.rotation)
 
         # Draw centered
-        ctx.drawImage(self.sheet, x, y, w, h, -size / 2, -size / 2, size, size)
+        ctx.drawImage(self.sheet.image, x, y, w, h, -size / 2, -size / 2, size, size)
 
         # Debug hit circle
         if getattr(window, "DEBUG_DRAW_HITBOXES", False):

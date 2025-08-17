@@ -13,6 +13,7 @@
     "/static/scripts/solar_system.py": "",
     "/static/scripts/spacemass.py": "",
     "/static/scripts/sprites.py": "",
-    "/static/scripts/stars.py": ""
+    "/static/scripts/stars.py": "",
+    "/static/scripts/window.py": ""
   }
 }

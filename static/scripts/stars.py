@@ -1,7 +1,7 @@
 import math
 import random
 
-from js import window  # type: ignore[attr-defined]
+from window import window
 from scene_classes import SceneObject
 
 

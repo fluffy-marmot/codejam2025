@@ -3,9 +3,10 @@ from controls import GameControls
 from asteroid import AsteroidAttack
 from debris import DebrisSystem
 from player import Player, Scanner
-from js import document, window  # type: ignore[attr-defined]
+from js import document  # type: ignore[attr-defined]
+from window import window
 from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
-from sprites import SpriteSheet
+from window import SpriteSheet
 from scene_classes import Scene
 from scene_descriptions import create_scene_manager
 
@@ -43,16 +44,14 @@ instead of passing them as straight up python function references.
 # setup of important systems, expose them globally via window object
 controls = window.controls = GameControls(canvas)
 scene_manager = window.scene_manager = create_scene_manager()
-sprites = window.sprites
 player = window.player = Player(
-    SpriteSheet("player"), SpriteSheet("health"), canvas.width / 2, canvas.height / 2, scale=0.1
+    window.get_sprite("player"), window.get_sprite("health"), canvas.width / 2, canvas.height / 2, scale=0.1
 )
-window.asteroids = AsteroidAttack(sprites["asteroids"], width, height, 256)
+window.asteroids = AsteroidAttack(window.get_sprite("asteroids"), width, height, 256)
 window.debris = DebrisSystem()
 
 
-scanner = window.scanner = Scanner(SpriteSheet("scanner"), player, min_x=width * 0.45, scan_mult=1)
-log.info("Sprite URLs: %s", sprites)
+scanner = window.scanner = Scanner(window.get_sprite("scanner"), player, min_x=width * 0.45, scan_mult=1)
 log.info("Created player at position (%s, %s)", player.x, player.y)
 
 loadingLabel.style.display = "none"
