@@ -219,8 +219,10 @@ class AsteroidAttack:
         spawnrate = 500
         # clamp max between 10-80, default is 50 at difficulty 10
         max_asteroids = min(max(10, 5 * asteroid_settings.count), 80)
-        # default 6.0 at difficulty 5, minimum is clamped to 4.75, max around 13.5
+
         # this determines how quickly asteroids seem to be approaching player (sprite growing in size)
+        # NOTE: the relationship is inverse, smaller growth rate = faster approaching asteroids
+        # a value of 6.0 feels like a pretty good rough default, not too slow
         use_grow_rate = max(1.2, 10.5 - (asteroid_settings.speed - 5) * 0.5)
         # how easily asteroids fall apart from collisions, default 450 health at level 10
         use_health = 50 + 40 * asteroid_settings.durability
