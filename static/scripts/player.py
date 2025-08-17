@@ -1,6 +1,8 @@
 import math
+import time
 from collections import deque
 from math import dist
+from dataclasses import dataclass
 
 from asteroid import Asteroid
 from common import Position
@@ -12,7 +14,6 @@ from sprites import SpriteSheet
 log = getLogger(__name__)
 
 FULL_HEALTH = 1000
-
 
 class Player(SceneObject):
     """Controllable player sprite.
@@ -264,12 +265,23 @@ class Player(SceneObject):
         self.rotation = 0.0
         self.target_rotation = 0.0
 
+@dataclass
+class ScanStatus:
+    active: bool = False  # Whether the scan is active
+    too_close: bool = False    # Whether the scan is valid
+    player_interrupted: bool = False  # Whether the scan was interrupted
+    
+    @property
+    def valid(self):
+        return not self.too_close and not self.player_interrupted
 
 class Scanner:
     def __init__(
         self,
         sprite: SpriteSheet,
         player: Player,
+        min_x: float,
+        scan_mult: float = 1,
         scale: float = 0.1,
         disable_ship_ms: float = 1000,
         beamwidth=100,
@@ -278,6 +290,7 @@ class Scanner:
         self.sprite = sprite
         self.scale = scale
         self.player = player
+        self.min_x = min_x
         self.scaled_w = self.sprite.width * self.scale
         self.scaled_h = self.sprite.height * self.scale
         self.disable_ship_ms = disable_ship_ms
@@ -285,35 +298,22 @@ class Scanner:
         self.beamwidth = beamwidth
         self.scanningdur = scanning_dur_s * 1000  # ms
         self.scanning_progress = 0
-        self.bar_max = self.scanningdur
+        self.bar_max = self.scanningdur * scan_mult
         self.last_scan_tick = None
         self.finished = False  # when the bar is full
-        self.scanning = False
+        self.status = ScanStatus()
+        
+    def update(self, ctx, current_time):
+        if self.finished:
+            return 
 
-    def render_beam(self, ctx):  # seprate function so it can go under the planet
-        player_x, player_y = self.player.get_position()
-        ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
-        origin_x = player_x - 175
-        origin_y = player_y - 15
-        ctx.beginPath()
-        ctx.moveTo(origin_x, origin_y)
-        ctx.lineTo(0, player_y - self.beamwidth)
-        ctx.moveTo(origin_x, origin_y)
-        ctx.lineTo(0, player_y + self.beamwidth)
-        ctx.lineTo(0, player_y - self.beamwidth)
-        ctx.fill()
-
-    def render(self, ctx, current_time):
-        "renders the scanner sprite and the bar"
-        player_x, player_y = self.player.get_position()
         keys = window.controls.pressed
+        self.status.active = " " in keys
+        self.status.too_close = self.player.x <= self.min_x
+        self.status.player_interrupted = self.player.momentum != [0, 0]
 
-        if " " in keys and not self.player.is_moving:
-            self.scanning = True
-            # scanner image
-            ctx.drawImage(self.sprite.image, player_x - 175, player_y - 25, self.scaled_w, self.scaled_h)
-
-            self.player.is_disabled = True
+        if self.status.active and self.status.valid:
+            self.player.is_disabled = True  
 
             if self.last_scan_tick is None:
                 self.last_scan_tick = current_time
@@ -321,16 +321,73 @@ class Scanner:
             elapsed_since_last = current_time - self.last_scan_tick
             self.scanning_progress = min(self.scanning_progress + elapsed_since_last, self.bar_max)
             self.last_scan_tick = current_time
-
         else:
             self.last_scan_tick = None
-            self.scanning = False
 
-        if current_time - self.disable_timer >= self.disable_ship_ms:
-            self.disable_timer = current_time
+        # Re-enable player if disable_time has elapsed or player is not scanning
+        if current_time - self.disable_timer >= self.disable_ship_ms or not self.status.active:
             if " " not in keys:
                 self.player.is_disabled = False
+                self.disable_timer = current_time
+    
+    def render_beam(self, ctx):  # seprate function so it can go under the planet
+        if not self.status.active or not self.status.valid:
+            return
+        
+        player_x, player_y = self.player.get_position()
+        origin_x = player_x - 150
+        origin_y = player_y - 10
+        
+        # Create animated pulsing effect based on time
+        pulse = (math.sin(time.time() * 8) + 1) / 2  # 0 to 1
+        beam_alpha = 0.3 + pulse * 0.3  # Vary alpha from 0.3 to 0.6
+        
+        # Create gradient for the beam
+        gradient = ctx.createLinearGradient(origin_x, origin_y, 0, player_y)
+        gradient.addColorStop(0, f"rgba(255, 100, 100, {beam_alpha})")
+        gradient.addColorStop(0.5, f"rgba(255, 50, 50, {beam_alpha * 0.8})")
+        gradient.addColorStop(1, f"rgba(255, 0, 0, {beam_alpha * 0.5})")
+        
+        # Main beam cone
+        ctx.fillStyle = gradient
+        ctx.beginPath()
+        ctx.moveTo(origin_x, origin_y)
+        ctx.lineTo(0, player_y - self.beamwidth)
+        ctx.lineTo(0, player_y + self.beamwidth)
+        ctx.closePath()
+        ctx.fill()
+        
+        # Add animated scanning lines
+        scan_cycle = (time.time() * 2) % 1  # 0 to 1, cycling every 0.5 seconds
+        num_lines = 5
+        
+        for i in range(num_lines):
+            line_progress = (scan_cycle + i * 0.2) % 1
+            line_x = origin_x - line_progress * origin_x
+            line_alpha = (1 - line_progress) * 0.8
+            beam_height = self.beamwidth
+            
+            if line_alpha > 0.1:  # Only draw visible lines
+                ctx.strokeStyle = f"rgba(255, 255, 255, {line_alpha})"
+                ctx.lineWidth = 2
+                ctx.beginPath()
+                ctx.moveTo(line_x, player_y - beam_height)
+                ctx.lineTo(line_x, player_y + beam_height)
+                ctx.stroke()
+        
+        # Add edge glow effect
+        ctx.strokeStyle = f"rgba(255, 150, 150, {beam_alpha * 0.6})"
+        ctx.lineWidth = 3
+        ctx.beginPath()
+        ctx.moveTo(origin_x, origin_y)
+        ctx.lineTo(0, player_y - self.beamwidth)
+        ctx.moveTo(origin_x, origin_y)
+        ctx.lineTo(0, player_y + self.beamwidth)
+        ctx.stroke()
 
+    def render(self, ctx, current_time):
+        "Renders the scanner sprite and the progress bar"
+        player_x, player_y = self.player.get_position()
         # progress bar
         outer_width = window.canvas.width // 4
         outer_height = 12
@@ -345,7 +402,7 @@ class Scanner:
             16,
             16,
         )
-
+        
         ctx.lineWidth = 1
         ctx.strokeStyle = "#FFFFFF"
         ctx.strokeRect(
@@ -362,10 +419,24 @@ class Scanner:
             inner_width * self.scanning_progress / self.bar_max,
             inner_height,
         )
+        
+        if self.finished:
+            return
 
-        if self.scanning_progress >= self.bar_max and not self.finished:
-            log.debug("Scanner progress complete")
+        if self.status.active:
+            if self.status.valid:
+                ctx.drawImage(self.sprite.image, player_x - 175, player_y - 25, self.scaled_w, self.scaled_h)
+            elif self.status.too_close:
+                ctx.fillStyle = "white"
+                ctx.font = "15px Courier New"
+                ctx.fillText("Too close to planet!", player_x - 90, player_y - 50)
+
+
+        if self.scanning_progress >= self.bar_max:
+            log.debug(f"Done scanning")
+            self.status.active = False
             self.finished = True
 
-    def reset_bar(self):
+    def reset(self):
+        self.finished = False
         self.scanning_progress = 0

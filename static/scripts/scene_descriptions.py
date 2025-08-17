@@ -110,6 +110,7 @@ class OrbitingPlanetsScene(Scene):
         get_player().active = True
         get_asteroid_system().reset()
         get_debris_system().reset()
+        get_scanner().reset()
 
 
 # --------------------
@@ -137,8 +138,8 @@ class PlanetScene(Scene):
         draw_black_background(ctx)
         self.stars.star_shift(timestamp, 5)
         self.stars.render(ctx, timestamp)
-        if get_scanner().scanning:
-            get_scanner().render_beam(ctx)
+        get_scanner().update(ctx, timestamp)
+        get_scanner().render_beam(ctx)
         self.planet.render(ctx, timestamp)
 
         # Update + render handles spawn and drawing
@@ -160,10 +161,6 @@ class PlanetScene(Scene):
         """Handle when the scanning is finished and planet is complete."""
         log.debug(f"Finished planet {self.planet.name}! Reactivating orbiting planets scene.")
         self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
-
-        # reset anything relevant
-        get_scanner().finished = False
-        get_scanner().reset_bar()
         get_player().active = False
         self.results_overlay.active = True
         self.planet.switch_view()
