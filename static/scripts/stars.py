@@ -3,6 +3,10 @@ import random
 
 from scene_classes import SceneObject
 from window import window
+from js import document #type: ignore
+loadingLabel = document.getElementById("loadingLabel")
+container = document.getElementById("canvasContainer")
+width, height = container.clientWidth, container.clientHeight
 
 
 class Star:
@@ -119,6 +123,68 @@ class StarSystem(SceneObject):
             for star in replacement_stars:
                 self.stars.append(star)
 
-    def star_scale(self, current_time, scaletime):
+    def star_scale(self, current_time, shift_time):
         if current_time - self.animation_timer >= shift_time:
             self.animation_timer = current_time
+
+class Star3d(Star):
+    def __init__(self, radius, x, y, z, pulse_freq, shade=0, fade_in=True):
+        super().__init__(radius, x, y, pulse_freq, shade, fade_in)
+        self.z = z
+
+    def update(self, speed, max_depth):
+        """Move the star closer by reducing z."""
+        self.z -= speed
+        if self.z <= 0:  # if it passes the camera, recycle
+            self.z = max_depth
+            self.x = random.uniform(-1, 1)
+            self.y = random.uniform(-1, 1)
+
+    def project(self, cx, cy, scale):
+        """Project 3D coords to 2D screen coords."""
+        screen_x = cx + (self.x / self.z) * scale
+        screen_y = cy + (self.y / self.z) * scale
+        size = max(1, (1 / self.z) * scale * 0.5)  # star grows as z decreases
+     
+
+        return screen_x, screen_y, size
+
+class StarSystem3d:
+    def __init__(self, num_stars, max_depth=5):
+        self.num_stars = num_stars
+        self.max_depth = max_depth
+        self.stars: list[Star3d] = []
+        for _ in range(num_stars):
+            self.stars.append(self.create_star())
+
+    def create_star(self):
+        x = random.randint(-width//2, width//2)
+        y = random.randint(-height//2, height//2)
+        z = random.uniform(20, self.max_depth)
+        print(f"creating star at {x}, {y}, {z}")
+        pulse_freq = random.randint(30, 80)   # tweak as desired
+        radius = 1
+        shade = random.randint(150, 255)
+        fade_in = True
+        return Star3d(radius, x, y, z, pulse_freq, shade=shade, fade_in=fade_in)
+
+    def render(self, ctx, speed=0.4, scale=300):
+        cx = window.canvas.width / 2
+        cy = window.canvas.height / 2
+
+        for index, star in enumerate(self.stars):
+            star.update(speed, self.max_depth)
+            sx, sy, size = star.project(cx, cy, scale)
+
+            
+            if sx < 0 or sx > window.canvas.width or sy < 0 or sy > window.canvas.height:
+                self.stars.pop(index)
+                self.stars.append(self.create_star())
+
+            # Draw star (brightens as it approaches)
+            shade = int(255 * (1 - star.z / self.max_depth))
+            ctx.fillStyle = f"rgba({shade}, {shade}, {shade}, 1)"
+            ctx.beginPath()
+            ctx.ellipse(sx, sy, size, size, 0, 0, 2 * math.pi)
+            ctx.fill()
+

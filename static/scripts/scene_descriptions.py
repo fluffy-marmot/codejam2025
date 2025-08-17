@@ -5,7 +5,7 @@ from consolelogger import getLogger
 from scene_classes import CanvasRenderingContext2D, Scene, SceneManager
 from solar_system import SolarSystem
 from spacemass import SpaceMass
-from stars import StarSystem
+from stars import StarSystem, StarSystem3d
 from window import window
 from js import document #type:ignore
 import textwrap
@@ -235,13 +235,13 @@ class StartScene(Scene):
         self.dialogue_manager = Dialogue('dialogue', scene_manager, dialogue)
         self.dialogue_manager.active = True
         self.dialogue_manager.margins = Position(300, 150)
-        
-
+        self.starsystem = StarSystem3d(100, max_depth=100, max_radius=400000)
     def render(self, ctx, timestamp):
         draw_black_background(ctx)
-        self.stars.render(ctx, timestamp)
+        #self.stars.render(ctx, timestamp)
         self.dialogue_manager.render(ctx, timestamp)
         self.dialogue_manager.rect=(0, SCREEN_H-150, SCREEN_W, 150)  # x, y, width, height
+        self.starsystem.render(ctx, speed=0.3, scale=70)
         if get_controls().click:
             self.dialogue_manager.next()
         
