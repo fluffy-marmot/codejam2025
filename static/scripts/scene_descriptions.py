@@ -1,4 +1,5 @@
 from functools import partial
+import math
 import re
 import textwrap
 
@@ -63,6 +64,7 @@ def rgba_to_hex(rgba_str):
 # --------------------
 
 ORBITING_PLANETS_SCENE = "orbiting-planets-scene"
+FINAL_SCENE = "final-scene"
 
 
 class OrbitingPlanetsScene(Scene):
@@ -85,6 +87,8 @@ class OrbitingPlanetsScene(Scene):
         self.planet_info_overlay.muted = False
         self.planet_info_overlay.center = True
         self.scene_manager = scene_manager
+        # Debug button label
+        self._debug_btn_label = "Complete All"
 
     def render(self, ctx, timestamp):
         window.audio_handler.play_music_main()
@@ -96,11 +100,48 @@ class OrbitingPlanetsScene(Scene):
         self.solar_sys.update_orbits(0.20)
         self.solar_sys.render(ctx, timestamp)
 
+        # If all planets are complete, switch to the final scene
+        if all(p.complete for p in self.solar_sys.planets):
+            self.scene_manager.activate_scene(FINAL_SCENE)
+            return
+
         # from this scene, be ready to switch to a big planet scene if planet is clicked
         if self.planet_info_overlay.active:
             self.planet_info_overlay.render(ctx, timestamp)
         else:
             self.check_planet_click()
+
+        # Debug: button to set all planets to complete
+        self._render_debug_complete_all_button(ctx)
+
+    def _render_debug_complete_all_button(self, ctx):
+        label = self._debug_btn_label
+        ctx.save()
+        ctx.font = "14px Courier New"
+        text_width = ctx.measureText(label).width
+        pad_x, pad_y = 10, 8
+        x, y = 16, 16
+        w, h = text_width + pad_x * 2, 30
+        bounds = Rect(x, y, w, h)
+
+        # Background
+        ctx.fillStyle = "rgba(0, 0, 0, 0.75)"
+        ctx.fillRect(*bounds)
+
+        # Hover state
+        is_hover = bounds.contains(get_controls().mouse.move)
+        ctx.strokeStyle = "#ffff00" if is_hover else "#00ff00"
+        ctx.lineWidth = 2
+        ctx.strokeRect(*bounds)
+        ctx.fillStyle = ctx.strokeStyle
+        ctx.fillText(label, x + pad_x, y + h - 10)
+
+        # Click handling
+        if get_controls().click and bounds.contains(get_controls().mouse.click):
+            for p in self.solar_sys.planets:
+                p.complete = True
+            log.debug("Debug: set all planet completions to True")
+        ctx.restore()
 
     def check_planet_click(self):
         planet = self.solar_sys.get_object_at_position(get_controls().mouse.click)
@@ -566,6 +607,97 @@ class PlayerExplosion:
             scaled_width, scaled_height  # destination size
         )
 
+class FinalScene(Scene):
+    def __init__(self, name: str, scene_manager: SceneManager):
+        super().__init__(name, scene_manager)
+        # Sparse stars for space backdrop (no pulsing for realism)
+        self.stars = StarSystem(
+            num_stars=80,
+            radius_min=1,
+            radius_max=2,
+            pulse_freq_min=999999,  # Effectively no pulsing
+            pulse_freq_max=999999,
+        )
+        # Rotating Earth spritesheet (smaller, in upper portion)
+        self.earth_sprite = window.get_sprite("earth")
+        self.earth_frame = 0
+        self.earth_frame_duration = 200  # Slower rotation
+        self.earth_last_frame_time = 0
+        
+        # Moon sprite for lunar surface
+        try:
+            self.moon_sprite = window.get_sprite("moon")
+        except Exception:
+            self.moon_sprite = None
+
+    def _draw_earth(self, ctx, timestamp):
+        # Advance frame based on time
+        if self.earth_sprite and self.earth_sprite.is_loaded:
+            if self.earth_last_frame_time == 0:
+                self.earth_last_frame_time = timestamp
+            if timestamp - self.earth_last_frame_time >= self.earth_frame_duration:
+                self.earth_frame = (self.earth_frame + 1) % max(1, self.earth_sprite.num_frames)
+                self.earth_last_frame_time = timestamp
+
+            frame_size = self.earth_sprite.frame_size if self.earth_sprite.num_frames > 1 else self.earth_sprite.height
+            sx = (self.earth_frame % max(1, self.earth_sprite.num_frames)) * frame_size
+            sy = 0
+
+            # Position Earth in upper-right, smaller size like the reference image
+            target_size = int(min(SCREEN_W, SCREEN_H) * 0.15)  # Much smaller
+            dw = dh = target_size
+            dx = SCREEN_W * 0.65  # Right side of screen
+            dy = SCREEN_H * 0.15  # Upper portion
+
+            ctx.drawImage(
+                self.earth_sprite.image,
+                sx, sy, frame_size, frame_size,
+                dx, dy, dw, dh
+            )
+
+    def _draw_lunar_surface(self, ctx):
+        # Draw lunar surface with the top portion visible, like looking across the lunar terrain
+        if self.moon_sprite and getattr(self.moon_sprite, "is_loaded", False):
+            # Position moon sprite so its upper portion is visible as foreground terrain
+            surface_height = SCREEN_H * 0.5  # Show much more of the lunar surface like the reference
+            
+            # Scale to fill screen width
+            scale = SCREEN_W / self.moon_sprite.width * (0.25/4)
+            sprite_scaled_height = self.moon_sprite.height * (scale/0.5)
+            
+            # Position so the moon extends below the screen, showing only the top portion
+            dy = SCREEN_H - surface_height  # Start higher up to show more terrain
+            
+            ctx.drawImage(
+                self.moon_sprite.image,
+                0, 0, self.moon_sprite.width, self.moon_sprite.height,  # full sprite
+                0, dy, SCREEN_W, sprite_scaled_height  # positioned to show top portion
+            )
+
+    def render(self, ctx, timestamp):
+        # Deep space black background
+        ctx.fillStyle = "#000000"
+        ctx.fillRect(0, 0, SCREEN_W, SCREEN_H)
+        
+        # Sparse, non-pulsing stars
+        self.stars.render(ctx, timestamp)
+
+        # Draw lunar surface first (background)
+        self._draw_lunar_surface(ctx)
+        
+        # Draw Earth in the distance
+        self._draw_earth(ctx, timestamp)
+
+        # Mission complete text - positioned to not overlap with Earth
+        ctx.save()
+        ctx.font = f"bold {max(18, int(min(SCREEN_W, SCREEN_H) * 0.04))}px Courier New"
+        ctx.fillStyle = "#00FF00"
+        message = "Mission Complete"
+        tw = ctx.measureText(message).width
+        # Position text in the left side to avoid Earth
+        ctx.fillText(message, SCREEN_W * 0.05, SCREEN_H * 0.15)
+        ctx.restore()
+
 class Dialogue(TextOverlay):
     def __init__(self, name: str, scene_manager: SceneManager, text: str):
         # Initialize the first line using the TextOverlay constructor
@@ -627,6 +759,9 @@ def create_scene_manager() -> SceneManager:
     start_scene = StartScene("start", manager)
     manager.add_scene(start_scene)
     manager.add_scene(orbiting_planets_scene)
+    # Final victory scene (activated when all planets complete)
+    final_scene = FinalScene(FINAL_SCENE, manager)
+    manager.add_scene(final_scene)
 
     for planet in solar_system.planets:
         big_planet_scene = PlanetScene(f"{planet.name}-planet-scene", manager, planet)
