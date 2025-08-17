@@ -287,7 +287,7 @@ class StartScene(Scene):
         self.dialogue_manager = Dialogue('dialogue', scene_manager, dialogue)
         self.dialogue_manager.active = True
         self.dialogue_manager.margins = Position(300, 150)
-        self.starsystem = StarSystem3d(100, max_depth=100, max_radius=400000)
+        self.starsystem = StarSystem3d(100, max_depth=100)
     def render(self, ctx, timestamp):
         draw_black_background(ctx)
         #self.stars.render(ctx, timestamp)
