@@ -53,6 +53,7 @@ class Player(SceneObject):
         self.is_disabled = False
         self.bar_icon = bar_icon
         self.active = True
+        self.invincible = False
 
     def _update_sprite_dims(self):
         w = self.sprite.width
@@ -223,7 +224,10 @@ class Player(SceneObject):
         # skip if asteroid is too far in the background
         if asteroid.size < asteroid.target_size * 0.70:
             return
-
+        # use invicible flag (toggled when planet is done)
+        if self.invincible:
+            return
+        
         ast_x, ast_y, ast_radius = asteroid.get_hit_circle()
         player_x_min, player_x_max = self.x - self._half_w, self.x + self._half_w
         player_y_min, player_y_max = self.y - self._half_h, self.y + self._half_h

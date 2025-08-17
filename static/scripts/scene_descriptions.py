@@ -133,8 +133,10 @@ class PlanetScene(Scene):
         planet.set_position(0, window.canvas.height // 2)
         self.results_overlay = ResultsScreen(f"{planet.name}-results", scene_manager, self.planet)
         self.results_overlay.other_click_callable = self.handle_scene_completion
+        
 
     def render(self, ctx, timestamp):
+        
         draw_black_background(ctx)
         self.stars.star_shift(timestamp, 5)
         self.stars.render(ctx, timestamp)
@@ -152,7 +154,11 @@ class PlanetScene(Scene):
 
         # Activate the results sub-scene if scanner progress is complete
         if get_scanner().finished:
+            print("your done with this planet")
             self.results_overlay.active = True
+            get_player().invincible = True
+        else:
+            get_player().invincible = False
 
         # Handle results screen display and interaction
         self.results_overlay.render(ctx, timestamp)
