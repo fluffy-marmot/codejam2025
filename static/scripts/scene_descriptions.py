@@ -103,15 +103,14 @@ class OrbitingPlanetsScene(Scene):
         planet = self.solar_sys.get_object_at_position(get_controls().mouse.click)
         if get_controls().click and planet:
             planet_data = window.get_planet(planet.name)
+            log.debug("Clicked on: %s", planet.name)
             if planet.complete:
-                log.debug("Clicked on: %s", planet.name)
-                print("Clicked on: %s", planet.name)
-                self.planet_info_overlay = ResultsScreen(f"{planet.name}-results", self.scene_manager, planet)
+                self.planet_info_overlay.set_button(None)
                 self.planet_info_overlay.set_text("\n".join(planet_data.level))
-                self.planet_info_overlay.margins = Position(300, 150)
+                self.planet_info_overlay.margins = Position(200, 50)
                 self.planet_info_overlay.active = True
             else:
-                log.debug("Clicked on: %s", planet.name)
+                self.planet_info_overlay.set_button("Travel")
                 self.planet_info_overlay.button_click_callable = partial(self.switch_planet_scene, planet.name)
                 self.planet_info_overlay.set_text("\n".join(planet_data.level))
                 self.planet_info_overlay.margins = Position(300, 150)

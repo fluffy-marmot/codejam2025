@@ -275,10 +275,11 @@ class ScanStatus:
     active: bool = False  # Whether the scan is active
     too_close: bool = False  # Whether the scan is valid
     player_interrupted: bool = False  # Whether the scan was interrupted
+    locked: bool = False  # Whether the scan is locked
 
     @property
     def valid(self):
-        return not self.too_close and not self.player_interrupted
+        return not self.too_close and not self.player_interrupted and not self.locked
 
 
 class Scanner:
@@ -333,9 +334,17 @@ class Scanner:
             return
 
         keys = window.controls.pressed
+
         self.status.active = " " in keys
+            
         self.status.too_close = self.player.x <= self.min_x
         self.status.player_interrupted = self.player.momentum != [0, 0]
+        
+        # Lock if interrupted and stay locked until released
+        if self.status.player_interrupted:
+            self.status.locked = True
+        elif not self.status.active:
+            self.status.locked = False
 
         if self.status.active and self.status.valid:
             self.player.is_disabled = True
