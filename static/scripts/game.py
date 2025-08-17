@@ -1,14 +1,13 @@
+from asteroid import AsteroidAttack
 from consolelogger import getLogger
 from controls import GameControls
-from asteroid import AsteroidAttack
 from debris import DebrisSystem
-from player import Player, Scanner
 from js import document  # type: ignore[attr-defined]
-from window import window
+from player import Player, Scanner
 from pyodide.ffi import create_proxy  # type: ignore[attr-defined]
-from window import SpriteSheet
 from scene_classes import Scene
 from scene_descriptions import create_scene_manager
+from window import window
 
 log = getLogger(__name__)
 
@@ -55,6 +54,7 @@ scanner = window.scanner = Scanner(window.get_sprite("scanner"), player, min_x=w
 log.info("Created player at position (%s, %s)", player.x, player.y)
 
 loadingLabel.style.display = "none"
+
 
 def game_loop(timestamp: float) -> None:
     """

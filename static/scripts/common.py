@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterator, Any
+from typing import Any, Iterator
 
 HTMLImageElement = Any
 CanvasRenderingContext2D = Any
+
 
 @dataclass
 class Rect:

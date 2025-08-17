@@ -1,21 +1,31 @@
-from typing import Any, TypedDict, TYPE_CHECKING
-from js import window  # type: ignore[attr-defined] 
+"""Typed wrapper over window and stored objects
+
+Use instead of importing directly from js
+
+Usage
+-------
+from window import window
+"""
+
+from typing import TYPE_CHECKING, Any, TypedDict, NotRequired
+
+from js import window  # type: ignore[attr-defined]
 
 if TYPE_CHECKING:
-    from controls import GameControls
-    from player import Player, Scanner
     from asteroid import AsteroidAttack
-    from debris import DebrisSystem
     from audio import AudioHandler
-    from common import HTMLImageElement, CanvasRenderingContext2D
-    
+    from common import HTMLImageElement
+    from controls import GameControls
+    from debris import DebrisSystem
+    from player import Player, Scanner
+
 from common import Position
 
 
 class SpriteSheet:
     """Wrapper for individual sprites with enhanced functionality."""
 
-    def __init__(self, key: str, image: 'HTMLImageElement'):
+    def __init__(self, key: str, image: "HTMLImageElement"):
         self.key = key.lower()
         self.image = image
 
@@ -57,31 +67,41 @@ class SpriteSheet:
     def __getattr__(self, name):
         return getattr(self.image, name)
 
+
 class SpritesInterface:
     """Interface for accessing window.sprites with SpriteSheet wrapping."""
-    
+
     def __init__(self, js_window: Any) -> None:
         self._window = js_window
-    
+
     def __getitem__(self, key: str) -> "SpriteSheet":
         """Access sprites as SpriteSheet objects."""
         return SpriteSheet(key, self._window.sprites[key])
 
-class PlanetData(TypedDict, total=False):
+class AsteroidData(TypedDict, total=True):
+    """Type definition for asteroid data from asteroids.json"""
+
+    count: int
+    speed: int
+    damage: int
+    durability: int
+
+class PlanetData(TypedDict, total=True):
     """Type definition for planet data from planets.json"""
+
     id: int
     name: str
     sprite: str
-    x: float
-    y: float
-    info: str
-    level: list[str]
+    info: NotRequired[str]
+    level: NotRequired[list[str]]
+    scan_multiplier: NotRequired[float]
+    asteroid: NotRequired[AsteroidData]
     spritesheet: SpriteSheet  # JS Image object added in HTML
 
 
 class WindowInterface:
     """Typed interface for accessing window object properties with dynamic fallback."""
-    
+
     def __init__(self, js_window: Any) -> None:
         self._window = js_window
         self._sprites = SpritesInterface(js_window)  # Wrap sprites in SpritesInterface
@@ -95,71 +115,71 @@ class WindowInterface:
     @audio_handler.setter
     def audio_handler(self, value: "AudioHandler") -> None:
         self._window.audio_handler = value
-    
+
     @property
     def controls(self) -> "GameControls":
         return self._window.controls
-    
+
     @controls.setter
     def controls(self, value: "GameControls") -> None:
         self._window.controls = value
-    
+
     @property
     def player(self) -> "Player":
         return self._window.player
-    
+
     @player.setter
     def player(self, value: "Player") -> None:
         self._window.player = value
-    
+
     @property
     def asteroids(self) -> "AsteroidAttack":
         return self._window.asteroids
-    
+
     @asteroids.setter
     def asteroids(self, value: "AsteroidAttack") -> None:
         self._window.asteroids = value
-    
+
     @property
     def debris(self) -> "DebrisSystem":
         return self._window.debris
-    
+
     @debris.setter
     def debris(self, value: "DebrisSystem") -> None:
         self._window.debris = value
-    
+
     @property
     def scanner(self) -> "Scanner":
         return self._window.scanner
-    
+
     @scanner.setter
     def scanner(self, value: "Scanner") -> None:
         self._window.scanner = value
-    
+
     @property
     def planets(self) -> list[PlanetData]:
         return self._window.planets
-    
+
     @planets.setter
     def planets(self, value: list[PlanetData]) -> None:
         self._window.planets = value
-    
+
     @property
     def sprites(self) -> SpritesInterface:
         """Access sprites as SpriteSheet objects."""
         return self._sprites
-    
+
     def get_sprite(self, key: str) -> SpriteSheet:
         """Get a sprite by key - more intuitive than sprites[key]."""
         return self._sprites[key]
-    
+
     def __getattr__(self, name: str) -> Any:
         """Dynamic fallback for accessing any window property."""
         return getattr(self._window, name)
-    
+
     def __setattr__(self, name: str, value: Any) -> None:
         """Dynamic fallback for setting any window property."""
-        if name.startswith('_'):
+        if name.startswith("_"):
             super().__setattr__(name, value)
         else:
             setattr(self._window, name, value)

@@ -1,6 +1,6 @@
 from functools import partial
 
-from common import Position, Rect, PlanetState
+from common import PlanetState, Position, Rect
 from consolelogger import getLogger
 from scene_classes import CanvasRenderingContext2D, Scene, SceneManager
 from solar_system import SolarSystem
@@ -18,24 +18,31 @@ log = getLogger(__name__, False)
 # methods useful across various scenes
 # --------------------
 
+
 def get_controls():
     return window.controls
+
 
 def get_player():
     return window.player
 
+
 def get_asteroid_system():
     return window.asteroids
+
 
 def get_debris_system():
     return window.debris
 
+
 def get_scanner():
     return window.scanner
+
 
 def draw_black_background(ctx):
     ctx.fillStyle = "black"
     ctx.fillRect(0, 0, window.canvas.width, window.canvas.height)
+
 
 def get_planet(name: str) -> dict[str, str] | None:
     for planet in window.planets:
@@ -115,7 +122,7 @@ class OrbitingPlanetsScene(Scene):
                 self.planet_info_overlay.set_text("\n".join(get_planet(planet.name)["level"]))
                 self.planet_info_overlay.margins = Position(300, 150)
                 self.planet_info_overlay.active = True
-            
+
     def highlight_hovered_planet(self):
         # Reset all planets' highlight state first
         for planet in self.solar_sys.planets:
@@ -135,7 +142,7 @@ class OrbitingPlanetsScene(Scene):
         get_player().reset_position()
         get_player().active = True
         get_asteroid_system().reset()
-        get_debris_system().reset()   
+        get_debris_system().reset()
         get_scanner().reset()
 
 
@@ -159,10 +166,8 @@ class PlanetScene(Scene):
         planet.set_position(0, window.canvas.height // 2)
         self.results_overlay = ResultsScreen(f"{planet.name}-results", scene_manager, self.planet)
         self.results_overlay.other_click_callable = self.handle_scene_completion
-        
 
     def render(self, ctx, timestamp):
-        
         draw_black_background(ctx)
         self.stars.star_shift(timestamp, 5)
         self.stars.render(ctx, timestamp)

@@ -1,6 +1,6 @@
-from js import window as js_window  # type: ignore[attr-defined]
 from common import Position
 from consolelogger import getLogger
+from js import window as js_window  # type: ignore[attr-defined]
 
 log = getLogger(__name__)
 
