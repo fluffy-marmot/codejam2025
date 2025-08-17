@@ -164,7 +164,6 @@ class StarSystem3d:
         x = random.randint(-width//2, width//2)
         y = random.randint(-height//2, height//2)
         z = random.uniform(20, self.max_depth)
-        print(f"creating star at {x}, {y}, {z}")
         pulse_freq = random.randint(30, 80)   # tweak as desired
         radius = 1
         shade = random.randint(150, 255)
