@@ -93,6 +93,9 @@ class Player(SceneObject):
         # DEBUG: switch hitbox visibility
         if "c" in keys:
             window.DEBUG_DRAW_HITBOXES = not window.DEBUG_DRAW_HITBOXES
+        # DEBUG: instant death for testing
+        if "k" in keys:
+            self.health = 0
 
         # miliseconds to seconds since that's what was being used
         dt = (timestamp - self.last_timestamp) / 1000
