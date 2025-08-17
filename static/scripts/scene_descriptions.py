@@ -628,18 +628,18 @@ class PlayerExplosion:
 class FinalScene(Scene):
     def __init__(self, name: str, scene_manager: SceneManager):
         super().__init__(name, scene_manager)
-        # Sparse stars for space backdrop (no pulsing for realism)
+        # Sparse stars for space backdrop
         self.stars = StarSystem(
             num_stars=80,
             radius_min=1,
             radius_max=2,
-            pulse_freq_min=999999,  # Effectively no pulsing
-            pulse_freq_max=999999,
+            pulse_freq_min=10,
+            pulse_freq_max=50,
         )
-        # Rotating Earth spritesheet (smaller, in upper portion)
+        # Rotating Earth spritesheet
         self.earth_sprite = window.get_sprite("earth")
         self.earth_frame = 0
-        self.earth_frame_duration = 200  # Slower rotation
+        self.earth_frame_duration = 200
         self.earth_last_frame_time = 0
         
         # Moon sprite for lunar surface
@@ -662,7 +662,7 @@ class FinalScene(Scene):
             sy = 0
 
             # Position Earth in upper-right, smaller size like the reference image
-            target_size = int(min(SCREEN_W, SCREEN_H) * 0.15)  # Much smaller
+            target_size = int(min(SCREEN_W, SCREEN_H) * 0.15)
             dw = dh = target_size
             dx = SCREEN_W * 0.65  # Right side of screen
             dy = SCREEN_H * 0.15  # Upper portion
@@ -677,19 +677,19 @@ class FinalScene(Scene):
         # Draw lunar surface with the top portion visible, like looking across the lunar terrain
         if self.moon_sprite and getattr(self.moon_sprite, "is_loaded", False):
             # Position moon sprite so its upper portion is visible as foreground terrain
-            surface_height = SCREEN_H * 0.5  # Show much more of the lunar surface like the reference
+            surface_height = SCREEN_H * 0.5
             
             # Scale to fill screen width
-            scale = SCREEN_W / self.moon_sprite.width * (0.25/4)
-            sprite_scaled_height = self.moon_sprite.height * (scale/0.5)
+            scale = (SCREEN_W / self.moon_sprite.width)
+            sprite_scaled_height = self.moon_sprite.height * scale
             
             # Position so the moon extends below the screen, showing only the top portion
-            dy = SCREEN_H - surface_height  # Start higher up to show more terrain
+            dy = SCREEN_H - surface_height
             
             ctx.drawImage(
                 self.moon_sprite.image,
-                0, 0, self.moon_sprite.width, self.moon_sprite.height,  # full sprite
-                0, dy, SCREEN_W, sprite_scaled_height  # positioned to show top portion
+                0, 0, self.moon_sprite.width, self.moon_sprite.height,
+                SCREEN_W - (SCREEN_W * scale)/1.25, dy, SCREEN_W * scale, sprite_scaled_height
             )
 
     def render(self, ctx, timestamp):
@@ -697,22 +697,22 @@ class FinalScene(Scene):
         ctx.fillStyle = "#000000"
         ctx.fillRect(0, 0, SCREEN_W, SCREEN_H)
         
-        # Sparse, non-pulsing stars
+        # Sparse stars
         self.stars.render(ctx, timestamp)
 
-        # Draw lunar surface first (background)
+        # Draw lunar surface first
         self._draw_lunar_surface(ctx)
         
         # Draw Earth in the distance
         self._draw_earth(ctx, timestamp)
 
-        # Mission complete text - positioned to not overlap with Earth
+        # Mission complete text
         ctx.save()
         ctx.font = f"bold {max(18, int(min(SCREEN_W, SCREEN_H) * 0.04))}px Courier New"
         ctx.fillStyle = "#00FF00"
         message = "Mission Complete"
         tw = ctx.measureText(message).width
-        # Position text in the left side to avoid Earth
+        # Position text in the left side
         ctx.fillText(message, SCREEN_W * 0.05, SCREEN_H * 0.15)
         ctx.restore()
 
