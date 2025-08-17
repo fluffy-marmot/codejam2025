@@ -8,7 +8,7 @@ CanvasRenderingContext2D = Any
 
 @dataclass
 class AsteroidData:
-    """Dataclass for asteroid data from asteroids.json"""
+    """Dataclass for asteroid data from asteroids.json. Difficulty stuff is on a 1-20 scale"""
     
     count: int
     speed: int

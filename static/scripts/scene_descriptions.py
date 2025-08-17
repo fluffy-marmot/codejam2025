@@ -146,7 +146,7 @@ class OrbitingPlanetsScene(Scene):
         self.solar_sys.get_planet(planet_name).switch_view()
         get_player().reset_position()
         get_player().active = True
-        get_asteroid_system().reset()
+        get_asteroid_system().reset(planet)
         get_debris_system().reset()
         get_scanner().set_scan_parameters(planet.scan_multiplier)
         get_scanner().reset()

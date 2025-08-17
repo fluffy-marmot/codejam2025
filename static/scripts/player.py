@@ -245,7 +245,7 @@ class Player(SceneObject):
             self.momentum[1] = (self.y - ast_y) / distance_between_centers * 5.0
             asteroid.velocity_x += (ast_x - self.x) / 2.0
             asteroid.velocity_y += (ast_y - self.y) / 2.0
-            self.health = max(0, self.health - 100 / distance_between_centers * 5)
+            self.health = max(0, self.health - 100 / distance_between_centers * 5 * asteroid.damage_mul)
             window.audio_handler.play_bang()
             window.debris.generate_debris(self.get_position(), Position(ast_x, ast_y))
 
@@ -292,7 +292,7 @@ class Scanner:
         scale: float = 0.1,
         disable_ship_ms: float = 1000,
         beamwidth=100,
-        scanning_dur_s=5,
+        scanning_dur_s=15,
     ):
         self.sprite = sprite
         self.scale = scale

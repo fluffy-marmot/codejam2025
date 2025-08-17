@@ -2,9 +2,12 @@ import math
 import random
 
 from js import document  # type: ignore[attr-defined]
-from common import Position
+from common import Position, PlanetData
 from scene_classes import SceneObject
 from window import window, SpriteSheet
+from consolelogger import getLogger
+
+log = getLogger(__name__)
 
 # Canvas dimensions
 canvas = document.getElementById("gameCanvas")
@@ -22,7 +25,18 @@ ASTEROID_RADII = [22, 26, 18, 19, 21, 25, 18, 23, 26, 20, 24, 13, 22, 18, 21, 23
 
 
 class Asteroid(SceneObject):
-    def __init__(self, sheet: SpriteSheet, x: float, y: float, vx: float, vy: float, target_size_px: float, sprite_index: int, grid_cols: int = 11, cell_size: float = 0, health: int = 500):
+    def __init__(
+        self, sheet: SpriteSheet, 
+        x: float, y: float, 
+        vx: float, vy: float, 
+        target_size_px: float, 
+        sprite_index: int, 
+        grid_cols: int = 11, 
+        cell_size: float = 0, 
+        grow_rate=6.0, 
+        health: int = 450,
+        damage_mul: float= 1.0
+    ):
         super().__init__()
         super().set_position(x, y)
         self.sheet = sheet
@@ -32,7 +46,7 @@ class Asteroid(SceneObject):
         self.rotation_speed = random.uniform(-0.5, 0.5)
         self.target_size = target_size_px
         self.size = 5.0
-        self.grow_rate = target_size_px / random.uniform(3.0, 9.0)
+        self.grow_rate = target_size_px / random.uniform(grow_rate - 1.8, grow_rate + 2.5)
         self.sprite_index = sprite_index
         self.grid_cols = grid_cols
         self.cell_size = cell_size
@@ -41,7 +55,8 @@ class Asteroid(SceneObject):
         self._last_timestamp = None
         self.linger_time = 0.5
         self.full_size_reached_at = None
-        self.health = health
+        self.health = random.uniform(health * 0.8, health * 1.2)
+        self.damage_mul = random.uniform(damage_mul * 0.9, damage_mul * 1.1)
 
     def _ensure_cell_size(self):
         if not self.cell_size:
@@ -129,12 +144,15 @@ class AsteroidAttack:
         self.spawnrate = spawnrate
         self.asteroids: list[Asteroid] = []
         self._last_spawn = 0.0
-        self.max_asteroids = 50
+        self._max_asteroids = 50  # default max asteroids that can appear on the screen
         self.cell_size = 0
+        self._use_grow_rate = 6.0 # default growth rate (how fast they appear to approach the player)
+        self._use_health = 450 # default durability (affects asteroids being destroyed by impacts w/ player)
+        self._use_damage_mul = 1.0
 
     def _spawn_one(self):
         # Don't spawn if at the limit
-        if len(self.asteroids) >= self.max_asteroids:
+        if len(self.asteroids) >= self._max_asteroids:
             return
 
         # Planet area (left side)
@@ -159,7 +177,12 @@ class AsteroidAttack:
 
         target = random.uniform(self.max_size * 0.7, self.max_size * 1.3)
         idx = random.randint(0, 103)  # randint is inclusive on both ends
-        a = Asteroid(self.sheet, x, y, velocity_x, velocity_y, target, idx)
+        a = Asteroid(
+            self.sheet, x, y, velocity_x, velocity_y, target, idx, 
+            grow_rate=self._use_grow_rate,
+            health=self._use_health,
+            damage_mul=self._use_damage_mul
+        )
         self.asteroids.append(a)
 
     # Spawn at interval and only if under limit
@@ -169,7 +192,7 @@ class AsteroidAttack:
         # slow down spawnrate for this attempt a bit if there already many asteroids active
         spawnrate = spawnrate * max(1, 1 + (len(self.asteroids) - 35) * 0.1)
         if self._last_spawn == 0.0 or (timestamp - self._last_spawn) >= spawnrate:
-            if len(self.asteroids) < self.max_asteroids:
+            if len(self.asteroids) < self._max_asteroids:
                 self._last_spawn = timestamp
                 self._spawn_one()
 
@@ -187,7 +210,34 @@ class AsteroidAttack:
         for a in self.asteroids:
             a.render(ctx, timestamp)
 
-    def reset(self):
+    def reset(self, planet_data: PlanetData):
+        """ reset the asteroid management system with the given difficulty parameters """
+
+        # the asteroid difficulty settings are on a 1-20 scale of ints
+        asteroid_settings = planet_data.asteroid
+
+        spawnrate = 500
+        # clamp max between 10-80, default is 50 at difficulty 10
+        max_asteroids = min(max(10, 5 * asteroid_settings.count), 80)
+        # default 6.0 at difficulty 5, minimum is clamped to 4.75, max around 13.5
+        # this determines how quickly asteroids seem to be approaching player (sprite growing in size)
+        use_grow_rate = max(1.2, 10.5 - (asteroid_settings.speed - 5) * 0.5)
+        # how easily asteroids fall apart from collisions, default 450 health at level 10
+        use_health = 50 + 40 * asteroid_settings.durability
+        # range of 0.3 to 2.2 multiplier
+        use_damage_mul = 0.2 + 0.1 * asteroid_settings.damage
+
+        log.debug("Resetting asteroids with difficulty parameters for planet %s:", planet_data.name)
+        log.debug("Max asteroids: %s (%s), default 50", max_asteroids, asteroid_settings.count)
+        log.debug("Grow rate(approach speed): %s (%s), default 6.0", use_grow_rate, asteroid_settings.speed)
+        log.debug("Asteroid durability: %s (%s), default 450", use_health, asteroid_settings.durability)
+        log.debug("Damage multiplier: %s (%s), default 1.0", use_damage_mul, asteroid_settings.damage)
+        
+        self._max_asteroids = max_asteroids
+        self._use_grow_rate = use_grow_rate
+        self._use_health = use_health
+        self._use_damage_mul = use_damage_mul
+
         self.asteroids.clear()
         self._last_spawn = 0.0
         self.cell_size = 0
