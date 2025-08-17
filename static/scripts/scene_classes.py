@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import overload
 
-from common import Position, CanvasRenderingContext2D
-
+from common import CanvasRenderingContext2D, Position
 
 # ====================================================
 # Scene Object abstract class

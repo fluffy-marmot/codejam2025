@@ -2,8 +2,8 @@ import math
 from random import randint
 
 from common import Position
-from window import window
 from scene_classes import SceneObject
+from window import window
 
 
 class Debris(SceneObject):

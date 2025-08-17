@@ -24,11 +24,13 @@
             "proximity to the Sun, and the constant bombardment of high-energy",
             "particles, the ship will suffer slow damage over time."
         ],
-        "asteroid_counts": 3,
-        "asteroid_speed": 5,
-        "asteroid_damage": 2,
-        "asteroid_dur": 4,
-        "scan_diff": 20
+        "scan_multiplier": 1.0,
+        "asteroid": {
+            "count": 4,
+            "speed": 7,
+            "damage": 20,
+            "durability": 3
+        }
     },
     {
         "id": 299,
@@ -46,11 +48,13 @@
             "Asteroid durability: ***",
             "Scan difficulty    : ******"
         ],
-        "asteroid_counts": 1,
-        "asteroid_speed": 1,
-        "asteroid_damage": 1,
-        "asteroid_dur": 1,
-        "scan_diff": 1
+        "scan_multiplier": 1.5,
+        "asteroid": {
+            "count": 4,
+            "speed": 10,
+            "damage": 20,
+            "durability": 3
+        }
     },
     {
         "id": 399,
@@ -70,11 +74,13 @@
             "\n",
             "Sparse field of very damaging asteroids"
         ],
-        "asteroid_counts": 1,
-        "asteroid_speed": 1,
-        "asteroid_damage": 1,
-        "asteroid_dur": 1,
-        "scan_diff": 1
+        "scan_multiplier": 1.0,
+        "asteroid": {
+            "count": 4,
+            "speed": 7,
+            "damage": 10,
+            "durability": 3
+        }
     },
     {
         "id": 499,
@@ -96,11 +102,14 @@
             "Chiaki Spacestation, which will afford you an opportunity for a ship",
             "repair upon completing this mission."
         ],
-        "asteroid_counts": 1,
-        "asteroid_speed": 1,
-        "asteroid_damage": 1,
-        "asteroid_dur": 1,
-        "scan_diff": 1
+        "scan_multiplier": 1.0,
+        "asteroid": {
+            "count": 4,
+            "speed": 7,
+            "damage": 10,
+            "durability": 3
+        }
+
     },
     {
         "id": 599,
@@ -122,11 +131,13 @@
             "largest planet has a strong gravitational field that you will",
             "constantly need to fight against."
         ],
-        "asteroid_counts": 1,
-        "asteroid_speed": 1,
-        "asteroid_damage": 1,
-        "asteroid_dur": 1,
-        "scan_diff": 1
+        "scan_multiplier": 4.0,
+        "asteroid": {
+            "count": 4,
+            "speed": 7,
+            "damage": 10,
+            "durability": 3
+        }
     },
     {
         "id": 699,
@@ -144,11 +155,13 @@
             "Asteroid durability: *****",
             "Scan difficulty    : *****"
         ],
-        "asteroid_counts": 1,
-        "asteroid_speed": 1,
-        "asteroid_damage": 1,
-        "asteroid_dur": 1,
-        "scan_diff": 1
+        "scan_multiplier": 1.0,
+        "asteroid": {
+            "count": 4,
+            "speed": 7,
+            "damage": 10,
+            "durability": 3
+        }
     },
     {
         "id": 799,
@@ -166,11 +179,13 @@
             "Asteroid durability: *****",
             "Scan difficulty    : *****"
         ],
-        "asteroid_counts": 1,
-        "asteroid_speed": 1,
-        "asteroid_damage": 1,
-        "asteroid_dur": 1,
-        "scan_diff": 1
+        "scan_multiplier": 1.0,
+        "asteroid": {
+            "count": 4,
+            "speed": 7,
+            "damage": 10,
+            "durability": 3
+        }
     },
     {
         "id": 899,
@@ -188,10 +203,12 @@
             "Asteroid durability: *****",
             "Scan difficulty    : *****"
         ],
-        "asteroid_counts": 1,
-        "asteroid_speed": 1,
-        "asteroid_damage": 1,
-        "asteroid_dur": 1,
-        "scan_diff": 1
+        "scan_multiplier": 1.0,
+        "asteroid": {
+            "count": 4,
+            "speed": 7,
+            "damage": 10,
+            "durability": 3
+        }
     }
 ]

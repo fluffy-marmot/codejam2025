@@ -1,10 +1,9 @@
 import math
 
-from common import Position, PlanetState
-from window import SpriteSheet, window
+from common import PlanetState, Position
 from scene_classes import SceneObject
-
 from spacemass import SpaceMass
+from window import window
 
 GRAVI_CONST = 0.67
 

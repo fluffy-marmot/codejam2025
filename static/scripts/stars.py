@@ -1,8 +1,8 @@
 import math
 import random
 
-from window import window
 from scene_classes import SceneObject
+from window import window
 
 
 class Star:

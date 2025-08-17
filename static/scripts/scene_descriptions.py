@@ -1,6 +1,6 @@
 from functools import partial
 
-from common import Position, Rect, PlanetState
+from common import PlanetState, Position, Rect
 from consolelogger import getLogger
 from scene_classes import CanvasRenderingContext2D, Scene, SceneManager
 from solar_system import SolarSystem
@@ -18,30 +18,30 @@ log = getLogger(__name__, False)
 # methods useful across various scenes
 # --------------------
 
+
 def get_controls():
     return window.controls
+
 
 def get_player():
     return window.player
 
+
 def get_asteroid_system():
     return window.asteroids
+
 
 def get_debris_system():
     return window.debris
 
+
 def get_scanner():
     return window.scanner
+
 
 def draw_black_background(ctx):
     ctx.fillStyle = "black"
     ctx.fillRect(0, 0, window.canvas.width, window.canvas.height)
-
-def get_planet(name: str) -> dict[str, str] | None:
-    for planet in window.planets:
-        if planet["name"] == name.title():
-            return planet
-    return None
 
 def rgba_to_hex(rgba_str):
     """
@@ -102,23 +102,23 @@ class OrbitingPlanetsScene(Scene):
             self.check_planet_click()
 
     def check_planet_click(self):
-        if get_controls().click:
-            planet = self.solar_sys.get_object_at_position(get_controls().mouse.click)
-            if planet is None: return
+        planet = self.solar_sys.get_object_at_position(get_controls().mouse.click)
+        if get_controls().click and planet:
+            planet_data = window.get_planet(planet.name)
             log.debug("Clicked on: %s", planet.name)
-            if not planet.complete:
-                self.planet_info_overlay.set_button("Travel")
-                self.planet_info_overlay.button_click_callable = partial(self.switch_planet_scene, planet.name)
-                self.planet_info_overlay.set_text("\n".join(get_planet(planet.name)["level"]))
-                self.planet_info_overlay.margins = Position(300, 150)
-                self.planet_info_overlay.active = True
-                self.planet_info_overlay.center = False
-            else:
+            if planet.complete:
                 self.planet_info_overlay.set_button(None)
-                self.planet_info_overlay.set_text(get_planet(planet.name)["info"])
+                self.planet_info_overlay.set_text(planet_data.info)
                 self.planet_info_overlay.margins = Position(200, 50)
                 self.planet_info_overlay.active = True
                 self.planet_info_overlay.center = True
+            else:
+                self.planet_info_overlay.set_button("Travel")
+                self.planet_info_overlay.button_click_callable = partial(self.switch_planet_scene, planet.name)
+                self.planet_info_overlay.set_text("\n".join(planet_data.level))
+                self.planet_info_overlay.margins = Position(300, 150)
+                self.planet_info_overlay.active = True
+                self.planet_info_overlay.center = False
 
     def highlight_hovered_planet(self):
         # Reset all planets' highlight state first
@@ -133,13 +133,20 @@ class OrbitingPlanetsScene(Scene):
         planet_scene_name = f"{planet_name}-planet-scene"
         log.debug("Activating planet scene: %s", planet_scene_name)
 
+        planet = window.get_planet(planet_name)
+        if planet is None:
+            log.error("Planet not found: %s", planet_name)
+            return
+
+        log.debug(planet)
         self.planet_info_overlay.deactivate()
         self.scene_manager.activate_scene(planet_scene_name)
         self.solar_sys.get_planet(planet_name).switch_view()
         get_player().reset_position()
         get_player().active = True
         get_asteroid_system().reset()
-        get_debris_system().reset()   
+        get_debris_system().reset()
+        get_scanner().set_scan_parameters(planet.scan_multiplier)
         get_scanner().reset()
 
 
@@ -167,7 +174,6 @@ class PlanetScene(Scene):
         self.results_overlay.center = True
 
     def render(self, ctx, timestamp):
-        
         draw_black_background(ctx)
         self.stars.star_shift(timestamp, 5)
         self.stars.render(ctx, timestamp)
@@ -395,8 +401,8 @@ class TextOverlay(Scene):
 
 class ResultsScreen(TextOverlay):
     def __init__(self, name: str, scene_manager: SceneManager, planet: SpaceMass):
-        self.planet_data = get_planet(planet.name)
-        text = get_planet(planet.name).get("info", TextOverlay.DEFAULT) if planet else TextOverlay.DEFAULT
+        self.planet_data = window.get_planet(planet.name)
+        text = self.planet_data.info if self.planet_data else TextOverlay.DEFAULT
         super().__init__(name, scene_manager, text)
         # default sizing for scan results screen
         self.margins = Position(200, 50)

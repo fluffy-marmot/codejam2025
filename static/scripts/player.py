@@ -1,19 +1,19 @@
 import math
 import time
 from collections import deque
-from math import dist
 from dataclasses import dataclass
+from math import dist
 
 from asteroid import Asteroid
 from common import Position
 from consolelogger import getLogger
-
 from scene_classes import SceneObject
-from window import window, SpriteSheet
+from window import SpriteSheet, window
 
 log = getLogger(__name__)
 
 FULL_HEALTH = 1000
+
 
 class Player(SceneObject):
     """Controllable player sprite.
@@ -227,7 +227,7 @@ class Player(SceneObject):
         # use invicible flag (toggled when planet is done)
         if self.invincible:
             return
-        
+
         ast_x, ast_y, ast_radius = asteroid.get_hit_circle()
         player_x_min, player_x_max = self.x - self._half_w, self.x + self._half_w
         player_y_min, player_y_max = self.y - self._half_h, self.y + self._half_h
@@ -269,15 +269,18 @@ class Player(SceneObject):
         self.rotation = 0.0
         self.target_rotation = 0.0
 
+
 @dataclass
 class ScanStatus:
     active: bool = False  # Whether the scan is active
-    too_close: bool = False    # Whether the scan is valid
+    too_close: bool = False  # Whether the scan is valid
     player_interrupted: bool = False  # Whether the scan was interrupted
-    
+    locked: bool = False  # Whether the scan is locked
+
     @property
     def valid(self):
-        return not self.too_close and not self.player_interrupted
+        return not self.too_close and not self.player_interrupted and not self.locked
+
 
 class Scanner:
     def __init__(
@@ -299,69 +302,86 @@ class Scanner:
         self.scaled_h = self.sprite.height * self.scale
         self.disable_ship_ms = disable_ship_ms
         self.disable_timer = 0
+        
+        # Core scanning parameters
+        self.scanning_dur_ms = scanning_dur_s * 1000
+        self.scan_mult = scan_mult
         self.beamwidth = beamwidth
-        self.scanningdur = scanning_dur_s * 1000  # ms
-        self.scanning_progress = 0
-        self.bar_max = self.scanningdur * scan_mult
-        self.last_scan_tick = None
-        self.finished = False  # when the bar is full
+        
+        # State variables
         self.status = ScanStatus()
-        self.scan_locked = False
+        self.scanning_progress = 0
+        self.finished = False
+        self._last_scan_tick = None
+        
+        # Calculate max based on current parameters
+        self._update_bar_max()
+    
+    def _update_bar_max(self):
+        """Update the maximum progress value based on current parameters"""
+        self._bar_max = self.scanning_dur_ms * self.scan_mult
+
+    def set_scan_parameters(self, scan_mult: float | None = None, scanning_dur_s: float | None = None):
+        """Update scanning parameters and recalculate max value"""
+        if scan_mult is not None:
+            self.scan_mult = scan_mult
+        if scanning_dur_s is not None:
+            self.scanning_dur_ms = scanning_dur_s * 1000
+        self._update_bar_max()
+
     def update(self, ctx, current_time):
         if self.finished:
-            return 
+            return
 
         keys = window.controls.pressed
 
-        if " " in keys and not self.scan_locked:
-            self.status.active = True
-        else:
-            self.status.active = False
+        self.status.active = " " in keys
             
         self.status.too_close = self.player.x <= self.min_x
         self.status.player_interrupted = self.player.momentum != [0, 0]
-        if self.status.player_interrupted is True:
-            self.scan_locked = True
         
-        if not " " in keys:
-            self.scan_locked = False
+        # Lock if interrupted and stay locked until released
+        if self.status.player_interrupted:
+            self.status.locked = True
+        elif not self.status.active:
+            self.status.locked = False
 
         if self.status.active and self.status.valid:
-            self.player.is_disabled = True  
+            self.player.is_disabled = True
 
-            if self.last_scan_tick is None:
-                self.last_scan_tick = current_time
+            if self._last_scan_tick is None:
+                self._last_scan_tick = current_time
 
-            elapsed_since_last = current_time - self.last_scan_tick
-            self.scanning_progress = min(self.scanning_progress + elapsed_since_last, self.bar_max)
-            self.last_scan_tick = current_time
+            elapsed_since_last = current_time - self._last_scan_tick
+            self.scanning_progress = min(self.scanning_progress + elapsed_since_last, self._bar_max)
+            self._last_scan_tick = current_time
         else:
-            self.last_scan_tick = None
+            self._last_scan_tick = None
 
         # Re-enable player if disable_time has elapsed or player is not scanning
         if current_time - self.disable_timer >= self.disable_ship_ms or not self.status.active:
             if " " not in keys:
                 self.player.is_disabled = False
                 self.disable_timer = current_time
-    
+
     def render_beam(self, ctx):  # seprate function so it can go under the planet
         if not self.status.active or not self.status.valid:
             return
-        
+
         player_x, player_y = self.player.get_position()
         origin_x = player_x - 150
         origin_y = player_y - 10
-        
+
         # Create animated pulsing effect based on time
         pulse = (math.sin(time.time() * 8) + 1) / 2  # 0 to 1
         beam_alpha = 0.3 + pulse * 0.3  # Vary alpha from 0.3 to 0.6
-        
+
         # Create gradient for the beam
         gradient = ctx.createLinearGradient(origin_x, origin_y, 0, player_y)
         gradient.addColorStop(0, f"rgba(255, 100, 100, {beam_alpha})")
         gradient.addColorStop(0.5, f"rgba(255, 50, 50, {beam_alpha * 0.8})")
         gradient.addColorStop(1, f"rgba(255, 0, 0, {beam_alpha * 0.5})")
-        
+
         # Main beam cone
         ctx.fillStyle = gradient
         ctx.beginPath()
@@ -370,17 +390,17 @@ class Scanner:
         ctx.lineTo(0, player_y + self.beamwidth)
         ctx.closePath()
         ctx.fill()
-        
+
         # Add animated scanning lines
         scan_cycle = (time.time() * 2) % 1  # 0 to 1, cycling every 0.5 seconds
         num_lines = 5
-        
+
         for i in range(num_lines):
             line_progress = (scan_cycle + i * 0.2) % 1
             line_x = origin_x - line_progress * origin_x
             line_alpha = (1 - line_progress) * 0.8
             beam_height = self.beamwidth
-            
+
             if line_alpha > 0.1:  # Only draw visible lines
                 ctx.strokeStyle = f"rgba(255, 255, 255, {line_alpha})"
                 ctx.lineWidth = 2
@@ -388,7 +408,7 @@ class Scanner:
                 ctx.moveTo(line_x, player_y - beam_height)
                 ctx.lineTo(line_x, player_y + beam_height)
                 ctx.stroke()
-        
+
         # Add edge glow effect
         ctx.strokeStyle = f"rgba(255, 150, 150, {beam_alpha * 0.6})"
         ctx.lineWidth = 3
@@ -416,7 +436,7 @@ class Scanner:
             16,
             16,
         )
-        
+
         ctx.lineWidth = 1
         ctx.strokeStyle = "#FFFFFF"
         ctx.strokeRect(
@@ -430,10 +450,10 @@ class Scanner:
         ctx.fillRect(
             window.canvas.width - outer_width - padding + 2,
             window.canvas.height + outer_height - padding + 2,
-            inner_width * self.scanning_progress / self.bar_max,
+            inner_width * self.scanning_progress / self._bar_max,
             inner_height,
         )
-        
+
         if self.finished:
             return
 
@@ -445,8 +465,7 @@ class Scanner:
                 ctx.font = "15px Courier New"
                 ctx.fillText("Too close to planet!", player_x - 90, player_y - 50)
 
-
-        if self.scanning_progress >= self.bar_max:
+        if self.scanning_progress >= self._bar_max:
             log.debug(f"Done scanning")
             self.status.active = False
             self.finished = True
@@ -454,3 +473,4 @@ class Scanner:
     def reset(self):
         self.finished = False
         self.scanning_progress = 0
+        self._update_bar_max()
