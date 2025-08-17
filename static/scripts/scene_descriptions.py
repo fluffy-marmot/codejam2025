@@ -7,7 +7,11 @@ from solar_system import SolarSystem
 from spacemass import SpaceMass
 from stars import StarSystem
 from window import window
-
+from js import document #type:ignore
+import textwrap
+canvas = document.getElementById("gameCanvas")
+container = document.getElementById("canvasContainer")
+SCREEN_W, SCREEN_H = container.clientWidth, container.clientHeight
 log = getLogger(__name__, False)
 
 # --------------------
@@ -17,7 +21,7 @@ log = getLogger(__name__, False)
 def get_controls():
     return window.controls
 
-def get_player() -> Player:
+def get_player():
     return window.player
 
 def get_asteroid_system():
@@ -38,6 +42,21 @@ def get_planet(name: str) -> dict[str, str] | None:
         if planet["name"] == name.title():
             return planet
     return None
+
+def rgba_to_hex(rgba_str):
+    """
+    Convert "rgba(r, g, b, a)" to hex string "#RRGGBB".
+    Alpha is ignored.
+    """
+    import re
+
+    # Extract the numbers
+    match = re.match(r"rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\s*\)", rgba_str)
+    if not match:
+        raise ValueError(f"Invalid RGBA string: {rgba_str}")
+
+    r, g, b = map(int, match.groups())
+    return f"#{r:02X}{g:02X}{b:02X}"
 
 
 # --------------------
@@ -90,7 +109,6 @@ class OrbitingPlanetsScene(Scene):
                 self.planet_info_overlay.margins = Position(300, 150)
                 self.planet_info_overlay.active = True
             else:
-                print("planet is gurt")
                 log.debug("Clicked on: %s", planet.name)
                 print("Clicked on: %s", planet.name)
                 self.planet_info_overlay = ResultsScreen(f"{planet.name}-results", self.scene_manager, planet)
@@ -196,26 +214,32 @@ class StartScence(Scene):
             pulse_freq_max=6,
         )
         #self.player = get_player()
-
-        dialouge = """
-            hello world
-            the quick brown fox jumps over the lazy dog
-            im testing the dialouge!
-"""
-        self.lines = dialouge.split('\n')
+        
+        dialouge = """Alien 1: Why does boss need so much planet data..?
+        Alien 2: I dont know man
+        Alien 1: Soosh is goated
+        """
+        
+        self.dialogue_manager = Dialogue('dialouge', scene_manager, dialouge)
+        self.dialogue_manager.active = True
+        self.dialogue_manager.margins = Position(300, 150)
+        
 
     def render(self, ctx, timestamp):
         draw_black_background(ctx)
-        #scale the stars
         self.stars.render(ctx, timestamp)
-        self.stars.star_scale(ctx, timestamp)
-        #get_player().render(ctx, timestamp)
-
+        self.dialogue_manager.render(ctx, timestamp)
+        self.dialogue_manager.rect=(0, SCREEN_H-150, SCREEN_W, 150)  # x, y, width, height
+        if get_controls().click:
+            self.dialogue_manager.next()
+        
+        if self.dialogue_manager.done:
+            self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
 
 class TextOverlay(Scene):
     DEFAULT = "No information found :("
 
-    def __init__(self, name: str, scene_manager: SceneManager, text: str):
+    def __init__(self, name: str, scene_manager: SceneManager, text: str, color="rgba(0, 255, 0, 0.8)", rect=None):
         super().__init__(name, scene_manager)
         self.set_text(text)
         self.calculate_and_set_font()
@@ -225,7 +249,8 @@ class TextOverlay(Scene):
         self.button_click_callable = None
         self.other_click_callable = None
         self.deactivate()
-
+        self.color = color
+        self.rect = rect # tuple: (x, y, width, height)
     def deactivate(self):
         self.active = False
 
@@ -291,9 +316,14 @@ class TextOverlay(Scene):
 
         self.update_textstream(timestamp)
 
-        overlay_width = window.canvas.width - 2 * self.margins.x
-        overlay_height = window.canvas.height - 2 * self.margins.y
-        overlay_bounds = Rect(self.margins.x, self.margins.y, overlay_width, overlay_height)
+        if self.rect:
+            print("I have a rectangle")
+            x, y, width, height = self.rect
+            overlay_bounds = Rect(x, y, width, height)
+        else:
+            overlay_width = window.canvas.width - 2 * self.margins.x
+            overlay_height = window.canvas.height - 2 * self.margins.y
+            overlay_bounds = Rect(self.margins.x, self.margins.y, overlay_width, overlay_height)
 
         # Draw transparent console background
         ctx.fillStyle = "rgba(0, 0, 0, 0.8)"
@@ -301,7 +331,7 @@ class TextOverlay(Scene):
         ctx.fillRect(*overlay_bounds)
 
         # Draw console border
-        ctx.strokeStyle = "rgba(0, 255, 0, 0.8)"
+        ctx.strokeStyle = self.color
         ctx.lineWidth = 2
         ctx.strokeRect(*overlay_bounds)
         ctx.strokeRect(
@@ -310,17 +340,18 @@ class TextOverlay(Scene):
 
         font = self.font or self.calculate_and_set_font()
         ctx.font = f"{font['size']}px {font['font']}"
-        ctx.fillStyle = "#00ff00"
+        ctx.fillStyle = rgba_to_hex(self.color)
 
         # Draw streaming text
         lines = self.displayed_text.split("\n")
         line_height = font["size"] + 4
-        start_y = self.margins.y + font["size"] + 10
+        start_y = overlay_bounds.top + font["size"] + 10  # use overlay_bounds.top
+        start_x = overlay_bounds.left + 10               # use overlay_bounds.left
 
         for i, line in enumerate(lines):
             y_pos = start_y + i * line_height
-            if y_pos < window.canvas.height - self.margins.y - 20:  # Don't draw outside bounds
-                ctx.fillText(line, self.margins.x + 20, y_pos)
+            if y_pos < overlay_bounds.bottom - 10:       # don't draw outside overlay
+                ctx.fillText(line, start_x, y_pos)
 
         button_bounds = self.render_and_handle_button(ctx, overlay_bounds)
         if get_controls().click:
@@ -343,6 +374,50 @@ class ResultsScreen(TextOverlay):
         # default sizing for results screen
         self.margins = Position(200, 50)
 
+class Dialogue(TextOverlay):
+    def __init__(self, name: str, scene_manager: SceneManager, text: str):
+        # Initialize the first line using the TextOverlay constructor
+        lines = text.split("\n")
+        first_line = lines[0] if lines else TextOverlay.DEFAULT
+        super().__init__(name, scene_manager, first_line)
+
+        # Store all lines and keep track of current index
+        self.lines = lines
+        self.current_index = 0
+        self.swap_color = False
+        self.is_col1 = False
+        self.switch_color()
+        self.done = False
+    def next(self):
+        """Advance to the next line of dialogue."""
+        self.current_index += 1
+        if self.current_index < len(self.lines) - 1:
+            self.switch_color()    
+            # Use the TextOverlay method to set the next line
+            self.set_text(self.lines[self.current_index].strip())
+            self.active = True
+        else:
+            # No more lines
+            self.done = True
+            self.deactivate()
+
+    def render(self, ctx: CanvasRenderingContext2D, timestamp):
+        """Render the currently active line."""
+        if self.active:
+            print("rendering")
+    
+        else:
+            print("wtf")
+    
+        
+        super().render(ctx, timestamp)
+
+    def switch_color(self):
+        self.is_col1 = not self.is_col1
+        if self.is_col1:
+            self.color = "rgba(255, 0, 0, 0.8)"  
+        else:
+            self.color = "rgba(0, 0, 255, 0.8)" 
 
 # --------------------
 # create scene manager
