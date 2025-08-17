@@ -301,13 +301,32 @@ class Scanner:
         self.scaled_h = self.sprite.height * self.scale
         self.disable_ship_ms = disable_ship_ms
         self.disable_timer = 0
+        
+        # Core scanning parameters
+        self.scanning_dur_ms = scanning_dur_s * 1000
+        self.scan_mult = scan_mult
         self.beamwidth = beamwidth
-        self.scanningdur = scanning_dur_s * 1000  # ms
-        self.scanning_progress = 0
-        self.bar_max = self.scanningdur * scan_mult
-        self.last_scan_tick = None
-        self.finished = False  # when the bar is full
+        
+        # State variables
         self.status = ScanStatus()
+        self.scanning_progress = 0
+        self.finished = False
+        self._last_scan_tick = None
+        
+        # Calculate max based on current parameters
+        self._update_bar_max()
+    
+    def _update_bar_max(self):
+        """Update the maximum progress value based on current parameters"""
+        self._bar_max = self.scanning_dur_ms * self.scan_mult
+
+    def set_scan_parameters(self, scan_mult: float | None = None, scanning_dur_s: float | None = None):
+        """Update scanning parameters and recalculate max value"""
+        if scan_mult is not None:
+            self.scan_mult = scan_mult
+        if scanning_dur_s is not None:
+            self.scanning_dur_ms = scanning_dur_s * 1000
+        self._update_bar_max()
 
     def update(self, ctx, current_time):
         if self.finished:
@@ -321,14 +340,14 @@ class Scanner:
         if self.status.active and self.status.valid:
             self.player.is_disabled = True
 
-            if self.last_scan_tick is None:
-                self.last_scan_tick = current_time
+            if self._last_scan_tick is None:
+                self._last_scan_tick = current_time
 
-            elapsed_since_last = current_time - self.last_scan_tick
-            self.scanning_progress = min(self.scanning_progress + elapsed_since_last, self.bar_max)
-            self.last_scan_tick = current_time
+            elapsed_since_last = current_time - self._last_scan_tick
+            self.scanning_progress = min(self.scanning_progress + elapsed_since_last, self._bar_max)
+            self._last_scan_tick = current_time
         else:
-            self.last_scan_tick = None
+            self._last_scan_tick = None
 
         # Re-enable player if disable_time has elapsed or player is not scanning
         if current_time - self.disable_timer >= self.disable_ship_ms or not self.status.active:
@@ -422,7 +441,7 @@ class Scanner:
         ctx.fillRect(
             window.canvas.width - outer_width - padding + 2,
             window.canvas.height + outer_height - padding + 2,
-            inner_width * self.scanning_progress / self.bar_max,
+            inner_width * self.scanning_progress / self._bar_max,
             inner_height,
         )
 
@@ -437,7 +456,7 @@ class Scanner:
                 ctx.font = "15px Courier New"
                 ctx.fillText("Too close to planet!", player_x - 90, player_y - 50)
 
-        if self.scanning_progress >= self.bar_max:
+        if self.scanning_progress >= self._bar_max:
             log.debug(f"Done scanning")
             self.status.active = False
             self.finished = True
@@ -445,3 +464,4 @@ class Scanner:
     def reset(self):
         self.finished = False
         self.scanning_progress = 0
+        self._update_bar_max()

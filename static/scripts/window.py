@@ -7,7 +7,7 @@ Usage
 from window import window
 """
 
-from typing import TYPE_CHECKING, Any, TypedDict, NotRequired
+from typing import TYPE_CHECKING, Any
 
 from js import window  # type: ignore[attr-defined]
 
@@ -19,53 +19,7 @@ if TYPE_CHECKING:
     from debris import DebrisSystem
     from player import Player, Scanner
 
-from common import Position
-
-
-class SpriteSheet:
-    """Wrapper for individual sprites with enhanced functionality."""
-
-    def __init__(self, key: str, image: "HTMLImageElement"):
-        self.key = key.lower()
-        self.image = image
-
-    @property
-    def height(self):
-        """Height of the sprite image."""
-        return self.image.height
-
-    @property
-    def width(self):
-        """Width of the sprite image."""
-        return self.image.width
-
-    @property
-    def frame_size(self):
-        """Size of each frame (assuming square frames)."""
-        return self.height
-
-    @property
-    def is_loaded(self):
-        return self.height > 0 and self.width > 0
-
-    @property
-    def num_frames(self):
-        """Number of frames in the spritesheet."""
-        if not self.is_loaded:
-            return 1
-        return self.width // self.frame_size
-
-    def get_frame_position(self, frame: int) -> Position:
-        """Get the position of a specific frame in the spritesheet with overflow handling."""
-        if self.num_frames == 0:
-            return Position(0, 0)
-        frame_index = frame % self.num_frames
-        x = frame_index * self.frame_size
-        return Position(x, 0)
-
-    # Delegate other attributes to the underlying image
-    def __getattr__(self, name):
-        return getattr(self.image, name)
+from common import SpriteSheet, AsteroidData, PlanetData
 
 
 class SpritesInterface:
@@ -78,35 +32,31 @@ class SpritesInterface:
         """Access sprites as SpriteSheet objects."""
         return SpriteSheet(key, self._window.sprites[key])
 
-class AsteroidData(TypedDict, total=True):
-    """Type definition for asteroid data from asteroids.json"""
-
-    count: int
-    speed: int
-    damage: int
-    durability: int
-
-class PlanetData(TypedDict, total=True):
-    """Type definition for planet data from planets.json"""
-
-    id: int
-    name: str
-    sprite: str
-    info: NotRequired[str]
-    level: NotRequired[list[str]]
-    scan_multiplier: NotRequired[float]
-    asteroid: NotRequired[AsteroidData]
-    spritesheet: SpriteSheet  # JS Image object added in HTML
-
 
 class WindowInterface:
-    """Typed interface for accessing window object properties with dynamic fallback."""
+    """Typed interface for accessing window object properties with dynamic fallback.
+    
+    Sprites, AudioHandler, and Planets are internally managed and changes to them are not
+    reflected in the underlying JS objects. Other properties are accessed directly from the JS
+    window object.
+    """
 
     def __init__(self, js_window: Any) -> None:
-        self._window = js_window
+        self._window = js_window    
         self._sprites = SpritesInterface(js_window)  # Wrap sprites in SpritesInterface
         self.DEBUG_DRAW_HITBOXES: bool = getattr(js_window, "DEBUG_DRAW_HITBOXES", False)
         self.audio_handler = js_window.audio_handler
+        self._planet_dataclasses: dict[str, PlanetData] = {}
+        self._serialize_planets()
+
+    def _serialize_planets(self) -> None:
+        """Convert raw planet data from JS to PlanetData dataclass instances."""
+        raw_planets = getattr(self._window, 'planets', [])
+        self._planet_dataclasses = {}
+
+        for planet_dict in raw_planets:
+            planet = PlanetData.from_dict(planet_dict)
+            self._planet_dataclasses[planet.name] = planet
 
     @property
     def audio_handler(self) -> "AudioHandler":
@@ -157,12 +107,15 @@ class WindowInterface:
         self._window.scanner = value
 
     @property
-    def planets(self) -> list[PlanetData]:
-        return self._window.planets
+    def planets(self) -> dict[str, PlanetData]:
+        return self._planet_dataclasses
 
     @planets.setter
-    def planets(self, value: list[PlanetData]) -> None:
-        self._window.planets = value
+    def planets(self, value: dict[str, PlanetData]) -> None:
+        self._planet_dataclasses = value
+
+    def get_planet(self, name: str) -> PlanetData | None:
+        return self._planet_dataclasses.get(name.title())
 
     @property
     def sprites(self) -> SpritesInterface:
