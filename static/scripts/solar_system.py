@@ -57,6 +57,7 @@ class SolarSystem(SceneObject):
             x = self.sun_pos.x + self.planet_distances[i] * math.cos(angle_rad)
             y = self.sun_pos.y + self.planet_distances[i] * math.sin(angle_rad)
             planet.set_position(Position(x, y))
+            planet.complete = False
 
     def update(self):
         self.update_orbits(0.20)
