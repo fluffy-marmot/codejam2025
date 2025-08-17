@@ -268,7 +268,7 @@ class PlanetScene(Scene):
 # --------------------
 
 class StartScene(Scene):
-    def __init__(self, name: str, scene_manager: SceneManager):
+    def __init__(self, name: str, scene_manager: SceneManager, bobbing_timer = 135, bobbing_max = 20):
         super().__init__(name, scene_manager)
         self.stars = StarSystem(
             num_stars=100,  # as number of stars increase, the radius should decrease
@@ -288,12 +288,37 @@ class StartScene(Scene):
         self.dialogue_manager.active = True
         self.dialogue_manager.margins = Position(300, 150)
         self.starsystem = StarSystem3d(100, max_depth=100)
+        self.player = None
+        self.bobbing_timer = bobbing_timer
+        self.bobbing_max = bobbing_max
+        self.is_bobbing_up = True
+        self.bobbing_offset = 0
+        self.animation_timer = 0
     def render(self, ctx, timestamp):
+        if self.player is None:
+            player = get_player()
+            player.is_disabled = True
+        
+        if timestamp - self.animation_timer >= self.bobbing_timer:
+            print(f"bobbing, val={self.bobbing_offset}")
+            self.animation_timer = timestamp
+            if self.is_bobbing_up:
+                self.bobbing_offset += 1
+            else:
+                self.bobbing_offset -= 1
+
+            player.y = (SCREEN_H//2 + self.bobbing_offset)
+
+            if abs(self.bobbing_offset) > self.bobbing_max:
+                self.is_bobbing_up = not self.is_bobbing_up
+            
+                
         draw_black_background(ctx)
         #self.stars.render(ctx, timestamp)
         self.dialogue_manager.render(ctx, timestamp)
         self.dialogue_manager.rect=(0, SCREEN_H-150, SCREEN_W, 150)  # x, y, width, height
         self.starsystem.render(ctx, speed=0.3, scale=70)
+        player.render(ctx, timestamp)
         if get_controls().click:
             self.dialogue_manager.next()
         
