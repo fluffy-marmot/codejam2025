@@ -67,10 +67,10 @@ class SpaceMass(SceneObject):
         # Draw highlight effect if planet is highlighted
         if self.highlighted:
             if self.complete:
-                log.debug("planet complete")
+                # log.debug("planet complete")
                 highlight = "#00ff00"
             else:
-                log.debug("planet not complete")
+                # log.debug("planet not complete")
                 highlight = "#ffff00"  # yellow highlight
             ctx.save()
             ctx.strokeStyle = highlight

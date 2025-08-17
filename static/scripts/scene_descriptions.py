@@ -83,6 +83,8 @@ class OrbitingPlanetsScene(Scene):
         # attach a behavior to click event outside the overlay's button - hide the overlay
         self.planet_info_overlay.other_click_callable = self.planet_info_overlay.deactivate
         self.planet_info_overlay.set_button("Travel")
+        self.planet_info_overlay.muted = False
+        self.planet_info_overlay.center = True
         self.scene_manager = scene_manager
 
     def render(self, ctx, timestamp):
@@ -110,12 +112,14 @@ class OrbitingPlanetsScene(Scene):
                 self.planet_info_overlay.set_text("\n".join(get_planet(planet.name)["level"]))
                 self.planet_info_overlay.margins = Position(300, 150)
                 self.planet_info_overlay.active = True
+                self.planet_info_overlay.center = False
             else:
                 self.planet_info_overlay.set_button(None)
                 self.planet_info_overlay.set_text(get_planet(planet.name)["info"])
                 self.planet_info_overlay.margins = Position(200, 50)
                 self.planet_info_overlay.active = True
-            
+                self.planet_info_overlay.center = True
+
     def highlight_hovered_planet(self):
         # Reset all planets' highlight state first
         for planet in self.solar_sys.planets:
@@ -159,7 +163,8 @@ class PlanetScene(Scene):
         planet.set_position(0, window.canvas.height // 2)
         self.results_overlay = ResultsScreen(f"{planet.name}-results", scene_manager, self.planet)
         self.results_overlay.other_click_callable = self.handle_scene_completion
-        
+        self.results_overlay.muted = False
+        self.results_overlay.center = True
 
     def render(self, ctx, timestamp):
         
@@ -203,7 +208,7 @@ class PlanetScene(Scene):
 # text overlay scenes, such as scan results display
 # --------------------
 
-class StartScence(Scene):
+class StartScene(Scene):
     def __init__(self, name: str, scene_manager: SceneManager):
         super().__init__(name, scene_manager)
         self.stars = StarSystem(
@@ -241,25 +246,38 @@ class TextOverlay(Scene):
 
     def __init__(self, name: str, scene_manager: SceneManager, text: str, color="rgba(0, 255, 0, 0.8)", rect=None):
         super().__init__(name, scene_manager)
-        self.set_text(text)
+        self.color = color
         self.calculate_and_set_font()
+        self.set_text(text)
         self.char_delay = 10  # milliseconds between characters
         self.margins = Position(200, 50)
         self.button_label = None
         self.button_click_callable = None
         self.other_click_callable = None
         self.deactivate()
-        self.color = color
         self.rect = rect # tuple: (x, y, width, height)
+        self.muted = True
+        self.center = False
+
     def deactivate(self):
         self.active = False
+        # pause text sound in case it was playing
+        window.audio_handler.play_text(pause_it=True)
 
     def set_text(self, text: str):
-        """ """
+        """ 
+        Set a new text message for this object to display and resets relevant properties like the 
+        current character position to be ready to start over. Text width is calculated for centered text
+        rendering.
+        """
         self.displayed_text = ""
         self.text = text
         self.char_index = 0
         self.last_char_time = 0
+
+        # calculate text width in case we want centered text, we won't have to calculate it every frame
+        self._prepare_font(window.ctx)
+        self._text_width = max(window.ctx.measureText(line).width for line in self.text.split("\n"))
 
     def set_button(self, button_label: str | None):
         self.button_label = button_label
@@ -270,14 +288,24 @@ class TextOverlay(Scene):
         font_size = max(12, min(20, base_size))  # Scale between 12px and 20px
         self.font = {"size": font_size, "font": "'Courier New', monospace"}
         return self.font
-
+    
     def update_textstream(self, timestamp):
         """Update streaming text"""
         if timestamp - self.last_char_time > self.char_delay and self.char_index < len(self.text):
+            if not self.muted:
+                window.audio_handler.play_text()
             chars_to_add = min(3, len(self.text) - self.char_index)
             self.displayed_text += self.text[self.char_index : self.char_index + chars_to_add]
             self.char_index += chars_to_add
             self.last_char_time = timestamp
+            if self.char_index == len(self.text):
+                window.audio_handler.play_text(pause_it=True)
+
+    def _prepare_font(self, ctx):
+        font = self.font or self.calculate_and_set_font()
+        ctx.font = f"{font['size']}px {font['font']}"
+        ctx.fillStyle = rgba_to_hex(self.color)
+        return font
 
     def render_and_handle_button(self, ctx: CanvasRenderingContext2D, overlay_bounds: Rect) -> Rect:
         """
@@ -317,7 +345,6 @@ class TextOverlay(Scene):
         self.update_textstream(timestamp)
 
         if self.rect:
-            print("I have a rectangle")
             x, y, width, height = self.rect
             overlay_bounds = Rect(x, y, width, height)
         else:
@@ -338,15 +365,15 @@ class TextOverlay(Scene):
             overlay_bounds.left + 3, overlay_bounds.top + 3, overlay_bounds.width - 6, overlay_bounds.height - 6
         )
 
-        font = self.font or self.calculate_and_set_font()
-        ctx.font = f"{font['size']}px {font['font']}"
-        ctx.fillStyle = rgba_to_hex(self.color)
+        font = self._prepare_font(ctx)
 
         # Draw streaming text
         lines = self.displayed_text.split("\n")
         line_height = font["size"] + 4
         start_y = overlay_bounds.top + font["size"] + 10  # use overlay_bounds.top
-        start_x = overlay_bounds.left + 10               # use overlay_bounds.left
+        if self.center:
+            start_x = (window.canvas.width - self._text_width) / 2 
+        else: start_x = overlay_bounds.left + 10 
 
         for i, line in enumerate(lines):
             y_pos = start_y + i * line_height
@@ -355,8 +382,8 @@ class TextOverlay(Scene):
 
         button_bounds = self.render_and_handle_button(ctx, overlay_bounds)
         if get_controls().click:
-            log.debug(self.button_click_callable)
-            log.debug(self.other_click_callable)
+            # log.debug(self.button_click_callable)
+            # log.debug(self.other_click_callable)
             # if a click occurred and we don't have a button or we clicked outside the button
             if button_bounds is None or not button_bounds.contains(get_controls().mouse.click):
                 if self.other_click_callable is not None:
@@ -371,7 +398,7 @@ class ResultsScreen(TextOverlay):
         self.planet_data = get_planet(planet.name)
         text = get_planet(planet.name).get("info", TextOverlay.DEFAULT) if planet else TextOverlay.DEFAULT
         super().__init__(name, scene_manager, text)
-        # default sizing for results screen
+        # default sizing for scan results screen
         self.margins = Position(200, 50)
 
 class Dialogue(TextOverlay):
@@ -423,7 +450,6 @@ class Dialogue(TextOverlay):
 # create scene manager
 # --------------------
 
-
 def create_scene_manager() -> SceneManager:
     """
     Create all the scenes and add them to a scene manager that can be used to switch between them
@@ -432,7 +458,7 @@ def create_scene_manager() -> SceneManager:
     planet_scene_state = PlanetState(0, window.canvas.height, 120.0, x=0, y=window.canvas.height // 2)
     solar_system = SolarSystem([window.canvas.width, window.canvas.height], planet_scene_state=planet_scene_state)
     orbiting_planets_scene = OrbitingPlanetsScene(ORBITING_PLANETS_SCENE, manager, solar_system)
-    start_scene = StartScence("start", manager)
+    start_scene = StartScene("start", manager)
     manager.add_scene(start_scene)
     manager.add_scene(orbiting_planets_scene)
 
