@@ -249,7 +249,7 @@ class PlanetScene(Scene):
         log.debug(f"Player died on {self.planet.name}! Returning to orbiting planets scene.")
         
         # Reset all planet completions when player dies
-        orbiting_scene = self.scene_manager.scenes[ORBITING_PLANETS_SCENE]
+        orbiting_scene = next(scene for scene in self.scene_manager._scenes if scene.name == ORBITING_PLANETS_SCENE)
         for planet in orbiting_scene.solar_sys.planets:
             planet.complete = False
         log.debug("All planet completions reset due to player death")
