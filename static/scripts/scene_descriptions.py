@@ -118,7 +118,7 @@ class OrbitingPlanetsScene(Scene):
                 self.planet_info_overlay.set_button("Travel")
                 self.planet_info_overlay.button_click_callable = partial(self.switch_planet_scene, planet.name)
                 self.planet_info_overlay.set_text("\n".join(planet_data.level))
-                self.planet_info_overlay.margins = Position(300, 150)
+                self.planet_info_overlay.margins = Position(300, 120)
                 self.planet_info_overlay.active = True
                 self.planet_info_overlay.center = False
 

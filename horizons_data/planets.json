@@ -22,7 +22,11 @@
             "\n",
             "Mercury's sparse asteroid field is more forgiving than most, but the",
             "Sun's proximity, and the constant bombardment of high-energy radiation",
-            "particles will gnaw at the ship over time and slow damage it."
+            "particles will gnaw at the ship over time and slow damage it.",
+            "\n",
+            "Ship controls:",
+            "\tMovement: WASD or ←↑↓→",
+            "\tUse scanner: Hold Spacebar"
         ],
         "scan_multiplier": 3.6,
         "asteroid": {
@@ -51,7 +55,11 @@
             "Piloting this dense asteroid field will keep you too busy to",
             "ponder the mysteries of what lies beneath Venus's veil of toxic clouds.",
             "Even the difficulties of navigating its orbit are better than the searing",
-            "heat and crushing atmosphere of its surface."
+            "heat and crushing atmosphere of its surface.",
+            "\n",
+            "Ship controls:",
+            "\tMovement: WASD or ←↑↓→",
+            "\tUse scanner: Hold Spacebar"
         ],
         "scan_multiplier": 1.6,
         "asteroid": {
@@ -79,7 +87,11 @@
             "\n",
             "Though Mars's asteroid belt is deceptively thin, its dense icy rocks",
             "strike with brutal force. Here, survival depends not on dodging many,",
-            "but on avoiding the few that could end you instantly."
+            "but on avoiding the few that could end you instantly.",
+            "\n",
+            "Ship controls:",
+            "\tMovement: WASD or ←↑↓→",
+            "\tUse scanner: Hold Spacebar"
         ],
         "scan_multiplier": 2.6,
         "asteroid": {
@@ -107,7 +119,11 @@
             "\n",
             "In high orbit over Earth, safely above the new asteroid fields, lies",
             "Chiaki Spacestation, which will afford you a unique opportunity for a",
-            "ship repair upon completing this mission."
+            "ship repair upon completing this mission.",
+            "\n",
+            "Ship controls:",
+            "\tMovement: WASD or ←↑↓→",
+            "\tUse scanner: Hold Spacebar"
         ],
         "scan_multiplier": 1.3,
         "asteroid": {
@@ -137,14 +153,19 @@
             "Besides Jupiter's dangerous asteroid fields, the solar system's",
             "largest planet has a strong gravitational field that you will",
             "constantly need to fight against lest it claims you for its endless",
-            "storms."
+            "storms.",
+            "\n",
+            "Ship controls:",
+            "\tMovement: WASD or ←↑↓→",
+            "\tUse scanner: Hold Spacebar"
         ],
         "scan_multiplier": 1.6,
         "asteroid": {
             "count": 12,
             "speed": 15,
             "damage": 10,
-            "durability": 10        }
+            "durability": 10
+        }
     },
     {
         "id": 699,
@@ -166,7 +187,11 @@
             "sometime in the early 23rd century, each planet captured its own",
             "share of asteroids into its orbit. The collisions between Saturn's",
             "newly captured asteroids and its already existing rings have created",
-            "the perfect rock and ice maelstrom to test even the most daring pilots."
+            "the perfect rock and ice maelstrom to test even the most daring pilots.",
+            "\n",
+            "Ship controls:",
+            "\tMovement: WASD or ←↑↓→",
+            "\tUse scanner: Hold Spacebar"
         ],
         "scan_multiplier": 2.6,
         "asteroid": {
@@ -194,7 +219,11 @@
             "\n",
             "Viewed from far above, the tranquil appearance of Uranus masks a",
             "world of ever-present swirling storms and harsh winds laden with",
-            "icy particles. "
+            "icy particles. ",
+            "\n",
+            "Ship controls:",
+            "\tMovement: WASD or ←↑↓→",
+            "\tUse scanner: Hold Spacebar"
         ],
         "scan_multiplier": 2.6,
         "asteroid": {
@@ -221,7 +250,11 @@
             "Scan difficulty    : ************",
             "\n",
             "Neptune reigns at the edge of humanity's realm of reasonable exploration;",
-            "You may be too busy dodging asteroids to fully its deep, arresting blue."
+            "You may be too busy dodging asteroids to fully its deep, arresting blue.",
+            "\n",
+            "Ship controls:",
+            "\tMovement: WASD or ←↑↓→",
+            "\tUse scanner: Hold Spacebar"
         ],
         "scan_multiplier": 2.2,
         "asteroid": {
