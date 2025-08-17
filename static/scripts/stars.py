@@ -105,8 +105,8 @@ class StarSystem(SceneObject):
         fade_in = random.choice([True, False])
         return Star(radius, x, y, pulse_freq, shade=shade, fade_in=fade_in)
 
-    def star_shift(self, current_time, shiftrate):
-        if current_time - self.animation_timer >= shiftrate:
+    def star_shift(self, current_time, shift_time):
+        if current_time - self.animation_timer >= shift_time:
             self.animation_timer = current_time
             replacement_stars = []
             for index, star in enumerate(self.stars):
@@ -118,3 +118,7 @@ class StarSystem(SceneObject):
 
             for star in replacement_stars:
                 self.stars.append(star)
+
+    def star_scale(self, current_time, scaletime):
+        if current_time - self.animation_timer >= shift_time:
+            self.animation_timer = current_time

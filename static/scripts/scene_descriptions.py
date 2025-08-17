@@ -7,7 +7,7 @@ from scene_classes import CanvasRenderingContext2D, Scene, SceneManager
 from solar_system import SolarSystem
 from spacemass import SpaceMass
 from stars import StarSystem
-
+from player import Player
 log = getLogger(__name__, False)
 sprites = window.sprites
 
@@ -18,7 +18,7 @@ sprites = window.sprites
 def get_controls():
     return window.controls
 
-def get_player():
+def get_player() -> Player:
     return window.player
 
 def get_asteroid_system():
@@ -186,6 +186,32 @@ class PlanetScene(Scene):
 # text overlay scenes, such as scan results display
 # --------------------
 
+class StartScence(Scene):
+    def __init__(self, name: str, scene_manager: SceneManager):
+        super().__init__(name, scene_manager)
+        self.stars = StarSystem(
+            num_stars=100,  # as number of stars increase, the radius should decrease
+            radius_min=1,
+            radius_max=1,
+            pulse_freq_min=3,
+            pulse_freq_max=6,
+        )
+        #self.player = get_player()
+
+        dialouge = """
+            hello world
+            the quick brown fox jumps over the lazy dog
+            im testing the dialouge!
+"""
+        self.lines = dialouge.split('\n')
+
+    def render(self, ctx, timestamp):
+        draw_black_background(ctx)
+        #scale the stars
+        self.stars.render(ctx, timestamp)
+        self.stars.star_scale(ctx, timestamp)
+        #get_player().render(ctx, timestamp)
+
 
 class TextOverlay(Scene):
     DEFAULT = "No information found :("
@@ -332,11 +358,13 @@ def create_scene_manager() -> SceneManager:
     planet_scene_state = PlanetState(0, window.canvas.height, 120.0, x=0, y=window.canvas.height // 2)
     solar_system = SolarSystem([window.canvas.width, window.canvas.height], planet_scene_state=planet_scene_state)
     orbiting_planets_scene = OrbitingPlanetsScene(ORBITING_PLANETS_SCENE, manager, solar_system)
+    start_scene = StartScence("start", manager)
+    manager.add_scene(start_scene)
     manager.add_scene(orbiting_planets_scene)
 
     for planet in solar_system.planets:
         big_planet_scene = PlanetScene(f"{planet.name}-planet-scene", manager, planet)
         manager.add_scene(big_planet_scene)
 
-    manager.activate_scene(ORBITING_PLANETS_SCENE)  # initial scene
+    manager.activate_scene("start")  # initial scene
     return manager
