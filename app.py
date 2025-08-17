@@ -9,7 +9,7 @@ app = Flask(__name__)
 """
 planets.json contains some various data about the planets
 """
-with Path.open(BASE_DIR / "horizons_data" / "planets.json") as f:
+with Path.open(BASE_DIR / "horizons_data" / "planets.json", encoding='utf-8') as f:
     planets_info = json.load(f)
 
 """ 
