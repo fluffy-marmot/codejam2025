@@ -2,6 +2,14 @@ Planet sprites generated with Pixel Planet Generator by Deep Fold
 https://deep-fold.itch.io/pixel-planet-generator
 Licensed under the MIT License
 
+Explosion sprites by LinkNinja
+https://linkninja.itch.io/simple-explosion-animation
+Licensed under CC-0
+
+Recycle items art by Clint Bellanger 
+https://opengameart.org/content/recycle-items-set
+Licensed under CC-BY 3.0
+
 Main theme music and death screen clip
 Composed by https://kimeklover.newgrounds.com/
 Licensed under CC BY-NC-SA and used with permission

@@ -342,14 +342,13 @@ class StartScene(Scene):
         )
         #self.player = get_player()
         from lore import lore as dialogue
-        # dialogue = """Alien 1: Why does boss need so much planet data..?
-        # Alien 2: I dont know man
-        # Alien 1: Soosh is goated
-        # """
+
         self.dialogue_manager = Dialogue('dialogue', scene_manager, dialogue)
         self.dialogue_manager.active = True
         self.dialogue_manager.margins = Position(300, 150)
         self.dialogue_manager.rect=(0, SCREEN_H-150, SCREEN_W, 150)  # x, y, width, height
+        self.dialogue_manager.set_button("Skip Intro")
+        self.dialogue_manager.button_click_callable = self.finalize_scene
         self.starsystem = StarSystem3d(100, max_depth=100)
         self.player = None
         self.bobbing_timer = bobbing_timer
@@ -357,6 +356,7 @@ class StartScene(Scene):
         self.is_bobbing_up = True
         self.bobbing_offset = 0
         self.animation_timer = 0
+
     def render(self, ctx, timestamp):
         if self.player is None:
             player = get_player()
@@ -385,11 +385,13 @@ class StartScene(Scene):
             self.dialogue_manager.next()
         
         if self.dialogue_manager.done:
-            self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
+            self.finalize_scene()
+    
+    def finalize_scene(self):
+        self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
+
 
 class TextOverlay(Scene):
-    DEFAULT = "No information found :("
-
     def __init__(self, name: str, scene_manager: SceneManager, text: str, color="rgba(0, 255, 0, 0.8)", rect=None):
         super().__init__(name, scene_manager)
         self.bold = False
@@ -549,7 +551,7 @@ class TextOverlay(Scene):
 class ResultsScreen(TextOverlay):
     def __init__(self, name: str, scene_manager: SceneManager, planet: SpaceMass):
         self.planet_data = window.get_planet(planet.name)
-        text = self.planet_data.info if self.planet_data else TextOverlay.DEFAULT
+        text = self.planet_data.info if self.planet_data else ""
         super().__init__(name, scene_manager, text)
         # default sizing for scan results screen
         self.margins = Position(200, 50)
@@ -642,9 +644,7 @@ class FinalScene(Scene):
             )
 
     def render(self, ctx, timestamp):
-        # Deep space black background
-        ctx.fillStyle = "#000000"
-        ctx.fillRect(0, 0, SCREEN_W, SCREEN_H)
+        draw_black_background(ctx)
         
         # Sparse stars
         self.stars.render(ctx, timestamp)
@@ -669,7 +669,7 @@ class Dialogue(TextOverlay):
     def __init__(self, name: str, scene_manager: SceneManager, text: str):
         # Initialize the first line using the TextOverlay constructor
         lines = text.split("\n")
-        first_line = lines[0] if lines else TextOverlay.DEFAULT
+        first_line = lines[0] if lines else ""
         super().__init__(name, scene_manager, first_line)
 
         # Store all lines and keep track of current index
@@ -694,15 +694,6 @@ class Dialogue(TextOverlay):
 
     def render(self, ctx: CanvasRenderingContext2D, timestamp):
         """Render the currently active line."""
-        # PLEASE USE LOG INSTEAD OF PRINT
-        # if self.active:
-        #     print("rendering")
-    
-        # else:
-        #     print("wtf")
-    
-        
-        
 
         message_parts = self.lines[self.current_index].strip().split(' ')
         split_message = []
