@@ -7,6 +7,7 @@
     "/static/scripts/controls.py": "",
     "/static/scripts/debris.py": "",
     "/static/scripts/game.py": "",
+    "/static/scripts/overlay.py": "",
     "/static/scripts/player.py": "",
     "/static/scripts/scene_classes.py": "",
     "/static/scripts/scene_descriptions.py": "",
