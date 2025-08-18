@@ -51,7 +51,7 @@ class Player(SceneObject):
         self.is_moving = False
         self.is_disabled = False
         self.bar_icon = bar_icon
-        self.active = True
+        self.active = False
         self.invincible = False
 
     def _update_sprite_dims(self):
@@ -178,8 +178,7 @@ class Player(SceneObject):
         if self.active:
             for asteroid in window.asteroids.asteroids:
                 self.check_collision(asteroid)
-
-        self.render_health_bar(ctx)
+            self.render_health_bar(ctx)
 
         super().render(ctx, timestamp)
 
@@ -297,6 +296,7 @@ class Player(SceneObject):
         self.x, self.y = self.default_pos
         self.rotation = 0.0
         self.target_rotation = 0.0
+        self.momentum = [0, 0]
 
 
 @dataclass
