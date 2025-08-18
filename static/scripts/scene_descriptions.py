@@ -220,7 +220,6 @@ class PlanetScene(Scene):
         self.death_screen = DeathScreen(f"{planet.name}-death", scene_manager)
         self.death_screen.button_click_callable = self.handle_player_death
         self.death_screen.set_button("Play Again")
-        self.death_sound_played = False  # Track if death sound has been played
         
         # Add explosion animation
         self.player_explosion = PlayerExplosion()
@@ -241,20 +240,19 @@ class PlanetScene(Scene):
         # Check for player death first
         if get_player().health <= 0:
             if not self.explosion_started:
+                window.audio_handler.play_explosion()
                 # Start explosion animation at player position
                 player_x, player_y = get_player().get_position()
                 self.player_explosion.start_explosion(player_x, player_y)
                 self.explosion_started = True
                 get_player().invincible = True
+                window.audio_handler.play_music_main(pause_it=True)
             
             # Render explosion instead of player
             if self.player_explosion.active:
                 self.player_explosion.render(ctx, timestamp)
             # Only show death screen after explosion is finished
             elif self.player_explosion.finished:
-                if not self.death_sound_played:
-                    window.audio_handler.play_death()
-                    self.death_sound_played = True
                 self.death_screen.active = True
         else:
             # Normal player rendering when alive
@@ -301,6 +299,7 @@ class PlanetScene(Scene):
         self.planet.complete = True
 
     def handle_player_death(self):
+        window.audio_handler.play_music_death(pause_it=True)        
         """Handle when the player dies and clicks on the death screen."""
         log.debug(f"Player died on {self.planet.name}! Returning to orbiting planets scene.")
         
@@ -309,18 +308,22 @@ class PlanetScene(Scene):
         for planet in orbiting_scene.solar_sys.planets:
             planet.complete = False
         log.debug("All planet completions reset due to player death")
-        
+
+        window.audio_handler.play_music_death(pause_it=True)   
+        window.audio_handler.play_explosion(pause_it=True)     
         self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
         get_player().active = False
         get_player().health = 1000  # Reset player health to FULL_HEALTH
         self.death_screen.deactivate()
-        self.death_sound_played = False  # Reset for next time
         self.explosion_started = False  # Reset explosion state
         self.planet.switch_view()
 
         # special level interaction: finishing earth gives player full health back
         if self.planet.name.lower() == "earth":
             get_player().health = Player.FULL_HEALTH
+        window.audio_handler.play_music_death(pause_it=True)
+        log.debug(window.audio_handler.music_death.paused)
+
 
 
 # --------------------
@@ -571,7 +574,7 @@ class DeathScreen(TextOverlay):
         # Center the death screen
         self.margins = Position(150, 150)
         self.center = True
-        self.muted = False  # Play sound when death screen appears
+        self.muted = True  # This only refers to text terminal sound, not audio in general
         self.bold = True
     
     def calculate_and_set_font(self) -> str:
@@ -579,6 +582,11 @@ class DeathScreen(TextOverlay):
         font_size = max(32, min(72, base_size))  # Scale between 32px and 72px
         self.font = {"size": font_size, "font": "'Courier New', monospace"}
         return self.font
+    
+    def render(self, ctx: CanvasRenderingContext2D, timestamp):
+        window.audio_handler.play_music_death()
+        super().render(ctx, timestamp)
+
 
 class PlayerExplosion:
     def __init__(self):
