@@ -43,6 +43,8 @@
         for planet in window.planets:
             planet["spritesheet"] = Image.new()
             planet["spritesheet"].src = sprites_url + planet["sprite"]
+        
+        window.credits = {{ credits | tojson | safe }}
 
         window.lore = {{ lore|tojson|safe }}
 

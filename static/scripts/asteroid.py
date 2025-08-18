@@ -137,7 +137,7 @@ class Asteroid(SceneObject):
 
 
 class AsteroidAttack:
-    def __init__(self, spritesheet, width: int, height: int, max_size_px: float, spawnrate: int = 500):
+    def __init__(self, spritesheet, width: int, height: int, max_size_px: float, spawnrate: int = 500, spawn_at_player_chance: int = 10):
         self.sheet = spritesheet
         self.w = width
         self.h = height
@@ -150,7 +150,7 @@ class AsteroidAttack:
         self._use_grow_rate = 6.0 # default growth rate (how fast they appear to approach the player)
         self._use_health = 450 # default durability (affects asteroids being destroyed by impacts w/ player)
         self._use_damage_mul = 1.0
-
+        self.spawn_at_player_chance = spawn_at_player_chance
     def _spawn_one(self):
         # Don't spawn if at the limit
         if len(self.asteroids) >= self._max_asteroids:
@@ -159,9 +159,13 @@ class AsteroidAttack:
         # Planet area (left side)
         planet_width = self.w * 0.3
         space_start_x = planet_width + 50
-
-        x = random.uniform(space_start_x, self.w)
-        y = random.uniform(0, self.h)
+        if random.randint(1, self.spawn_at_player_chance) == 1:
+            print("spawning at player")
+            x = window.player.x
+            y = window.player.y
+        else:
+            x = random.uniform(space_start_x, self.w)
+            y = random.uniform(0, self.h)
 
         if x < (SCREEN_W / 2):
             velocity_x = random.uniform(-15, -5)

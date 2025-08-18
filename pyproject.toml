@@ -4,10 +4,10 @@
 name = "code-jam-soon-to-be-awesome-project"
 description = "no idea yet :)"
 authors = [
-    "https://github.com/fluffy-marmot <10621013+fluffy-marmot@users.noreply.github.com>",
-    "https://github.com/Prorammer-4090 <email@mail.com>",
-    "https://github.com/TheRatLord <email@mail.com>",
-    "https://github.com/spirledaxis <email@mail.com>",
+    { name ="https://github.com/fluffy-marmot", email="10621013+fluffy-marmot@users.noreply.github.com"},
+    { name ="https://github.com/Prorammer-4090", email="email@mail.com"},
+    { name ="https://github.com/TheRatLord", email="email@mail.com"},
+    { name ="https://github.com/spirledaxis", email="email@mail.com"},
 ]
 version = "0.1.0"
 readme = "README.md"

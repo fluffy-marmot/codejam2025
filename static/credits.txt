@@ -1,0 +1,17 @@
+MISSION COMPLETE!
+
+A Space Exploration Adventure
+Made for Python Discord's 2025 CodeJam
+
+Credits:
+Developer Team:
+ - 
+ - 
+ -
+ -
+Art & Design:
+ -
+Sound & Music: 
+ -
+
+Thank you for playing!

@@ -259,15 +259,15 @@ class Player(SceneObject):
             window.audio_handler.play_bang()
             window.debris.generate_debris(self.get_position(), Position(ast_x, ast_y))
 
-    def nudge_towards(self, pos: Position, momentum_amount: float) -> None:
+    def nudge_towards(self, pos: Position, gravity_strength: float = 0.75) -> None:
         distance = self.get_position().distance(pos)
         if distance == 0: return
 
         x_dir = (pos.x - self.x) / distance
         y_dir = (pos.y - self.y) / distance
 
-        self.x += x_dir * 0.75
-        self.y += y_dir * 0.75
+        self.x += x_dir * gravity_strength
+        self.y += y_dir * gravity_strength
 
         # x_dir = math.cos((pos.x - self.x )/(pos.y - self.y))
         # y_dir = math.sin((pos.x - self.x )/(pos.y - self.y))
@@ -400,7 +400,7 @@ class Scanner:
 
         player_x, player_y = self.player.get_position()
         origin_x = player_x - 150
-        origin_y = player_y - 10
+        origin_y = player_y - 15
 
         # Create animated pulsing effect based on time
         pulse = (math.sin(time.time() * 8) + 1) / 2  # 0 to 1
