@@ -283,7 +283,7 @@ class Credits:
     """Simple scrolling credits"""
     def __init__(self, credits_text: str, fill_color: str):
         self.credits_lines = credits_text.split("\n") if credits_text else ["No credits available"]
-        self.scroll_speed = 1.0  # pixels per frame
+        self.scroll_speed = 0.4  # pixels per frame
         self.y_offset = window.canvas.height  * 0.7  # Start near bottom of screen
         self.line_height = 30
         self.fill_color = fill_color

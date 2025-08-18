@@ -392,7 +392,7 @@ class FinalScene(Scene):
         super().__init__(name, scene_manager)
         # Sparse stars for space backdrop
         self.stars = StarSystem(
-            num_stars=80,
+            num_stars=200,
             radius_min=1,
             radius_max=2,
             pulse_freq_min=10,
