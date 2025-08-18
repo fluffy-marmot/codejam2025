@@ -400,7 +400,7 @@ class Scanner:
 
         player_x, player_y = self.player.get_position()
         origin_x = player_x - 150
-        origin_y = player_y - 10
+        origin_y = player_y - 15
 
         # Create animated pulsing effect based on time
         pulse = (math.sin(time.time() * 8) + 1) / 2  # 0 to 1
