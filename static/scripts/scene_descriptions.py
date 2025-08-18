@@ -338,15 +338,16 @@ class StartScene(Scene):
             pulse_freq_max=6,
         )
         #self.player = get_player()
-        
-        dialogue = """Alien 1: Why does boss need so much planet data..?
-        Alien 2: I dont know man
-        Alien 1: Soosh is goated
-        """
-        
+        from lore import lore as dialogue
+        # dialogue = """Alien 1: Why does boss need so much planet data..?
+        # Alien 2: I dont know man
+        # Alien 1: Soosh is goated
+        # """
         self.dialogue_manager = Dialogue('dialogue', scene_manager, dialogue)
         self.dialogue_manager.active = True
         self.dialogue_manager.margins = Position(300, 150)
+        self.dialogue_manager.rect=(0, SCREEN_H-150, SCREEN_W, 150)  # x, y, width, height
+        self.dialogue_manager.period_delay = True
         self.starsystem = StarSystem3d(100, max_depth=100)
         self.player = None
         self.bobbing_timer = bobbing_timer
@@ -371,12 +372,11 @@ class StartScene(Scene):
 
             if abs(self.bobbing_offset) > self.bobbing_max:
                 self.is_bobbing_up = not self.is_bobbing_up
-            
-                
+        
         draw_black_background(ctx)
         #self.stars.render(ctx, timestamp)
         self.dialogue_manager.render(ctx, timestamp)
-        self.dialogue_manager.rect=(0, SCREEN_H-150, SCREEN_W, 150)  # x, y, width, height
+       
         self.starsystem.render(ctx, speed=0.3, scale=70)
         player.render(ctx, timestamp)
         if get_controls().click:
@@ -403,6 +403,7 @@ class TextOverlay(Scene):
         self.rect = rect # tuple: (x, y, width, height)
         self.muted = True
         self.center = False
+        self.period_delay = False
 
     def deactivate(self):
         self.active = False
@@ -436,9 +437,22 @@ class TextOverlay(Scene):
     
     def update_textstream(self, timestamp):
         """Update streaming text"""
+        if self.period_delay:
+            if self.char_index < len(self.text) and timestamp - self.last_char_time > self.char_delay:
+                next_char = self.text[self.char_index]
+    
+                # Set delay based on character
+                if next_char == '.':
+                    self.char_delay = 500
+                elif next_char in ',;!?':
+                    self.char_delay = 200
+                else:
+                    self.char_delay = 10
+
         if timestamp - self.last_char_time > self.char_delay and self.char_index < len(self.text):
             if not self.muted:
                 window.audio_handler.play_text()
+                
             chars_to_add = min(3, len(self.text) - self.char_index)
             self.displayed_text += self.text[self.char_index : self.char_index + chars_to_add]
             self.char_index += chars_to_add
@@ -730,7 +744,7 @@ class Dialogue(TextOverlay):
     def next(self):
         """Advance to the next line of dialogue."""
         self.current_index += 1
-        if self.current_index < len(self.lines) - 1:
+        if self.current_index < len(self.lines):
             self.switch_color()    
             # Use the TextOverlay method to set the next line
             self.set_text(self.lines[self.current_index].strip())
@@ -750,14 +764,48 @@ class Dialogue(TextOverlay):
         #     print("wtf")
     
         
-        super().render(ctx, timestamp)
+        
 
+        message_parts = self.lines[self.current_index].strip().split(' ')
+        split_message = []
+        len_text_line = 0
+        partial_message = ''
+    
+        for part in message_parts:
+            word_width = ctx.measureText(part + ' ').width  # include space
+            if len_text_line + word_width <= self.rect[2]:
+                partial_message += part + ' '
+                len_text_line += word_width
+            else:
+                # save current line before adding the new word
+                split_message.append(partial_message.rstrip())
+                # start new line with current word
+                partial_message = part + ' '
+                len_text_line = word_width
+
+        if partial_message:
+            split_message.append(partial_message.rstrip())
+
+        formatted_message = ''
+        for part in split_message:
+            formatted_message += part + '\n'
+        self.text = formatted_message
+
+        for char in self.text:
+            if char == '.':
+                self.char_delay = 500
+            else:
+                self.char_delay = 10
+
+            super().render(ctx, timestamp)
+        
     def switch_color(self):
         self.is_col1 = not self.is_col1
         if self.is_col1:
-            self.color = "rgba(255, 0, 0, 0.8)"  
+            self.color = "rgba(0, 255, 0, 0.8)"  
         else:
-            self.color = "rgba(0, 0, 255, 0.8)" 
+            self.color = "rgba(170, 255, 0, 0.8)" 
+    
 
 # --------------------
 # create scene manager

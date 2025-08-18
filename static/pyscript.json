@@ -14,6 +14,7 @@
     "/static/scripts/spacemass.py": "",
     "/static/scripts/sprites.py": "",
     "/static/scripts/stars.py": "",
-    "/static/scripts/window.py": ""
+    "/static/scripts/window.py": "",
+    "/static/scripts/lore.py": ""
   }
 }
