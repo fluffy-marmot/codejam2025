@@ -663,7 +663,21 @@ class FinalScene(Scene):
         tw = ctx.measureText(message).width
         # Position text in the left side
         ctx.fillText(message, SCREEN_W * 0.05, SCREEN_H * 0.15)
+        
+        # Add click instruction text
+        ctx.font = f"{max(12, int(min(SCREEN_W, SCREEN_H) * 0.025))}px Courier New"
+        instruction = "Click anywhere to return to solar system"
+        ctx.fillText(instruction, SCREEN_W * 0.05, SCREEN_H * 0.25)
         ctx.restore()
+        
+        # Handle click to go back to orbiting planets scene
+        if get_controls().click:
+            # Reset all planet completions so we don't immediately return to final scene
+            orbiting_scene = next(scene for scene in self.scene_manager._scenes if scene.name == ORBITING_PLANETS_SCENE)
+            for planet in orbiting_scene.solar_sys.planets:
+                planet.complete = False
+            log.debug("Reset all planet completions when returning from final scene")
+            self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
 
 class Dialogue(TextOverlay):
     def __init__(self, name: str, scene_manager: SceneManager, text: str):
