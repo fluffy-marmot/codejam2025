@@ -347,7 +347,6 @@ class StartScene(Scene):
         self.dialogue_manager.active = True
         self.dialogue_manager.margins = Position(300, 150)
         self.dialogue_manager.rect=(0, SCREEN_H-150, SCREEN_W, 150)  # x, y, width, height
-        self.dialogue_manager.period_delay = True
         self.starsystem = StarSystem3d(100, max_depth=100)
         self.player = None
         self.bobbing_timer = bobbing_timer
@@ -403,8 +402,6 @@ class TextOverlay(Scene):
         self.rect = rect # tuple: (x, y, width, height)
         self.muted = True
         self.center = False
-        self.period_delay = False
-
     def deactivate(self):
         self.active = False
         # pause text sound in case it was playing
@@ -437,17 +434,6 @@ class TextOverlay(Scene):
     
     def update_textstream(self, timestamp):
         """Update streaming text"""
-        if self.period_delay:
-            if self.char_index < len(self.text) and timestamp - self.last_char_time > self.char_delay:
-                next_char = self.text[self.char_index]
-    
-                # Set delay based on character
-                if next_char == '.':
-                    self.char_delay = 500
-                elif next_char in ',;!?':
-                    self.char_delay = 200
-                else:
-                    self.char_delay = 10
 
         if timestamp - self.last_char_time > self.char_delay and self.char_index < len(self.text):
             if not self.muted:
@@ -791,13 +777,7 @@ class Dialogue(TextOverlay):
             formatted_message += part + '\n'
         self.text = formatted_message
 
-        for char in self.text:
-            if char == '.':
-                self.char_delay = 500
-            else:
-                self.char_delay = 10
-
-            super().render(ctx, timestamp)
+        super().render(ctx, timestamp)
         
     def switch_color(self):
         self.is_col1 = not self.is_col1
