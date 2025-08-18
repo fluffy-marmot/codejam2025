@@ -459,6 +459,9 @@ class FinalScene(Scene):
             )
 
     def render(self, ctx, timestamp):
+        window.audio_handler.play_music_main(pause_it=True)
+        window.audio_handler.play_music_thematic()
+
         draw_black_background(ctx)
         
         # Sparse stars
