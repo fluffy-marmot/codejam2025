@@ -58,9 +58,9 @@ class OrbitingPlanetsScene(Scene):
         self.solar_sys = solar_system
 
         self.stars = StarSystem(
-            num_stars=100,  # as number of stars increase, the radius should decrease
+            num_stars=400,  # as number of stars increase, the radius should decrease
             radius_min=1,
-            radius_max=3,
+            radius_max=2,
             pulse_freq_min=3,
             pulse_freq_max=6,
         )

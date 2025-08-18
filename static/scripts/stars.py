@@ -10,7 +10,7 @@ width, height = container.clientWidth, container.clientHeight
 
 
 class Star:
-    def __init__(self, radius, x, y, pulse_freq, shade=0, fade_in=True) -> None:
+    def __init__(self, radius, x, y, pulse_freq, color, shade=0, fade_in=True) -> None:
         self.radius = radius
         self.frame_delay = 135
         self.pulse_freq = pulse_freq  # renaming of animation timer
@@ -18,7 +18,7 @@ class Star:
         self.y = y
         self.shade = shade  # defines r,g, and b
         self.alpha = 1
-        self.color = "rgba(255, 255, 255, 1)"
+        self.color = color
         self.fade_in = fade_in
         self.animation_timer = 0
         self.glisten = False
@@ -35,10 +35,10 @@ class Star:
             if self.shade > 255 or self.shade < 1:
                 self.fade_in = not self.fade_in
 
-            self.color = self.rgba_to_str(self.shade, self.shade, self.shade, self.alpha)
+            self.render_color = self.rgba_to_str(*self.color, self.shade / 255.0)
 
         # draw star
-        ctx.fillStyle = self.color
+        ctx.fillStyle = self.render_color
         ctx.beginPath()
         ctx.ellipse(self.x, self.y, self.radius, self.radius, 0, 0, 2 * math.pi)
         ctx.fill()
@@ -48,7 +48,7 @@ class Star:
             self.glisten = True
         # glisten
         if self.shade > 240 and self.glisten:
-            glisten_line_col = self.rgba_to_str(self.shade, self.shade, self.shade, 1)
+            glisten_line_col = self.render_color
 
             ctx.strokeStyle = glisten_line_col  # or any visible color
             ctx.lineWidth = 2  # thick enough to see
@@ -71,6 +71,17 @@ class Star:
 
 
 class StarSystem(SceneObject):
+
+    WHITE = (255, 255, 255)
+    YELLOW = (255, 223, 79)
+    BLUE = (100, 149, 237)
+    RED = (255, 99, 71)
+    PURPLE = (186, 85, 211)
+
+    COLORS = [WHITE, YELLOW, BLUE, RED, PURPLE]
+    # chance for each color to be used, most will be white but other colors can also occur
+    WEIGHTS = [100, 15, 15, 15, 3]
+
     def __init__(self, num_stars, radius_min, radius_max, pulse_freq_min, pulse_freq_max, num_frames=50):
         super().__init__()
 
@@ -86,6 +97,9 @@ class StarSystem(SceneObject):
 
         for _ in range(num_stars):
             self.stars.append(self.create_star("random", "random"))
+
+    def random_color(self) -> tuple:
+        return random.choices(StarSystem.COLORS, weights=StarSystem.WEIGHTS)[0]
 
     def render(self, ctx, timestamp) -> None:
         """Render every star."""
@@ -107,7 +121,7 @@ class StarSystem(SceneObject):
         radius = random.randint(self.radius_min, self.radius_max)
         shade = random.randint(0, 255)
         fade_in = random.choice([True, False])
-        return Star(radius, x, y, pulse_freq, shade=shade, fade_in=fade_in)
+        return Star(radius, x, y, pulse_freq, self.random_color(), shade=shade, fade_in=fade_in)
 
     def star_shift(self, current_time, shift_time):
         if current_time - self.animation_timer >= shift_time:
