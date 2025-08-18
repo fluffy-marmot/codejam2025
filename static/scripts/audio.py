@@ -12,8 +12,10 @@ class AudioHandler:
 
         self.text_sound = self.load_audio("text.ogg")
         self.scan_sound = self.load_audio("scan.ogg")
+        self.explosion_sound = self.load_audio("explosion.ogg")
+
         self.music_main = self.load_audio("music_main.ogg")
-        self.death_sound = self.load_audio("death.ogg")
+        self.music_death = self.load_audio("death.ogg")
 
         self.active_music = None
 
@@ -50,18 +52,29 @@ class AudioHandler:
             audio.pause()
             audio.currentTime = 0
 
-    def play_text(self, pause_it=False, volume=1.0) -> None:
-        self.play_unique_sound(self.text_sound, pause_it, volume=0.8)
+    def play_text(self, pause_it=False, volume=0.8) -> None:
+        self.play_unique_sound(self.text_sound, pause_it, volume=volume)
 
-    def play_scan(self, pause_it=False, volume=1.0) -> None:
-        self.play_unique_sound(self.scan_sound, pause_it, volume=0.4)
+    def play_scan(self, pause_it=False, volume=0.4) -> None:
+        self.play_unique_sound(self.scan_sound, pause_it, volume=volume)
 
-    def play_music_main(self, pause_it=False, volume=1.0) -> None:
+    def play_explosion(self, pause_it=False, volume=1.0) -> None:
+        self.play_unique_sound(self.explosion_sound, pause_it, volume=volume)
+
+    def _play_music(self, music_audio, pause_it=False, volume=1.0) -> None:
+        if pause_it:
+            music_audio.pause()
+            music_audio.currentTime = 0
+            self.active_music = None
+            return
         # if another music file is playing, don't play this one
         if self.active_music and not self.active_music.paused: 
             return
-        self.active_music = self.music_main
-        self.play_unique_sound(self.music_main, pause_it, volume=0.65)
+        self.active_music = music_audio
+        self.play_unique_sound(music_audio, volume=volume)
 
-    def play_death(self, volume=1.0) -> None:
-        self.play_sound(self.death_sound, volume=0.6)
+    def play_music_main(self, pause_it=False, volume=0.65) -> None:
+        self._play_music(self.music_main, pause_it=pause_it, volume=volume)
+
+    def play_music_death(self, pause_it=False, volume=1.0) -> None:
+        self._play_music(self.music_death, pause_it=pause_it, volume=volume)
