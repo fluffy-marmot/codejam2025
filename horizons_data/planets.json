@@ -159,7 +159,7 @@
             "\tMovement: Arrow Keys or WASD",
             "\tUse scanner: Hold Spacebar"
         ],
-        "scan_multiplier": 1.6,
+        "scan_multiplier": 1.8,
         "asteroid": {
             "count": 12,
             "speed": 15,
