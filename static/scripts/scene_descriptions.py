@@ -381,11 +381,14 @@ class StartScene(Scene):
         player.render(ctx, timestamp)
         if get_controls().click:
             self.dialogue_manager.next()
+            window.audio_handler.play_music_thematic()
         
         if self.dialogue_manager.done:
             self.finalize_scene()
     
     def finalize_scene(self):
+        window.audio_handler.play_music_thematic(pause_it=True)
+        window.audio_handler.play_music_main()
         self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
 
 
