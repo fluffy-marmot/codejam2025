@@ -13,33 +13,30 @@ from overlay import TextOverlay, ResultsScreen, DeathScreen, Dialogue
 from js import document #type:ignore
 canvas = document.getElementById("gameCanvas")
 container = document.getElementById("canvasContainer")
-SCREEN_W, SCREEN_H = container.clientWidth, container.clientHeight
 log = getLogger(__name__, False)
 
 # --------------------
 # methods useful across various scenes
 # --------------------
 
+ORBITING_PLANETS_SCENE = "orbiting-planets-scene"
+FINAL_SCENE = "final-scene"
+START_SCENE = "start-scene"
 
 def get_controls():
     return window.controls
 
-
 def get_player():
     return window.player
-
 
 def get_asteroid_system():
     return window.asteroids
 
-
 def get_debris_system():
     return window.debris
 
-
 def get_scanner():
     return window.scanner
-
 
 def draw_black_background(ctx):
     ctx.fillStyle = "black"
@@ -49,11 +46,12 @@ def draw_black_background(ctx):
 # our main scene with the planets orbiting the sun
 # --------------------
 
-ORBITING_PLANETS_SCENE = "orbiting-planets-scene"
-FINAL_SCENE = "final-scene"
-
-
 class OrbitingPlanetsScene(Scene):
+    """
+    Scene that handles the functionality of the part of the game where planets are orbiting around the sun
+    and the player can select a level by clicking planets
+    """
+
     def __init__(self, name: str, scene_manager: SceneManager, solar_system: SolarSystem):
         super().__init__(name, scene_manager)
 
@@ -130,6 +128,8 @@ class OrbitingPlanetsScene(Scene):
         ctx.restore()
 
     def check_planet_click(self):
+        """Check whether a UI action needs to occur due to a click event."""
+
         planet = self.solar_sys.get_object_at_position(window.controls.mouse.click)
         if window.controls.click and planet:
             planet_data = window.get_planet(planet.name)
@@ -159,6 +159,8 @@ class OrbitingPlanetsScene(Scene):
             planet.highlighted = True
 
     def switch_planet_scene(self, planet_name):
+        """Prepare what is needed to transition to a gameplay scene."""
+
         planet_scene_name = f"{planet_name}-planet-scene"
         log.debug("Activating planet scene: %s", planet_scene_name)
 
@@ -178,13 +180,16 @@ class OrbitingPlanetsScene(Scene):
         get_scanner().set_scan_parameters(planet.scan_multiplier)
         get_scanner().reset()
 
-
 # --------------------
 # game scene with zoomed in planet on left
 # --------------------
 
-
 class PlanetScene(Scene):
+    """
+    Scene that handles the functionality of the part of the game where the player's ship is active and dodging
+    asteroids. Also handles the scan results display as a child scene.
+    """
+
     def __init__(self, name: str, scene_manager: SceneManager, planet: SpaceMass):
         super().__init__(name, scene_manager)
 
@@ -286,8 +291,8 @@ class PlanetScene(Scene):
         self.planet.complete = True
 
     def handle_player_death(self):
-        window.audio_handler.play_music_death(pause_it=True)        
         """Handle when the player dies and clicks on the death screen."""
+        window.audio_handler.play_music_death(pause_it=True)        
         log.debug(f"Player died on {self.planet.name}! Returning to orbiting planets scene.")
         
         # Reset all planet completions when player dies
@@ -296,7 +301,6 @@ class PlanetScene(Scene):
             planet.complete = False
         log.debug("All planet completions reset due to player death")
 
-        window.audio_handler.play_music_death(pause_it=True)   
         window.audio_handler.play_explosion(pause_it=True)     
         self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
         get_player().active = False
@@ -308,16 +312,15 @@ class PlanetScene(Scene):
         # special level interaction: finishing earth gives player full health back
         if self.planet.name.lower() == "earth":
             get_player().health = Player.FULL_HEALTH
-        window.audio_handler.play_music_death(pause_it=True)
         log.debug(window.audio_handler.music_death.paused)
 
-
-
 # --------------------
-# text overlay scenes, such as scan results display
+# game intro scene with dialogue
 # --------------------
 
 class StartScene(Scene):
+    """Scene for handling the alien dialogue for introducing the game."""
+
     def __init__(self, name: str, scene_manager: SceneManager, bobbing_timer = 135, bobbing_max = 20):
         super().__init__(name, scene_manager)
         self.stars = StarSystem(
@@ -331,7 +334,7 @@ class StartScene(Scene):
         self.dialogue_manager = Dialogue('dialogue', scene_manager, window.lore)
         self.dialogue_manager.active = True
         self.dialogue_manager.margins = Position(300, 150)
-        self.dialogue_manager.rect=(0, SCREEN_H-150, SCREEN_W, 150)  # x, y, width, height
+        self.dialogue_manager.rect=(0, window.canvas.height-150, window.canvas.width, 150)
         self.dialogue_manager.set_button("Skip Intro")
         self.dialogue_manager.button_click_callable = self.finalize_scene
         self.starsystem = StarSystem3d(100, max_depth=100)
@@ -355,7 +358,7 @@ class StartScene(Scene):
             else:
                 self.bobbing_offset -= 1
 
-            player.y = (SCREEN_H//2 + self.bobbing_offset)
+            player.y = (window.canvas.height // 2 + self.bobbing_offset)
 
             if abs(self.bobbing_offset) > self.bobbing_max:
                 self.is_bobbing_up = not self.is_bobbing_up
@@ -378,8 +381,12 @@ class StartScene(Scene):
         window.audio_handler.play_music_main()
         self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
 
+# --------------------
+# final \ credits scene
+# --------------------
 
 class FinalScene(Scene):
+    """Scene for the final credits."""
     def __init__(self, name: str, scene_manager: SceneManager):
         super().__init__(name, scene_manager)
         # Sparse stars for space backdrop
@@ -416,10 +423,10 @@ class FinalScene(Scene):
             sy = 0
 
             # Position Earth in upper-right, smaller size like the reference image
-            target_size = int(min(SCREEN_W, SCREEN_H) * 0.15)
+            target_size = int(min(window.canvas.width, window.canvas.height) * 0.15)
             dw = dh = target_size
-            dx = SCREEN_W * 0.65  # Right side of screen
-            dy = SCREEN_H * 0.15  # Upper portion
+            dx = window.canvas.width * 0.65  # Right side of screen
+            dy = window.canvas.height * 0.15  # Upper portion
 
             ctx.drawImage(
                 self.earth_sprite.image,
@@ -431,19 +438,20 @@ class FinalScene(Scene):
         # Draw lunar surface with the top portion visible, like looking across the lunar terrain
         if self.moon_sprite and getattr(self.moon_sprite, "is_loaded", False):
             # Position moon sprite so its upper portion is visible as foreground terrain
-            surface_height = SCREEN_H * 0.5
+            surface_height = window.canvas.height * 0.5
             
             # Scale to fill screen width
-            scale = (SCREEN_W / self.moon_sprite.width)
+            scale = (window.canvas.width / self.moon_sprite.width)
             sprite_scaled_height = self.moon_sprite.height * scale
             
             # Position so the moon extends below the screen, showing only the top portion
-            dy = SCREEN_H - surface_height
+            dy = window.canvas.height - surface_height
             
             ctx.drawImage(
                 self.moon_sprite.image,
                 0, 0, self.moon_sprite.width, self.moon_sprite.height,
-                SCREEN_W - (SCREEN_W * scale)/1.25, dy, SCREEN_W * scale, sprite_scaled_height
+                window.canvas.width - (window.canvas.width * scale)/1.25, dy,   # target left, top
+                window.canvas.width * scale, sprite_scaled_height               # target width, height
             )
 
     def render(self, ctx, timestamp):
@@ -460,17 +468,17 @@ class FinalScene(Scene):
 
         # Mission complete text
         ctx.save()
-        ctx.font = f"bold {max(18, int(min(SCREEN_W, SCREEN_H) * 0.04))}px Courier New"
+        ctx.font = f"bold {max(18, int(min(window.canvas.width, window.canvas.height) * 0.04))}px Courier New"
         ctx.fillStyle = "#00FF00"
         message = "Mission Complete"
         tw = ctx.measureText(message).width
         # Position text in the left side
-        ctx.fillText(message, SCREEN_W * 0.05, SCREEN_H * 0.15)
+        ctx.fillText(message, window.canvas.width * 0.05, window.canvas.height * 0.15)
         
         # Add click instruction text
-        ctx.font = f"{max(12, int(min(SCREEN_W, SCREEN_H) * 0.025))}px Courier New"
+        ctx.font = f"{max(12, int(min(window.canvas.width, window.canvas.height)) * 0.025)}px Courier New"
         instruction = "Click anywhere to return to solar system"
-        ctx.fillText(instruction, SCREEN_W * 0.05, SCREEN_H * 0.25)
+        ctx.fillText(instruction, window.canvas.width * 0.05, window.canvas.height * 0.25)
         ctx.restore()
         
         # Handle click to go back to orbiting planets scene
@@ -488,13 +496,17 @@ class FinalScene(Scene):
 
 def create_scene_manager() -> SceneManager:
     """
-    Create all the scenes and add them to a scene manager that can be used to switch between them
+    Create all the scenes and add them to a scene manager that can be used to switch between them The object
+    instance returned by this is used by the main game loop in game.py to check which scene is active when a
+    frame is drawn and that scene's render method is called. Only one scene listed in the scene manager is
+    active at a time, though scenes may have their own subscenes, such as textboxes that they render as part of
+    their routine.
     """
     manager = SceneManager()
     planet_scene_state = PlanetState(0, window.canvas.height, 120.0, x=0, y=window.canvas.height // 2)
     solar_system = SolarSystem([window.canvas.width, window.canvas.height], planet_scene_state=planet_scene_state)
     orbiting_planets_scene = OrbitingPlanetsScene(ORBITING_PLANETS_SCENE, manager, solar_system)
-    start_scene = StartScene("start", manager)
+    start_scene = StartScene(START_SCENE, manager)
     manager.add_scene(start_scene)
     manager.add_scene(orbiting_planets_scene)
     # Final victory scene (activated when all planets complete)
@@ -505,5 +517,5 @@ def create_scene_manager() -> SceneManager:
         big_planet_scene = PlanetScene(f"{planet.name}-planet-scene", manager, planet)
         manager.add_scene(big_planet_scene)
 
-    manager.activate_scene("start")  # initial scene
+    manager.activate_scene(START_SCENE)  # initial scene
     return manager
