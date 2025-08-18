@@ -3,7 +3,7 @@ import math
 import re
 import textwrap
 
-from player import Player
+from player import Player, PlayerExplosion
 from common import PlanetState, Position, Rect
 from consolelogger import getLogger
 from scene_classes import CanvasRenderingContext2D, Scene, SceneManager
@@ -350,7 +350,6 @@ class StartScene(Scene):
         self.dialogue_manager.active = True
         self.dialogue_manager.margins = Position(300, 150)
         self.dialogue_manager.rect=(0, SCREEN_H-150, SCREEN_W, 150)  # x, y, width, height
-        self.dialogue_manager.period_delay = True
         self.starsystem = StarSystem3d(100, max_depth=100)
         self.player = None
         self.bobbing_timer = bobbing_timer
@@ -406,8 +405,6 @@ class TextOverlay(Scene):
         self.rect = rect # tuple: (x, y, width, height)
         self.muted = True
         self.center = False
-        self.period_delay = False
-
     def deactivate(self):
         self.active = False
         # pause text sound in case it was playing
@@ -440,17 +437,6 @@ class TextOverlay(Scene):
     
     def update_textstream(self, timestamp):
         """Update streaming text"""
-        if self.period_delay:
-            if self.char_index < len(self.text) and timestamp - self.last_char_time > self.char_delay:
-                next_char = self.text[self.char_index]
-    
-                # Set delay based on character
-                if next_char == '.':
-                    self.char_delay = 500
-                elif next_char in ',;!?':
-                    self.char_delay = 200
-                else:
-                    self.char_delay = 10
 
         if timestamp - self.last_char_time > self.char_delay and self.char_index < len(self.text):
             if not self.muted:
@@ -587,62 +573,6 @@ class DeathScreen(TextOverlay):
         window.audio_handler.play_music_death()
         super().render(ctx, timestamp)
 
-
-class PlayerExplosion:
-    def __init__(self):
-        self.explosion_sprite = window.get_sprite("Explosion Animation")
-        self.active = False
-        self.current_frame = 0
-        self.frame_count = 11  # Number of frames
-        self.frame_duration = 100  # milliseconds per frame
-        self.last_frame_time = 0
-        self.position = (0, 0)
-        self.scale = 4.0
-        self.finished = False
-    
-    def start_explosion(self, x: float, y: float):
-        """Start the explosion animation at the given position"""
-        self.active = True
-        self.current_frame = 0
-        self.position = (x, y)
-        self.last_frame_time = 0
-        self.finished = False
-    
-    def update(self, timestamp: float):
-        """Update the explosion animation"""
-        if not self.active or self.finished:
-            return
-        
-        if timestamp - self.last_frame_time >= self.frame_duration:
-            self.current_frame += 1
-            self.last_frame_time = timestamp
-            
-            if self.current_frame >= self.frame_count:
-                self.finished = True
-                self.active = False
-    
-    def render(self, ctx, timestamp: float):
-        """Render the current explosion frame"""
-        if not self.active or self.finished:
-            return
-        
-        self.update(timestamp)
-        
-        frame_width = self.explosion_sprite.width // self.frame_count
-        frame_height = self.explosion_sprite.height
-        
-        source_x = self.current_frame * frame_width
-        source_y = 0
-        
-        scaled_width = frame_width * self.scale
-        scaled_height = frame_height * self.scale
-        
-        ctx.drawImage(
-            self.explosion_sprite.image,
-            source_x, source_y, frame_width, frame_height,  # source rectangle
-            self.position[0] - scaled_width/2, self.position[1] - scaled_height/2,  # destination position
-            scaled_width, scaled_height  # destination size
-        )
 
 class FinalScene(Scene):
     def __init__(self, name: str, scene_manager: SceneManager):
@@ -799,13 +729,7 @@ class Dialogue(TextOverlay):
             formatted_message += part + '\n'
         self.text = formatted_message
 
-        for char in self.text:
-            if char == '.':
-                self.char_delay = 500
-            else:
-                self.char_delay = 10
-
-            super().render(ctx, timestamp)
+        super().render(ctx, timestamp)
         
     def switch_color(self):
         self.is_col1 = not self.is_col1
