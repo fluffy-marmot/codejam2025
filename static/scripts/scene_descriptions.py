@@ -1,7 +1,5 @@
 from functools import partial
-import math
 import re
-import textwrap
 
 from player import Player, PlayerExplosion
 from common import PlanetState, Position, Rect
@@ -11,6 +9,7 @@ from solar_system import SolarSystem
 from spacemass import SpaceMass
 from stars import StarSystem, StarSystem3d
 from window import window
+
 from js import document #type:ignore
 canvas = document.getElementById("gameCanvas")
 container = document.getElementById("canvasContainer")
@@ -149,6 +148,7 @@ class OrbitingPlanetsScene(Scene):
         if get_controls().click and planet:
             planet_data = window.get_planet(planet.name)
             log.debug("Clicked on: %s", planet.name)
+            self.planet_info_overlay.hint = "Click anywhere to close"
             if planet.complete:
                 self.planet_info_overlay.set_button(None)
                 self.planet_info_overlay.set_text(planet_data.info)
@@ -215,6 +215,7 @@ class PlanetScene(Scene):
         self.results_overlay.other_click_callable = self.handle_scene_completion
         self.results_overlay.muted = False
         self.results_overlay.center = True
+        self.results_overlay.hint = "Click anywhere to continue"
         
         # Add death screen
         self.death_screen = DeathScreen(f"{planet.name}-death", scene_manager)
@@ -361,7 +362,7 @@ class StartScene(Scene):
             player.is_disabled = True
         
         if timestamp - self.animation_timer >= self.bobbing_timer:
-            print(f"bobbing, val={self.bobbing_offset}")
+            log.debug(f"bobbing, val={self.bobbing_offset}")
             self.animation_timer = timestamp
             if self.is_bobbing_up:
                 self.bobbing_offset += 1
@@ -382,7 +383,7 @@ class StartScene(Scene):
         if get_controls().click:
             self.dialogue_manager.next()
             window.audio_handler.play_music_thematic()
-        
+
         if self.dialogue_manager.done:
             self.finalize_scene()
     
@@ -393,7 +394,9 @@ class StartScene(Scene):
 
 
 class TextOverlay(Scene):
-    def __init__(self, name: str, scene_manager: SceneManager, text: str, color="rgba(0, 255, 0, 0.8)", rect=None):
+    DEFAULT = "No information found :("
+
+    def __init__(self, name: str, scene_manager: SceneManager, text: str, color="rgba(0, 255, 0, 0.8)", rect=None, hint=None):
         super().__init__(name, scene_manager)
         self.bold = False
         self.color = color
@@ -408,6 +411,8 @@ class TextOverlay(Scene):
         self.rect = rect # tuple: (x, y, width, height)
         self.muted = True
         self.center = False
+        self.hint = hint
+        
     def deactivate(self):
         self.active = False
         # pause text sound in case it was playing
@@ -535,6 +540,10 @@ class TextOverlay(Scene):
             y_pos = start_y + i * line_height
             if y_pos < overlay_bounds.bottom - 10:       # don't draw outside overlay
                 ctx.fillText(line, start_x, y_pos)
+        
+        # Draw hint if any at bottom left
+        if self.hint:
+            ctx.fillText(self.hint, overlay_bounds.left + 10, overlay_bounds.bottom - 10)
 
         button_bounds = self.render_and_handle_button(ctx, overlay_bounds)
         if get_controls().click:
@@ -556,7 +565,7 @@ class ResultsScreen(TextOverlay):
         super().__init__(name, scene_manager, text)
         # default sizing for scan results screen
         self.margins = Position(200, 50)
-
+        
 class DeathScreen(TextOverlay):
     def __init__(self, name: str, scene_manager: SceneManager):
         super().__init__(name, scene_manager, "YOU DIED", color="rgba(0, 255, 0, 0.9)")
@@ -694,6 +703,7 @@ class Dialogue(TextOverlay):
         self.is_col1 = False
         self.switch_color()
         self.done = False
+        
     def next(self):
         """Advance to the next line of dialogue."""
         self.current_index += 1
