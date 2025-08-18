@@ -79,13 +79,13 @@ class Player(SceneObject):
         dx = dy = 0.0
         if not self.is_disabled:
             if "w" in keys or "ArrowUp" in keys:
-                dy -= 1
+                dy -= 1.75
             if "s" in keys or "ArrowDown" in keys:
-                dy += 1
+                dy += 1.75
             if "a" in keys or "ArrowLeft" in keys:
-                dx -= 1
+                dx -= 1.75
             if "d" in keys or "ArrowRight" in keys:
-                dx += 1
+                dx += 1.75
 
         # TODO: remove this, for testing momentum
         if "m" in keys:
