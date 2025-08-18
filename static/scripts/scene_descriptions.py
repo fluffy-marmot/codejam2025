@@ -87,6 +87,7 @@ class OrbitingPlanetsScene(Scene):
         # If all planets are complete, switch to the final scene
         if all(p.complete for p in self.solar_sys.planets):
             self.scene_manager.activate_scene(FINAL_SCENE)
+            self._debug_btn_label = "View Credits Again"
             return
 
         # from this scene, be ready to switch to a big planet scene if planet is clicked
