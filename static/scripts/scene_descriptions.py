@@ -218,7 +218,8 @@ class PlanetScene(Scene):
         
         # Add death screen
         self.death_screen = DeathScreen(f"{planet.name}-death", scene_manager)
-        self.death_screen.other_click_callable = self.handle_player_death
+        self.death_screen.button_click_callable = self.handle_player_death
+        self.death_screen.set_button("Play Again")
         self.death_sound_played = False  # Track if death sound has been played
         
         # Add explosion animation
@@ -389,6 +390,7 @@ class TextOverlay(Scene):
 
     def __init__(self, name: str, scene_manager: SceneManager, text: str, color="rgba(0, 255, 0, 0.8)", rect=None):
         super().__init__(name, scene_manager)
+        self.bold = False
         self.color = color
         self.calculate_and_set_font()
         self.set_text(text)
@@ -446,7 +448,7 @@ class TextOverlay(Scene):
 
     def _prepare_font(self, ctx):
         font = self.font or self.calculate_and_set_font()
-        ctx.font = f"{font['size']}px {font['font']}"
+        ctx.font = f"{'bold ' if self.bold else ''}{font['size']}px {font['font']}"
         ctx.fillStyle = rgba_to_hex(self.color)
         return font
 
@@ -556,18 +558,13 @@ class DeathScreen(TextOverlay):
         self.margins = Position(150, 150)
         self.center = True
         self.muted = False  # Play sound when death screen appears
+        self.bold = True
     
     def calculate_and_set_font(self) -> str:
         base_size = min(window.canvas.width, window.canvas.height) / 15
         font_size = max(32, min(72, base_size))  # Scale between 32px and 72px
         self.font = {"size": font_size, "font": "'Courier New', monospace"}
         return self.font
-    
-    def _prepare_font(self, ctx):
-        font = self.font or self.calculate_and_set_font()
-        ctx.font = f"bold {font['size']}px {font['font']}"
-        ctx.fillStyle = rgba_to_hex(self.color)
-        return font
 
 class PlayerExplosion:
     def __init__(self):
