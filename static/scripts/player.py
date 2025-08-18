@@ -506,3 +506,59 @@ class Scanner:
         self.finished = False
         self.scanning_progress = 0
         self._update_bar_max()
+        
+class PlayerExplosion():
+    def __init__(self):
+        self.explosion_sprite = window.get_sprite("Explosion Animation")
+        self.active = False
+        self.current_frame = 0
+        self.frame_count = 11  # Number of frames
+        self.frame_duration = 100  # milliseconds per frame
+        self.last_frame_time = 0
+        self.position = (0, 0)
+        self.scale = 4.0
+        self.finished = False
+    
+    def start_explosion(self, x: float, y: float):
+        """Start the explosion animation at the given position"""
+        self.active = True
+        self.current_frame = 0
+        self.position = (x, y)
+        self.last_frame_time = 0
+        self.finished = False
+    
+    def update(self, timestamp: float):
+        """Update the explosion animation"""
+        if not self.active or self.finished:
+            return
+        
+        if timestamp - self.last_frame_time >= self.frame_duration:
+            self.current_frame += 1
+            self.last_frame_time = timestamp
+            
+            if self.current_frame >= self.frame_count:
+                self.finished = True
+                self.active = False
+    
+    def render(self, ctx, timestamp: float):
+        """Render the current explosion frame"""
+        if not self.active or self.finished:
+            return
+        
+        self.update(timestamp)
+        
+        frame_width = self.explosion_sprite.width // self.frame_count
+        frame_height = self.explosion_sprite.height
+        
+        source_x = self.current_frame * frame_width
+        source_y = 0
+        
+        scaled_width = frame_width * self.scale
+        scaled_height = frame_height * self.scale
+        
+        ctx.drawImage(
+            self.explosion_sprite.image,
+            source_x, source_y, frame_width, frame_height,  # source rectangle
+            self.position[0] - scaled_width/2, self.position[1] - scaled_height/2,  # destination position
+            scaled_width, scaled_height  # destination size
+        )
