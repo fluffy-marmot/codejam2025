@@ -259,8 +259,8 @@ class AsteroidAttack:
             max_asteroids = min(max_asteroids * 2, 120)  # Allow up to 2x more recycle items
             use_grow_rate *= 0.6  # Make them approach 40% faster
             use_health *= 1.5  # Make them 50% more durable
-            use_damage_mul *= 1.3  # Increase damage by 30%
-        
+            use_damage_mul *= 0.7  # Decrease damage by 30%
+
         self._max_asteroids = max_asteroids
         self._use_grow_rate = use_grow_rate
         self._use_health = use_health
