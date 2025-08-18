@@ -278,7 +278,7 @@ class PlanetScene(Scene):
         """
         # nudge player in the direction of jupiter if on the left 2/3 of the screen
         if self.planet.name.lower() == "jupiter":
-            get_player().nudge_towards(self.planet.get_position(), 0.6)
+            get_player().nudge_towards(self.planet.get_position(), 0.5)
         elif self.planet.name.lower() == "mercury":
             get_player().health = max(0, get_player().health - (timestamp - self.last_timestamp) / 1_200_000)
 
