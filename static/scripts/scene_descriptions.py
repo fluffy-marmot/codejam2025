@@ -317,7 +317,7 @@ class PlanetScene(Scene):
         self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
         get_player().active = False
         self.results_overlay.active = True
-        get_player().health += Player.FULL_HEALTH/3
+        get_player().health = min(get_player().health + Player.FULL_HEALTH / 3, Player.FULL_HEALTH)
         self.planet.switch_view()
         self.planet.complete = True
 
