@@ -20,7 +20,6 @@ ctx = window.ctx = window.canvas.getContext("2d")
 
 window.DEBUG_DRAW_HITBOXES = False
 
-
 # TODO: the resizing and margins needs work, I suck with CSS / html layout
 def resize_canvas(event=None) -> None:
     width, height = container.clientWidth, container.clientHeight
@@ -49,7 +48,6 @@ player = window.player = Player(
 window.asteroids = AsteroidAttack(window.get_sprite("asteroids"), width, height, 256)
 window.debris = DebrisSystem()
 
-
 scanner = window.scanner = Scanner(window.get_sprite("scanner"), player, min_x=width * 0.45, scan_mult=1)
 log.info("Created player at position (%s, %s)", player.x, player.y)
 
@@ -57,11 +55,7 @@ loadingLabel.style.display = "none"
 
 
 def game_loop(timestamp: float) -> None:
-    """
-    timestamp argument will be time since the html document began to load, in miliseconds.
-    """
-
-    """ --- Do anything that needs to be drawn in this frame here --- """
+    """Timestamp argument will be time since the html document began to load, in miliseconds."""
 
     # these should disable bilinear filtering smoothing, which isn't friendly to pixelated graphics
     ctx.imageSmoothingEnabled = False
@@ -72,16 +66,10 @@ def game_loop(timestamp: float) -> None:
     active_scene: Scene = scene_manager.get_active_scene()
     active_scene.render(ctx, timestamp)
 
-    # please keep any scene-specific rendering inside the render method of each scene
-    # code to render asteroids and player was moved to render method of class PlanetScene
-
-    """ --- That was everything that needed to be drawn in that frame --- """
-
     # if a click event occurred and nothing made use of it during this loop, clear the click flag
     controls.click = False
     # Schedule next frame
     window.requestAnimationFrame(game_loop_proxy)
-
 
 # Start loop
 game_loop_proxy = create_proxy(game_loop)

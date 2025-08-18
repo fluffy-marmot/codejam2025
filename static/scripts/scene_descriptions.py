@@ -340,10 +340,8 @@ class StartScene(Scene):
             pulse_freq_min=3,
             pulse_freq_max=6,
         )
-        #self.player = get_player()
-        from lore import lore as dialogue
 
-        self.dialogue_manager = Dialogue('dialogue', scene_manager, dialogue)
+        self.dialogue_manager = Dialogue('dialogue', scene_manager, window.lore)
         self.dialogue_manager.active = True
         self.dialogue_manager.margins = Position(300, 150)
         self.dialogue_manager.rect=(0, SCREEN_H-150, SCREEN_W, 150)  # x, y, width, height

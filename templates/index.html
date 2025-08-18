@@ -44,6 +44,8 @@
             planet["spritesheet"] = Image.new()
             planet["spritesheet"].src = sprites_url + planet["sprite"]
 
+        window.lore = {{ lore|tojson|safe }}
+
         # exposing canvas globally (used by Player clamp logic)
         from js import document
         window.canvas = document.getElementById('gameCanvas')
