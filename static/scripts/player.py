@@ -296,6 +296,7 @@ class Player(SceneObject):
         self.x, self.y = self.default_pos
         self.rotation = 0.0
         self.target_rotation = 0.0
+        self.momentum = [0, 0]
 
 
 @dataclass
