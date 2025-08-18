@@ -26,7 +26,6 @@ def extract_recycle_sprites():
     print(f"Recycle spritesheet dimensions: {sheet_width}x{sheet_height}")
     
     # Estimate sprite size by looking at the image
-    # We'll assume it's a horizontal strip of sprites
     # Let's try to detect individual sprites by looking for vertical gaps
     
     # Convert to numpy array for analysis
