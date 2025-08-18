@@ -2,7 +2,7 @@ import math
 import time
 from collections import deque
 from dataclasses import dataclass
-from math import dist
+import random
 
 from asteroid import Asteroid
 from common import Position
@@ -53,6 +53,7 @@ class Player(SceneObject):
         self.bar_icon = bar_icon
         self.active = False
         self.invincible = False
+        self.key_cooldown = {}
 
     def _update_sprite_dims(self):
         w = self.sprite.width
@@ -88,10 +89,16 @@ class Player(SceneObject):
 
         # TODO: remove this, for testing momentum
         if "m" in keys:
-            self.momentum[0] = self.momentum[1] = 5
+            if timestamp - self.key_cooldown.setdefault("m", 0) < 1000: return
+            angle = random.uniform(0, 6.28)
+            self.momentum[0] = math.cos(angle) * 5
+            self.momentum[1] = math.sin(angle) * 5
+            self.key_cooldown["m"] = timestamp
         # DEBUG: switch hitbox visibility
         if "c" in keys:
+            if timestamp - self.key_cooldown.setdefault("c", 0) < 100: return
             window.DEBUG_DRAW_HITBOXES = not window.DEBUG_DRAW_HITBOXES
+            self.key_cooldown["c"] = timestamp
         # DEBUG: instant death for testing
         if "k" in keys:
             self.health = 0
@@ -238,7 +245,7 @@ class Player(SceneObject):
 
         # if the closest point on the rectangle is inside the asteroid's circle, we have collision:
         if (hitbox_closest_x - ast_x) ** 2 + (hitbox_closest_y - ast_y) ** 2 < ast_radius**2:
-            distance_between_centers = dist((ast_x, ast_y), (self.x, self.y))
+            distance_between_centers = math.dist((ast_x, ast_y), (self.x, self.y))
             # log.debug("Asteroid collision with distance %s", distance_between_centers)
             asteroid.health -= max(80, 240 - distance_between_centers)
             # Make Newton proud
@@ -392,6 +399,7 @@ class Scanner:
                 self.disable_timer = current_time
 
     def render_beam(self, ctx):  # seprate function so it can go under the planet
+
         if not self.status.active or not self.status.valid:
             window.audio_handler.play_scan(pause_it=True)
             return
@@ -451,6 +459,9 @@ class Scanner:
 
     def render(self, ctx, current_time):
         "Renders the scanner sprite and the progress bar"
+        if "f" in window.controls.pressed and window.player.active:
+            self.finished = True
+
         player_x, player_y = self.player.get_position()
         # progress bar
         outer_width = window.canvas.width // 4

@@ -135,9 +135,9 @@ class Asteroid(SceneObject):
             return True
         return False
 
-
+# updated spawn_on_player, it looked goofy near planets with high chance
 class AsteroidAttack:
-    def __init__(self, spritesheet, width: int, height: int, max_size_px: float, spawnrate: int = 500, spawn_at_player_chance: int = 10):
+    def __init__(self, spritesheet, width: int, height: int, max_size_px: float, spawnrate: int = 500, spawn_at_player_chance: int = 50):
         self.sheet = spritesheet
         self.w = width
         self.h = height
@@ -160,7 +160,6 @@ class AsteroidAttack:
         planet_width = self.w * 0.3
         space_start_x = planet_width + 50
         if random.randint(1, self.spawn_at_player_chance) == 1:
-            print("spawning at player")
             x = window.player.x
             y = window.player.y
         else:
@@ -185,12 +184,12 @@ class AsteroidAttack:
             idx = random.randint(104, 119)  # Recycle sprites
             # Scale recycle items smaller since they're items, not large asteroids
             target = random.uniform(self.max_size * 0.25, self.max_size * 0.45)
-            log.debug("Spawning recycle sprite %d for Earth with smaller target size %f", idx, target)
+            # log.debug("Spawning recycle sprite %d for Earth with smaller target size %f", idx, target)
         else:
             idx = random.randint(0, 103)  # Regular asteroid sprites
             target = random.uniform(self.max_size * 0.7, self.max_size * 1.3)
-            if hasattr(self, '_current_planet_name'):
-                log.debug("Spawning asteroid sprite %d for %s", idx, self._current_planet_name)
+            # if hasattr(self, '_current_planet_name'):
+            #     log.debug("Spawning asteroid sprite %d for %s", idx, self._current_planet_name)
             
         a = Asteroid(
             self.sheet, x, y, velocity_x, velocity_y, target, idx, 

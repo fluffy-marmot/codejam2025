@@ -59,7 +59,7 @@ class AudioHandler:
     def play_scan(self, pause_it=False, volume=0.4) -> None:
         self.play_unique_sound(self.scan_sound, pause_it, volume=volume)
 
-    def play_explosion(self, pause_it=False, volume=1.0) -> None:
+    def play_explosion(self, pause_it=False, volume=0.6) -> None:
         self.play_unique_sound(self.explosion_sound, pause_it, volume=volume)
 
     def _play_music(self, music_audio, pause_it=False, volume=1.0) -> None:

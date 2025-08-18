@@ -72,9 +72,37 @@ class OrbitingPlanetsScene(Scene):
         self.planet_info_overlay.center = True
         self.scene_manager = scene_manager
         # Debug button label
-        self._debug_btn_label = "Complete All"
+        self._debug_btn_label = "" # disable the extra button by default
+
+        self.show_cheats_menu()
+
+    # just a temporary function for demo-ing project
+    def show_cheats_menu(self):
+        cheats_info = """
+Hello, thanks for checking out our project!
+In order to more easily demo the functionality 
+of different parts of the game, we have included
+the following cheats:
+
+In planet overview screen:
+[C] - Instantly jump to credits / victory screen
+
+During ship flight:
+[C] - Toggle collision boxes (for fun)
+[K] - Kill the player (can start a new game)
+[F] - Finish the current planet scan
+"""
+        self.planet_info_overlay.set_button(None)
+        self.planet_info_overlay.set_text(cheats_info)
+        self.planet_info_overlay.margins = Position(300, 150)
+        self.planet_info_overlay.active = True
+        self.planet_info_overlay.center = False
 
     def render(self, ctx, timestamp):
+
+        # some temporary functionality for testing
+        if "c" in window.controls.pressed:
+            self.scene_manager.activate_scene(FINAL_SCENE)
         window.audio_handler.play_music_main()
 
         draw_black_background(ctx)
@@ -101,6 +129,7 @@ class OrbitingPlanetsScene(Scene):
 
     def _render_debug_complete_all_button(self, ctx):
         label = self._debug_btn_label
+        if not label: return
         ctx.save()
         ctx.font = "14px Courier New"
         text_width = ctx.measureText(label).width
@@ -352,7 +381,7 @@ class StartScene(Scene):
             player.is_disabled = True
         
         if timestamp - self.animation_timer >= self.bobbing_timer:
-            log.debug(f"bobbing, val={self.bobbing_offset}")
+            # log.debug(f"bobbing, val={self.bobbing_offset}")
             self.animation_timer = timestamp
             if self.is_bobbing_up:
                 self.bobbing_offset += 1

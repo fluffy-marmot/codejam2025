@@ -1,6 +1,5 @@
-Main theme music and death screen clip
-"25 oh 20 and to the stars", "something about space", "death screen"
-Composed and created by https://kimeklover.newgrounds.com/ discord alostcause_79867_18063
+Music: "25 oh 20 and to the stars", "something about space", "death screen clip"
+Composed and created by https://kimeklover.newgrounds.com/ discord: alostcause_79867_18063
 Licensed under CC BY-NC-SA
 
 Planet sprites generated with Pixel Planet Generator by Deep Fold 
@@ -14,6 +13,10 @@ Licensed under CC-0
 Recycle items art by Clint Bellanger 
 https://opengameart.org/content/recycle-items-set
 Licensed under CC-BY 3.0
+
+QR Code Scanner
+https://www.hiclipart.com/free-transparent-background-png-clipart-pjnbg
+HiClipart is an open community for users to share PNG images, all PNG cliparts in HiClipart are for Non-Commercial Use
 
 3 Explosion Bangs Copyright 2012 Iwan 'qubodup' Gabovitch <http://qubodup.net>
 https://opengameart.org/content/3-background-crash-explosion-bang-sounds

@@ -196,7 +196,7 @@ class ResultsScreen(TextOverlay):
         
 class DeathScreen(TextOverlay):
     def __init__(self, name: str, scene_manager: SceneManager):
-        super().__init__(name, scene_manager, "YOU DIED", color="rgba(0, 255, 0, 0.9)")
+        super().__init__(name, scene_manager, "GAME OVER", color="rgba(0, 255, 0, 0.9)")
         # Center the death screen
         self.margins = Position(150, 150)
         self.center = True
@@ -296,7 +296,7 @@ class Credits:
         # Check if credits have finished scrolling
         if not self.finished:
             last_line_y = self.y_offset + (len(self.credits_lines) * self.line_height)
-            log.debug("Credits Last Line Y Offset: %s", last_line_y)
+            # log.debug("Credits Last Line Y Offset: %s", last_line_y)
             if last_line_y < 0:
                 self.finished = True
         
