@@ -17,11 +17,12 @@ SCREEN_W, SCREEN_H = container.clientWidth, container.clientHeight
 ASTEROID_SHEET = window.sprites["asteroids"]
 
 # "magic numbers" obtained via a script in assets/make_spritesheets.py, end of the printout
+# Updated to include recycle sprite collision radii (positions 104-119)
 ASTEROID_RADII = [22, 26, 18, 19, 21, 25, 18, 23, 26, 20, 24, 13, 22, 18, 21, 23, 30, 19, 18, 18, 18, 21, 26, 
                   20, 21, 16, 24, 22, 18, 25, 18, 20, 19, 21, 22, 18, 24, 20, 23, 20, 22, 20, 24, 17, 16, 16, 
                   18, 21, 17, 22, 24, 25, 14, 24, 25, 14, 22, 23, 21, 18, 20, 18, 18, 19, 24, 23, 23, 27, 19, 
                   24, 25, 20, 23, 21, 25, 22, 19, 25, 21, 16, 30, 26, 24, 30, 23, 21, 20, 18, 25, 16, 24, 21, 
-                  23, 18, 21, 24, 20, 23, 29, 20, 24, 22, 22, 19] # noqa
+                  23, 18, 21, 24, 20, 23, 29, 20, 24, 22, 22, 19, 21, 37, 31, 43, 31, 32, 23, 24, 22, 20, 24, 21, 25, 33, 23, 21] # noqa
 
 
 class Asteroid(SceneObject):
@@ -175,8 +176,18 @@ class AsteroidAttack:
             else:
                 velocity_y = random.uniform(5, 15)
 
-        target = random.uniform(self.max_size * 0.7, self.max_size * 1.3)
-        idx = random.randint(0, 103)  # randint is inclusive on both ends
+        # Use recycle sprites (104-119) for Earth, regular asteroids (0-103) for other planets
+        if hasattr(self, '_current_planet_name') and self._current_planet_name.lower() == 'earth':
+            idx = random.randint(104, 119)  # Recycle sprites
+            # Scale recycle items smaller since they're items, not large asteroids
+            target = random.uniform(self.max_size * 0.25, self.max_size * 0.45)
+            log.debug("Spawning recycle sprite %d for Earth with smaller target size %f", idx, target)
+        else:
+            idx = random.randint(0, 103)  # Regular asteroid sprites
+            target = random.uniform(self.max_size * 0.7, self.max_size * 1.3)
+            if hasattr(self, '_current_planet_name'):
+                log.debug("Spawning asteroid sprite %d for %s", idx, self._current_planet_name)
+            
         a = Asteroid(
             self.sheet, x, y, velocity_x, velocity_y, target, idx, 
             grow_rate=self._use_grow_rate,
@@ -189,6 +200,11 @@ class AsteroidAttack:
     def spawn_and_update(self, timestamp: float):
         # adjust spawnrate by a random factor so asteroids don't spawn at fixed intervals
         spawnrate = self.spawnrate * random.uniform(0.2, 1.0)
+        
+        # Increase spawn rate for smaller recycle items on Earth
+        if hasattr(self, '_current_planet_name') and self._current_planet_name.lower() == 'earth':
+            spawnrate *= 0.1  # 10x faster spawn rate for Earth recycle items (1/10 = 0.1)
+
         # slow down spawnrate for this attempt a bit if there already many asteroids active
         spawnrate = spawnrate * max(1, 1 + (len(self.asteroids) - 35) * 0.1)
         if self._last_spawn == 0.0 or (timestamp - self._last_spawn) >= spawnrate:
@@ -213,6 +229,9 @@ class AsteroidAttack:
     def reset(self, planet_data: PlanetData):
         """ reset the asteroid management system with the given difficulty parameters """
 
+        # Store the planet name for sprite selection
+        self._current_planet_name = planet_data.name
+
         # the asteroid difficulty settings are on a 1-20 scale of ints
         asteroid_settings = planet_data.asteroid
 
@@ -234,6 +253,13 @@ class AsteroidAttack:
         log.debug("Grow rate(approach speed): %s (%s), default 6.0", use_grow_rate, asteroid_settings.speed)
         log.debug("Asteroid durability: %s (%s), default 450", use_health, asteroid_settings.durability)
         log.debug("Damage multiplier: %s (%s), default 1.0", use_damage_mul, asteroid_settings.damage)
+        
+        # Special difficulty adjustments for Earth recycle items
+        if planet_data.name.lower() == 'earth':
+            max_asteroids = min(max_asteroids * 2, 120)  # Allow up to 2x more recycle items
+            use_grow_rate *= 0.6  # Make them approach 40% faster
+            use_health *= 1.5  # Make them 50% more durable
+            use_damage_mul *= 1.3  # Increase damage by 30%
         
         self._max_asteroids = max_asteroids
         self._use_grow_rate = use_grow_rate

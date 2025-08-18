@@ -248,6 +248,15 @@ class Player(SceneObject):
             asteroid.velocity_x += (ast_x - self.x) / 2.0
             asteroid.velocity_y += (ast_y - self.y) / 2.0
             self.health = max(0, self.health - 100 / distance_between_centers * 5 * asteroid.damage_mul)
+            
+            # Reduce scanner progress when hit by asteroid
+            if hasattr(window, 'scanner') and window.scanner:
+                # Reduce progress by 2-6% of max progress based on damage taken
+                damage_taken = 100 / distance_between_centers * 5 * asteroid.damage_mul
+                progress_loss = window.scanner._bar_max * (0.02 + (damage_taken / 1000) * 0.04)
+                window.scanner.scanning_progress = max(0, window.scanner.scanning_progress - progress_loss)
+                # log.debug("Scanner progress reduced by %f due to asteroid collision", progress_loss)
+            
             window.audio_handler.play_bang()
             window.debris.generate_debris(self.get_position(), Position(ast_x, ast_y))
 
