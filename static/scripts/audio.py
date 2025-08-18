@@ -15,6 +15,7 @@ class AudioHandler:
         self.explosion_sound = self.load_audio("explosion.ogg")
 
         self.music_main = self.load_audio("music_main.ogg")
+        self.music_thematic = self.load_audio("music_thematic.ogg")
         self.music_death = self.load_audio("death.ogg")
 
         self.active_music = None
@@ -78,3 +79,6 @@ class AudioHandler:
 
     def play_music_death(self, pause_it=False, volume=1.0) -> None:
         self._play_music(self.music_death, pause_it=pause_it, volume=volume)
+
+    def play_music_thematic(self, pause_it=False, volume=1.0) -> None:
+        self._play_music(self.music_thematic, pause_it=pause_it, volume=volume)
