@@ -8,7 +8,7 @@ from solar_system import SolarSystem
 from spacemass import SpaceMass
 from stars import StarSystem, StarSystem3d
 from window import window
-from overlay import TextOverlay, ResultsScreen, DeathScreen, Dialogue
+from overlay import TextOverlay, ResultsScreen, DeathScreen, Dialogue, Credits
 
 from js import document #type:ignore
 canvas = document.getElementById("gameCanvas")
@@ -403,12 +403,15 @@ class FinalScene(Scene):
         self.earth_frame = 0
         self.earth_frame_duration = 200
         self.earth_last_frame_time = 0
+        self.fill_color = "#00FF00"
         
         # Moon sprite for lunar surface
         try:
             self.moon_sprite = window.get_sprite("moon")
         except Exception:
             self.moon_sprite = None
+
+        self.credits = Credits(window.credits, self.fill_color)
 
     def _draw_earth(self, ctx, timestamp):
         # Advance frame based on time
@@ -461,35 +464,30 @@ class FinalScene(Scene):
         # Sparse stars
         self.stars.render(ctx, timestamp)
 
-        # Draw lunar surface first
+        # Update and render scrolling credits before lunar surface
+        self.credits.update(timestamp)
+        self.credits.render(ctx, timestamp)
+
+        # Draw lunar surface after credits so it appears as foreground
         self._draw_lunar_surface(ctx)
         
         # Draw Earth in the distance
         self._draw_earth(ctx, timestamp)
 
-        # Mission complete text
-        ctx.save()
-        ctx.font = f"bold {max(18, int(min(window.canvas.width, window.canvas.height) * 0.04))}px Courier New"
-        ctx.fillStyle = "#00FF00"
-        message = "Mission Complete"
-        tw = ctx.measureText(message).width
-        # Position text in the left side
-        ctx.fillText(message, window.canvas.width * 0.05, window.canvas.height * 0.15)
-        
-        # Add click instruction text
-        ctx.font = f"{max(12, int(min(window.canvas.width, window.canvas.height)) * 0.025)}px Courier New"
-        instruction = "Click anywhere to return to solar system"
-        ctx.fillText(instruction, window.canvas.width * 0.05, window.canvas.height * 0.25)
-        ctx.restore()
-        
-        # Handle click to go back to orbiting planets scene
-        if window.controls.click:
-            # Reset all planet completions so we don't immediately return to final scene
-            orbiting_scene = next(scene for scene in self.scene_manager._scenes if scene.name == ORBITING_PLANETS_SCENE)
-            for planet in orbiting_scene.solar_sys.planets:
-                planet.complete = False
-            log.debug("Reset all planet completions when returning from final scene")
-            self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
+        if self.credits.finished:
+            ctx.font = f"{max(12, int(min(window.canvas.width, window.canvas.height)) * 0.025)}px Courier New"
+            instruction = "Click anywhere to return to solar system"
+            ctx.fillText(instruction, window.canvas.width * 0.05, window.canvas.height * 0.25)
+            ctx.restore()
+
+            # Handle click to go back to orbiting planets scene
+            if window.controls.click:
+                # Reset all planet completions so we don't immediately return to final scene
+                orbiting_scene = next(scene for scene in self.scene_manager._scenes if scene.name == ORBITING_PLANETS_SCENE)
+                for planet in orbiting_scene.solar_sys.planets:
+                    planet.complete = False
+                log.debug("Reset all planet completions when returning from final scene")
+                self.scene_manager.activate_scene(ORBITING_PLANETS_SCENE)
 
 # --------------------
 # create scene manager

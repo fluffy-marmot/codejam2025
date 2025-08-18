@@ -28,6 +28,9 @@ audio_list = [audio_file.name for audio_file in audio_dir.iterdir()]
 with Path.open(static_dir / "lore.txt") as f:
     lore = f.read()
 
+with Path.open(static_dir / "credits.txt") as f:
+    credits = f.read()
+
 @app.route("/")
 def index():
     return render_template(
@@ -35,7 +38,8 @@ def index():
         planets_info=planets_info, 
         sprite_list=sprite_list, 
         audio_list=audio_list,
-        lore=lore
+        lore=lore,
+        credits=credits
     )
 
 if __name__ == "__main__":

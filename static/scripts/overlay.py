@@ -2,8 +2,11 @@ import re
 
 from window import window
 from common import Position, CanvasRenderingContext2D, Rect
+from consolelogger import getLogger
 from scene_classes import Scene, SceneManager
 from spacemass import SpaceMass
+
+log = getLogger(__name__)
 
 def rgba_to_hex(rgba_str):
     """
@@ -275,3 +278,44 @@ class Dialogue(TextOverlay):
             self.color = "rgba(0, 255, 0, 0.8)"  
         else:
             self.color = "rgba(170, 255, 0, 0.8)" 
+
+class Credits:
+    """Simple scrolling credits"""
+    def __init__(self, credits_text: str, fill_color: str):
+        self.credits_lines = credits_text.split("\n") if credits_text else ["No credits available"]
+        self.scroll_speed = 1.0  # pixels per frame
+        self.y_offset = window.canvas.height  * 0.7  # Start near bottom of screen
+        self.line_height = 30
+        self.fill_color = fill_color
+        self.finished = False
+        
+    def update(self, timestamp):
+        """Update the scroll position."""
+        self.y_offset -= self.scroll_speed
+        
+        # Check if credits have finished scrolling
+        if not self.finished:
+            last_line_y = self.y_offset + (len(self.credits_lines) * self.line_height)
+            log.debug("Credits Last Line Y Offset: %s", last_line_y)
+            if last_line_y < 0:
+                self.finished = True
+        
+    def render(self, ctx, timestamp):
+        """Render the scrolling credits."""
+        if self.finished:
+            return
+        
+        ctx.save()
+        ctx.font = f"18px Courier New"
+        ctx.fillStyle = self.fill_color
+        ctx.textAlign = "center"
+        
+        # Draw each line of credits
+        for i, line in enumerate(self.credits_lines):
+            y_pos = self.y_offset + (i * self.line_height)
+            # Only render if the line is visible on screen
+            if -self.line_height <= y_pos <= window.canvas.height + self.line_height:
+                ctx.fillText(line, window.canvas.width / 2, y_pos)
+        
+        ctx.restore()
+
