@@ -36,13 +36,29 @@ of our [index.html](/templates/index.html) to let the pyscript environment allow
 
 ## Installation and Usage
 
+### Prerequisites to Run
+- Python 3.12
+- [uv](https://github.com/astral-sh/uv) is recommended for the package manager
+- An active internet connection (to fetch the pyodide interpreter and pyscript modules from the pyscript CDN)
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/fluffy-marmot/codejam2025
+   ```
+
+2. Install dependencies using uv:
+   ```bash
+   uv sync
+   ```
+### Without uv
 The dependencies are listed in [`pyproject.toml`](pyproject.toml). Since the only server-side dependency for running the
 project is flask (pyscript is obtained automatically in browser as needed via CDN), the
 project can be run after cloning it by simply using
-```
+```bash
 pip install flask
 python app.py
 ```
+### Running the Game
 Running the [app.py](/app.py) file starts the simple flask server to serve the single html page, which should be at
 [http://127.0.0.1:5000](http://127.0.0.1:5000) if testing it locally. We also have a version of our game hosted
 at [https://caius.pythonanywhere.com/codejam/](https://caius.pythonanywhere.com/codejam/) although this has been
