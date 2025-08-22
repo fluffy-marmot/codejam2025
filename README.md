@@ -1,44 +1,70 @@
-# Python Discord Code Jam 2025: Cool Cacti
+# Planet Scanners: Python Discord Code Jam 2025
 
-## Overview
-We created pygame-like functionality using pyodide. Using a context object, we are able to replicate javascript-like functionality in Python. See https://developer.mozilla.org/en-US/docs/Web/API for what methods ctx has. The game itself is presented in the video. 
+We created a simple sprite-based, space-themed game using pyscript backed by pyodide and its JavaScript wrapper
+capabilities to leverage JavaScript's convenient API for rendering graphics on HTML canvas elements, playing
+audio, and accessing user input. We hope this can demo as an alternative to the use of a pygame wrapper such as
+pygbag, without the need for its extra layer of abstraction, as the browser-side functionality of our game doesn't use anything
+but the Python standard library and the pyscript & pyodide modules for accessing JavaScript functionality
 
-"Building Blocks" we implemented for our game:
-- Drawing shapes (eclipses, rectangles, etc)
-- Audio
-- Sprites/Spritesheets
-## Approved frameworks
-We used pyodide 
-(Soosh, please fill this part out)
-(add some extra description as to how developing with pyodide made it harder)
-Suggestions:
-Extra files (html, css, extra py files that would otherwise not be needed if not for pyodide)
-Working with ctx (no autocomplete, docs are in JavaScript and not Py)
-We need to hit this criteria here: "Which approved library/framework was used and how it was used"
+### The Game
 
-## Theme
-We achieved connection to the theme in 2 ways:
-### Pyodide
-Pyodide is inherently the wrong tool for the job, since libraries such as pygbag exist, or you could package your pygame with something like PyInstaller.
+The introduction depicts aliens flying around space past the speed of light, about to turn on their super
+advanced intergalactic planet scanner. Today, it fails! Luckily, one of the aliens has an old Earth-based
+barcode scanner - the "wrong tool for the
+job", that will have to do today. In the solar system overview screen, seen below, the player can select each of the solar system's planets in turn and must complete
+a scan for that planet to complete a mission.
+![Planet selection screen](/readme_images/game1.png)
+The gameplay (shown in the image below) is a variation of the classic asteroids game, where
+the player must dodge incoming asteroids to avoid ship damage and stay immobile while holding down the Spacebar
+to progress scanning.
+An animated rotating planet combined with the movement of stars off-screen in the opposite direction creates a
+simple but effective perspective of the player ship orbiting a planet.
+![Planet selection screen](/readme_images/game2.png)
 
-### The game
-(Spoilers!) The introduction depicts aliens flying around space past the speed of light, about to turn on their super advanced intergalactic planet scanner. Today, it fails. Luckily, one of the aliens has a barcode scanner from his work, but they need to go orbit planets for some time to scan, rather than fly faster than light. Our game and its mechanics are centered around this barcode scanner that they must use. It's the "wrong tool for the job", since you really shouldn't be scanning planets with a supermarket barcode scanner. (Still works though, they are very advanced aliens!)
+![Planet selection screen](/readme_images/game3.png)
 
-## Individual contributions
-(Add your contributions here)
+## Intended Event Frameworks
 
-RealisticTurtle: Intro scene, Game scene, story, stars, scanning mechanics
+We used pyscript backed by the pyodide interpreter. We were pleasantly surprised by how few pyscript-specific
+oddities we ran into. Using the provided JavaScript wrapper capabilities felt almost as natural as writing
+JavaScript directly into the Python files, except writing in Python! To serve our single page game app, we
+included an ultra-minimalistic Flask backend for convenience in designing, though with a little refactoring our page could
+also be served statically. There is some very minimalistic HTML and CSS to more or less create an HTML canvas to
+draw on with the appropriate styling and create the initial setup for importing our in-browser Python scripts.
+It was necessary to provide the contents of a [pyscript.json](/static/pyscript.json) file to the config attribute of the <py-script> tag
+of our [index.html](/templates/index.html) to let the pyscript environment allow the proper imports of modules into one another.
 
-Soosh: Library research, pyodide setup, colored stars
+## Installation and Usage
 
-Dark Zero: main scene, sprites, player mechanics, asteroid logic, end scene
+The dependencies are listed in [`pyproject.toml`](pyproject.toml). Since the only server-side dependency for running the
+project is flask (pyscript is obtained automatically in browser as needed via CDN), the
+project can be run after cloning it by simply using
+```
+pip install flask
+python app.py
+```
+Running the [app.py](/app.py) file starts the simple flask server to serve the single html page, which should be at
+[http://127.0.0.1:5000](http://127.0.0.1:5000) if testing it locally. We also have a version of our game hosted
+at [https://caius.pythonanywhere.com/codejam/](https://caius.pythonanywhere.com/codejam/) although this has been
+slightly modified from the current repository to run as a single app within an already existing Django project.
+None of the files in the `/static/` directory of the hosted version have been modified, therefore in-browser functionality
+should be the same.
 
-Doomy: Text boxes, end scene, experimented with marimo
+## Individual Contributions
 
-## Installation and usage
-Uhh idk theres no reqs.txt
+RealisticTurtle: storyboarding, intro scene and story, game scene, star system, scanning mechanics
 
-## The game:
-View the video at: https://youtube.com/placeholder
+Soosh: library research, core functionality (audio and input modules, gameloop, scene system), code integration, debris
+system
 
-The video will display the game and its mechanics.
+Dark Zero: planet selection scene, sprites, spritesheet helper scripts, player mechanics, asteroid
+implementation, collision logic, end scene
+
+Doomy: dynamic textboxes, end scene and credits, Horizons API functionality,
+refactoring and maintenance, scanner refinement
+
+## Game Demonstration
+
+This video is a quick demonstration of our game and its mechanics by our teammade RealisticTurtle
+
+View the demo on [Youtube](https://www.youtube.com/watch?v=J8LKGUsTeAo)
