@@ -64,6 +64,6 @@ Dark Zero: main scene, sprites, player mechanics, asteroid logic, end scene
 Doomy: Text boxes, end scene, experimented with marimo
 
 ## The game:
-View the video at: https://youtube.com/placeholder
+View the video at: https://www.youtube.com/watch?v=J8LKGUsTeAo
 
 The video will display the game and its mechanics.
