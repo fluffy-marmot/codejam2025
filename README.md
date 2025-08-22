@@ -77,7 +77,7 @@ Dark Zero: planet selection scene, sprites, spritesheet helper scripts, player m
 implementation, collision logic, end scene
 
 Doomy: dynamic textboxes, end scene and credits, Horizons API functionality,
-refactoring and maintenance, scanner refinement
+refactoring and maintenance, scanner refinement, experimented with Marimo
 
 ## Game Demonstration
 
